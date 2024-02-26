@@ -1,0 +1,11 @@
+/* Basic styling for popup */
+body {
+    width: 400px;
+    padding: 10px;
+    font-family: Arial, sans-serif;
+}
+input, button {
+    width: 80%;
+    margin: 5px 0;
+    padding: 10px;
+}

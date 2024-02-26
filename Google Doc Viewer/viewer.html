@@ -1,0 +1,29 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Multi-View</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden; /* Disable scroll on body */
+        }
+        #iframeContainer {
+            display: flex;
+            flex-direction: row;
+            height: 100%;
+        }
+        iframe {
+            flex: 1; /* Distribute space evenly */
+            width: 100%; /* Ensure each iframe tries to fit the width */
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="iframeContainer"></div>
+    <script src="viewer.js"></script>
+</body>
+</html>
