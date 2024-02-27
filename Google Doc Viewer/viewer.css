@@ -1,38 +1,20 @@
 body, html {
-    height: 100%;
     margin: 0;
+    padding: 0;
+    height: 100%;
+    overflow: hidden; /* Disable scroll on body */
+}
+#iframeContainer {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
+    height: 100%;
 }
-#toolbar {
-    padding: 10px;
-    background: #f0f0f0;
-}
-#tabs {
-    display: flex;
-    overflow-x: auto;
-    border-bottom: 1px solid #ccc;
-}
-.tab {
-    padding: 10px;
-    cursor: pointer;
-    border: 1px solid #ccc;
-    border-bottom: none;
-    white-space: nowrap;
-}
-.doc-view {
-    flex-grow: 1;
-    width: 100%;
+iframe {
+    flex: 1; /* Distribute space evenly */
     border: none;
 }
-/* Initial state with two-doc view */
-#doc1, #doc2 {
-    width: 50%;
-}
-/* Single doc view */
-.single-view #doc1, .single-view #doc2 {
-    width: 100%;
-}
-.single-view #doc2 {
-    display: none; /* Hide the second iframe in single doc view */
+.iframe-divider {
+    width: 6px; /* Width of the divider */
+    background-color: #ccc; /* Color of the divider */
+    height: 100%; /* Full height of the container */
 }
