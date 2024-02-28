@@ -42,16 +42,22 @@ document.addEventListener('DOMContentLoaded', function() {
                     const dx = e.clientX - startX; // Calculate the change in mouse position
                     console.log(`Dragging... DeltaX: ${dx}px`);
                     
-                    prevIframe.style.flex = 'none'; // Disable flex for the previous iframe
-                    nextIframe.style.flex = 'none'; // Disable flex for the next iframe
-                    prevIframe.style.width = `${prevWidth + dx}px`; // Adjust the width of the previous iframe
-                    nextIframe.style.width = `${nextWidth - dx}px`; // Adjust the width of the next iframe
+                    // Calculate new widths based on drag delta and convert to flex-basis
+                    const newPrevWidth = Math.max(prevWidth + dx, 0); // Prevent negative widths
+                    const newNextWidth = Math.max(nextWidth - dx, 0); // Prevent negative widths
+                    
+                    prevIframe.style.flex = `1 1 ${newPrevWidth}px`; // Update flex-basis for the previous iframe
+                    nextIframe.style.flex = `1 1 ${newNextWidth}px`; // Update flex-basis for the next iframe
                 };
 
                 // Function to handle mouse up event, i.e., when dragging ends
                 function onMouseUp() {
                     // Re-enable pointer events on all iframes
                     document.querySelectorAll('iframe').forEach(iframe => iframe.style.pointerEvents = '');
+
+                    // Update flex-basis to maintain the layout after resizing
+                    prevIframe.style.flex = `0 1 ${prevIframe.offsetWidth}px`;
+                    nextIframe.style.flex = `0 1 ${nextIframe.offsetWidth}px`;
 
                     // Remove event listeners for mousemove and mouseup
                     document.removeEventListener('mousemove', onMouseMove);
