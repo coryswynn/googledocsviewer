@@ -4,8 +4,26 @@ body {
     padding: 10px;
     font-family: Arial, sans-serif;
 }
-input, button {
-    width: 80%;
-    margin: 5px 0;
+
+button, input {
+    width: 100%;
+    margin: 5px 0px;
     padding: 10px;
+    box-sizing: border-box; /* Include padding and borders in the total width */
+}
+
+.tab-item {
+    display: flex;
+    color: brown;
+    padding: 0px;
+    box-sizing: border-box; /* Include padding and borders in the total width */
+}
+
+.tab-item:hover {
+    background-color: lightgray;
+    opacity: 100%;
+}
+
+.checkbox {
+    width: 10%;
 }
