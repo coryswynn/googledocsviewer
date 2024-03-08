@@ -27,6 +27,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Query the current window tabs
     chrome.tabs.query(queryInfo, function(tabs) {
         const tabList = document.getElementById('tab-list'); // Ensure this element exists in your HTML
+        let validTabsFound = false; // Flag to track if valid tabs are found
 
         // For each tab, create a new div element to display the tab's title
         tabs.forEach(function(tab, index) {
@@ -48,13 +49,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 tabItem.appendChild(checkbox);
                 tabItem.appendChild(labelText);
 
-                // // When a tab item is clicked, make that tab active
-                // tabItem.onclick = function() {
-                //     chrome.tabs.update(tab.id, {active: true});
-                // };
-
                 tabList.appendChild(tabItem); // Append the tab item to the list
+                validTabsFound = true;
             }
         });
+
+        if (!validTabsFound) {
+            document.querySelector('button[type="submit"]').style.display = 'none';
+            // Display a message within the popup instead of an alert
+            const noTabsMessage = document.createElement('p');
+            noTabsMessage.id = 'no-tabs-message';
+            noTabsMessage.textContent = 'Please open a Google Docs, Sheets, or Slides tab to use this feature.';
+            document.body.appendChild(noTabsMessage);
+
+        }
     });
 });
