@@ -39,6 +39,7 @@ button:hover {
     border-radius: 5px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     transition: background-color 0.3s ease;
+    cursor: pointer;
 }
 
 .tab-item:hover {
@@ -47,4 +48,14 @@ button:hover {
 
 .checkbox {
     margin-right: 10px; /* Add some space between the checkbox and the label */
+    cursor: pointer;
+}
+
+#no-tabs-message {
+    padding: 10px;
+    background-color: #ffcccc;
+    color: #333;
+    border-radius: 5px;
+    margin: 10px 0;
+    text-align: center;
 }
