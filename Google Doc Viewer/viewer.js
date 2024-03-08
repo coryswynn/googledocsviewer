@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', function() {
     urls.forEach((url, index) => {
         const iframe = document.createElement('iframe');
         iframe.src = url;
+        iframe.style.flex = "1"; // Ensure iframes are flexible
         iframeContainer.appendChild(iframe);
 
         console.log(`Iframe ${index+1} added for URL: ${url}`);
@@ -55,15 +56,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Re-enable pointer events on all iframes
                     document.querySelectorAll('iframe').forEach(iframe => iframe.style.pointerEvents = '');
 
-                    // Update flex-basis to maintain the layout after resizing
-                    prevIframe.style.flex = `0 1 ${prevIframe.offsetWidth}px`;
-                    nextIframe.style.flex = `0 1 ${nextIframe.offsetWidth}px`;
-
                     // Remove event listeners for mousemove and mouseup
                     document.removeEventListener('mousemove', onMouseMove);
                     document.removeEventListener('mouseup', onMouseUp);
 
                     console.log('Drag ended');
+                    updateIframeProportions(); // Update proportions when dragging stops
                 }
                 
                 // Add event listeners for mousemove and mouseup to the document
@@ -72,4 +70,35 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
     });
-});
+
+    // Function to update iframes' proportions based on current sizes
+    function updateIframeProportions() {
+        const totalWidth = iframeContainer.offsetWidth; // Get the total width of the iframe container
+        const iframes = document.querySelectorAll('iframe');
+        let totalProportionalWidth = 0; // This will store the total proportional width to help adjust last iframe's width correctly
+
+        iframes.forEach((iframe, index) => {
+            let proportionalWidth = iframe.offsetWidth / totalWidth;
+            totalProportionalWidth += proportionalWidth; // Add to the total
+            iframe.setAttribute('data-proportional-width', proportionalWidth.toString()); // Store proportion as an attribute
+            if (index === iframes.length - 1 && totalProportionalWidth !== 1) {
+                // Adjust for any rounding errors on the last iframe by setting it to fill the remaining space
+                iframe.setAttribute('data-proportional-width', (1 - (totalProportionalWidth - proportionalWidth)).toString());
+            }
+        });
+    }
+
+    // Window resize event listener to adjust iframe sizes
+    window.addEventListener('resize', () => {
+        const totalWidth = iframeContainer.offsetWidth; // Get the new total width of the iframe container
+        document.querySelectorAll('iframe').forEach(iframe => {
+            let proportionalWidth = parseFloat(iframe.getAttribute('data-proportional-width')); // Get the stored proportion
+            iframe.style.width = `${proportionalWidth * totalWidth}px`; // Adjust width based on proportion
+        }); // Close forEach for adjusting iframe widths
+
+        // Initial call to update proportions when content is loaded
+        updateIframeProportions();
+
+    }); // Close window resize event listener
+
+}); // Close DOMContentLoaded event listener
