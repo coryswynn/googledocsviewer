@@ -21,6 +21,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const urlTitle = document.createElement('span');
         urlTitle.className = 'url-text'; // Use this class for styling
         toolbar.appendChild(urlTitle); // Add to the toolbar
+        urlTitle.textContent = 'Loading title...'; // Initial text
 
         fetch(url)
             .then(response => response.text())
@@ -40,6 +41,7 @@ document.addEventListener('DOMContentLoaded', function() {
         copyButton.className = 'copy-url-button'; // Use this class for styling
         copyButton.innerHTML = '&#128203;'; // Placeholder icon, replace with actual copy icon
         copyButton.onclick = function() {
+        copyButton.title = 'Copy URL'
             navigator.clipboard.writeText(url).then(() => {
                 alert('URL copied to clipboard!');
             });
@@ -49,11 +51,37 @@ document.addEventListener('DOMContentLoaded', function() {
         // Add pop out button
         const popOutButton = document.createElement('button');
         popOutButton.className = 'pop-out-button'; // Use this class for styling
-        popOutButton.innerHTML = '&#9974;'; // Placeholder icon, replace with actual pop-out icon
+        popOutButton.innerHTML = '&#8599;'; // Placeholder icon, replace with actual pop-out icon
         popOutButton.onclick = function() {
             window.open(url, '_blank');
         };
         toolbar.appendChild(popOutButton);
+
+        // Add fullscreen toggle button with an icon (using Unicode as a placeholder)
+        const fullscreenButton = document.createElement('button');
+        fullscreenButton.className = 'fullscreen-button';
+        fullscreenButton.innerHTML = '&#9974;' // Placeholder, replace with an actual icon
+        toolbar.appendChild(fullscreenButton);
+
+        // Functionality to toggle full-width view
+        fullscreenButton.addEventListener('click', function() {
+            const isExpanded = containerFrame.classList.contains('expanded');
+            document.querySelectorAll('.url-container').forEach((cf, cfIndex) => {
+                if (cf === containerFrame) {
+                    if (!isExpanded) {
+                        cf.classList.add('expanded');
+                        cf.style.flex = "1 1 100%";
+                        fullscreenButton.innerHTML = '&#11138;'; 
+                    } else {
+                        cf.classList.remove('expanded');
+                        cf.style.flex = ""; // Reset to default
+                        fullscreenButton.innerHTML = '&#9974;'; 
+                    }
+                } else {
+                    cf.style.display = isExpanded ? "" : "none"; // Toggle visibility of other frames
+                }
+            });
+        });
 
         // Create and add the iframe below the toolbar
         const iframe = document.createElement('iframe');
@@ -137,6 +165,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+    
 
     // Window resize event listener to adjust iframe sizes based on their flex-basis
     window.addEventListener('resize', () => {
