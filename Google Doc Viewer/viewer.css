@@ -4,6 +4,7 @@ body, html {
     height: 100%;
     overflow: hidden; /* Disable scroll on body */
 }
+
 #iframeContainer {
     display: flex;
     flex-direction: row;
@@ -11,10 +12,54 @@ body, html {
 }
 iframe {
     flex: 1; /* Distribute space evenly */
+    width: 100%; /* Fill the container horizontally */
     border: none;
 }
+
 .iframe-divider {
-    width: 6px; /* Width of the divider */
-    background-color: #ccc; /* Color of the divider */
+    min-width: 5px; /* Width of the divider */
+    cursor: ew-resize;
+    background: linear-gradient(to right, #f0f0f0, #a0a0a0, #f0f0f0);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
     height: 100%; /* Full height of the container */
+}
+
+.iframe-divider:hover {
+    cursor: col-resize; /* Shows a horizontal arrow cursor indicating the divider can be dragged */
+}
+
+.iframe-container {
+    margin-bottom: 20px;
+}
+
+.url-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%; /* Ensure it fills the parent vertically */
+    width: 100%; /* Ensure it fills the parent horizontally */
+    border: 1px solid #ccc; /* Optional, just for visibility */
+}
+
+.url-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 10px;
+    background-color: #f0f0f0; /* Light grey background */
+    border-bottom: 1px solid #ccc; /* Optional, adds a divider look */
+}
+
+.url-text {
+    flex-grow: 1; /* Allow the URL text to take up any available space */
+    overflow: hidden; /* Hide overflow */
+    text-overflow: ellipsis; /* Show ellipsis for overflow */
+    white-space: nowrap; /* Keep the URL in one line */
+}
+
+.copy-url-button, .pop-out-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 16px; /* Adjust as needed */
+    margin-left: 10px; /* Space out buttons */
 }
