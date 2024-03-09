@@ -1,11 +1,61 @@
-/* Basic styling for popup */
+/* Improved styling for popup */
 body {
     width: 400px;
-    padding: 10px;
-    font-family: Arial, sans-serif;
+    margin: 0 auto;
+    padding: 20px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f5f5f5;
+    color: #333;
 }
-input, button {
-    width: 80%;
+
+h1, h3 {
+    margin: 0 0 10px;
+    text-align: center;
+}
+
+button {
+    width: calc(100% - 20px); /* Adjust width considering padding */
+    margin-top: 20px;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    background-color: #0078d7;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #005ea6;
+}
+
+.tab-item {
+    display: flex;
+    align-items: center;
     margin: 5px 0;
     padding: 10px;
+    background-color: white;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: background-color 0.3s ease;
+    cursor: pointer;
+}
+
+.tab-item:hover {
+    background-color: #eaeaea;
+}
+
+.checkbox {
+    margin-right: 10px; /* Add some space between the checkbox and the label */
+    cursor: pointer;
+}
+
+#no-tabs-message {
+    padding: 10px;
+    background-color: #ffcccc;
+    color: #333;
+    border-radius: 5px;
+    margin: 10px 0;
+    text-align: center;
 }
