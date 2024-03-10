@@ -6,6 +6,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     console.log('URLs to load:', urls);
 
+    // Store initial proportions for each iframe
+    let initialProportions = [];
+
     urls.forEach((url, index) => {
         // Create a container for each URL
         const containerFrame = document.createElement('div');
@@ -17,11 +20,12 @@ document.addEventListener('DOMContentLoaded', function() {
         toolbar.className = 'url-toolbar'; // Use this class for styling
         containerFrame.appendChild(toolbar); // Add the toolbar to the container frame
 
-                // Create the URL title span
+        // Create the URL title span
         const urlTitle = document.createElement('span');
         urlTitle.className = 'url-text'; // Use this class for styling
         toolbar.appendChild(urlTitle); // Add to the toolbar
-
+        urlTitle.textContent = 'Loading title...'; // Initial text
+        
         fetch(url)
             .then(response => response.text())
             .then(html => {
@@ -34,12 +38,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.error('Error fetching or parsing URL:', error);
                 urlTitle.textContent = 'Title unavailable'; // Fallback text
             });
-
+        
         // Add copy URL button
         const copyButton = document.createElement('button');
         copyButton.className = 'copy-url-button'; // Use this class for styling
         copyButton.innerHTML = '&#128203;'; // Placeholder icon, replace with actual copy icon
         copyButton.onclick = function() {
+        copyButton.title = 'Copy URL'
             navigator.clipboard.writeText(url).then(() => {
                 alert('URL copied to clipboard!');
             });
@@ -49,11 +54,38 @@ document.addEventListener('DOMContentLoaded', function() {
         // Add pop out button
         const popOutButton = document.createElement('button');
         popOutButton.className = 'pop-out-button'; // Use this class for styling
-        popOutButton.innerHTML = '&#9974;'; // Placeholder icon, replace with actual pop-out icon
+        popOutButton.innerHTML = '&#8599;'; // Placeholder icon, replace with actual pop-out icon
         popOutButton.onclick = function() {
             window.open(url, '_blank');
         };
         toolbar.appendChild(popOutButton);
+
+        // Add fullscreen toggle button with an icon (using Unicode as a placeholder)
+        const fullscreenButton = document.createElement('button');
+        fullscreenButton.className = 'fullscreen-button';
+        fullscreenButton.innerHTML = '&#9974;' // Placeholder, replace with an actual icon
+        toolbar.appendChild(fullscreenButton);
+
+        // Functionality to toggle full-width view
+        fullscreenButton.addEventListener('click', function() {
+            const isExpanded = containerFrame.classList.contains('expanded');
+            document.querySelectorAll('.url-container').forEach((cf, cfIndex) => {
+                if (cf === containerFrame) {
+                    if (!isExpanded) {
+                        cf.classList.add('expanded');
+                        cf.style.flex = "1 1 100%";
+                        fullscreenButton.innerHTML = '&#11138;'; 
+                    } else {
+                        cf.classList.remove('expanded');
+                        // Restore original proportions after exiting full-screen
+                        cf.style.flex = `1 1 ${initialProportions[cfIndex]}%`; 
+                        fullscreenButton.innerHTML = '&#9974;';
+                    }
+                } else {
+                    cf.style.display = isExpanded ? "" : "none"; // Toggle visibility of other frames
+                }
+            });
+        });
 
         // Create and add the iframe below the toolbar
         const iframe = document.createElement('iframe');
@@ -123,20 +155,21 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Function to update iframes' proportions based on current sizes
     function updateIframeProportions() {
-        const totalWidth = iframeContainer.offsetWidth; // Get the total width of the iframe container
-        const iframes = document.querySelectorAll('iframe');
-        let totalProportionalWidth = 0; // This will store the total proportional width to help adjust last iframe's width correctly
+        const totalWidth = iframeContainer.offsetWidth; 
+        const iframes = document.querySelectorAll('.url-container');
+        let totalProportionalWidth = 0;
 
         iframes.forEach((iframe, index) => {
-            let proportionalWidth = iframe.offsetWidth / totalWidth;
-            totalProportionalWidth += proportionalWidth; // Add to the total
-            iframe.setAttribute('data-proportional-width', proportionalWidth.toString()); // Store proportion as an attribute
-            if (index === iframes.length - 1 && totalProportionalWidth !== 1) {
-                // Adjust for any rounding errors on the last iframe by setting it to fill the remaining space
-                iframe.setAttribute('data-proportional-width', (1 - (totalProportionalWidth - proportionalWidth)).toString());
+            let proportionalWidth = (iframe.offsetWidth / totalWidth) * 100;
+            totalProportionalWidth += proportionalWidth;
+            initialProportions[index] = proportionalWidth; // Store initial proportions
+            if (index === iframes.length - 1 && totalProportionalWidth !== 100) {
+                // Adjust the last iframe proportion to account for rounding errors
+                initialProportions[index] = 100 - (totalProportionalWidth - proportionalWidth);
             }
         });
     }
+    
 
     // Window resize event listener to adjust iframe sizes based on their flex-basis
     window.addEventListener('resize', () => {
@@ -161,5 +194,5 @@ document.addEventListener('DOMContentLoaded', function() {
         updateIframeProportions();
 
     }); // Close window resize event listener
-
+    updateIframeProportions();
 }); // Close DOMContentLoaded event listener

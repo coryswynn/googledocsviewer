@@ -56,6 +56,10 @@ iframe {
     white-space: nowrap; /* Keep the URL in one line */
 }
 
+.url-text:hover {
+    color: #007bff; /* Highlight color on hover to indicate interactivity */
+}
+
 .copy-url-button, .pop-out-button {
     background: none;
     border: none;
