@@ -64,10 +64,40 @@ iframe {
     margin-left: 5px; /* Space out buttons */
 }
 
+.drag-handle {
+    background: none;
+    border: 2px solid transparent; /* Define a transparent border */
+    cursor: grab; /* Show a move cursor */
+    font-size: 16px; /* Adjust as needed */
+    margin-left: 5px; /* Space out buttons */
+}
+
+/* Style for when an item is dragged over the top half of a target */
+.drag-over-top {
+    border-top: 2px solid blue; /* Blue top border indicating a drop above */
+    background-color: rgba(0, 0, 255, 0.1); /* Slightly tinted background */
+}
+
+/* Style for when an item is dragged over the bottom half of a target */
+.drag-over-bottom {
+    border-bottom: 2px solid green; /* Green bottom border indicating a drop below */
+    background-color: rgba(0, 255, 0, 0.1); /* Slightly tinted background */
+}
+
 .copy-url-button:hover, .pop-out-button:hover, .fullscreen-button:hover {
     background-color: #e3e3e3; /* Light grey background on hover */
     border-color: #ccc; /* Slightly darker border on hover for definition */
     border-radius: 5px; /* Optional: Adds rounded corners for a modern look */
+}
+
+.url-container.dragging {
+    opacity: 0.5;
+}
+
+.url-container.drag-over {
+    background-color: rgba(0, 123, 255, 0.1); /* Light blue background */
+    border: 2px dashed #007bff; /* Dashed blue border */
+    box-shadow: 0 0 10px rgba(0, 123, 255, 0.2); /* Slight shadow for depth */
 }
 
 .url-container.expanded {
