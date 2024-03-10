@@ -86,7 +86,6 @@ document.addEventListener('DOMContentLoaded', function() {
             document.querySelectorAll('.url-container').forEach((cf, cfIndex) => {
                 if (cf === containerFrame) {
                     if (!isExpanded) {
-                        updateIframeProportions();
                         cf.classList.add('expanded');
                         cf.style.flex = "1 1 100%";
                         fullscreenButton.innerHTML = '&#11138;'; 
@@ -94,7 +93,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     } else {
                         cf.classList.remove('expanded');
                         // Restore original proportions after exiting full-screen
-                        cf.style.flex = `1 1 ${initialProportions[cfIndex]}%`; 
+                        cf.style.flex = `1 1 100%`; 
                         fullscreenButton.innerHTML = '&#9974;';
                         console.log(`Restored: ${cfIndex}, Flex: ${cf.style.flex}`);
                     }
