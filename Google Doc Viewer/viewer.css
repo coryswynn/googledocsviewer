@@ -56,14 +56,94 @@ iframe {
     white-space: nowrap; /* Keep the URL in one line */
 }
 
+.copy-url-button, .pop-out-button, .fullscreen-button {
+    background: none;
+    border: 2px solid transparent; /* Define a transparent border */
+    cursor: pointer;
+    font-size: 16px; /* Adjust as needed */
+    margin-left: 5px; /* Space out buttons */
+}
+
+.copy-url-button:hover, .pop-out-button:hover, .fullscreen-button:hover {
+    background-color: #e3e3e3; /* Light grey background on hover */
+    border-color: #ccc; /* Slightly darker border on hover for definition */
+    border-radius: 5px; /* Optional: Adds rounded corners for a modern look */
+}
+
+.url-container.expanded {
+    flex: 1 1 100%;
+}
+
 .url-text:hover {
     color: #007bff; /* Highlight color on hover to indicate interactivity */
 }
 
-.copy-url-button, .pop-out-button {
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: 16px; /* Adjust as needed */
-    margin-left: 10px; /* Space out buttons */
+/* Modal Styles */
+.modal {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 1000; /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgb(0,0,0); /* Fallback color */
+    background-color: rgba(0,0,0,0.6); /* Black w/ opacity */
 }
+
+.modal-content {
+    position: relative;
+    background-color: #fefefe;
+    margin: 5% auto; /* Lower margin for better use of screen space */
+    padding: 20px;
+    border-radius: 10px; /* Rounded corners for a modern look */
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2); /* Subtle shadow for depth */
+    width: 50%; /* Adapt width for better content presentation */
+    animation: modalFadeIn 0.5s; /* Smooth fade-in effect */
+}
+
+@keyframes modalFadeIn {
+    from {top: -30%; opacity: 0;}
+    to {top: 5%; opacity: 1;}
+}
+
+.close-button {
+    color: #aaa;
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close-button:hover,
+.close-button:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+/* Enhanced usability with specific styles for modal items */
+.modal-url-option {
+    padding: 10px;
+    margin-bottom: 5px;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    cursor: pointer;
+    border-radius: 5px; /* Rounded corners for options */
+    transition: background-color 0.3s, border-color 0.3s;
+}
+
+.modal-url-option:hover {
+    background-color: #eef;
+    border-color: #bbb; /* Highlight option on hover */
+}
+
+/* Favicon Styles */
+.favicon {
+    width: 16px; /* Adjust width as needed */
+    height: 16px; /* Adjust height as needed */
+    margin-right: 10px; /* Adjust margin as needed */
+    vertical-align: middle; /* Align the favicon vertically in the middle */
+  }

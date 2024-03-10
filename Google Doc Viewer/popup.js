@@ -44,9 +44,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 checkbox.value = tab.id; // Use tab ID as value for easy identification
                 checkbox.className = 'checkbox'; // Assuming you have CSS for this class
 
+                // Create an image element for the favicon
+                const favicon = document.createElement('img');
+                favicon.src = 'https://s2.googleusercontent.com/s2/favicons?domain_url='+tab.url;
+                favicon.className = 'favicon'; // Use this class for additional styling (size, margin, etc.)
+                favicon.alt = 'Favicon'; // Alternative text for accessibility
+
+                // Extract the title from the tab's URL and remove the unwanted suffixes
+                let labelText = tab.title.replace(/( - Google (Sheets|Docs|Slides))/, ''); // Remove "- Google Sheets," "- Google Docs," or "- Google Slides" from the title
+
                 // Combine checkbox and tab label
-                const labelText = document.createTextNode(tab.title);
+                labelText = document.createTextNode(labelText);
                 tabItem.appendChild(checkbox);
+                tabItem.appendChild(favicon);
                 tabItem.appendChild(labelText);
 
                 tabList.appendChild(tabItem); // Append the tab item to the list
