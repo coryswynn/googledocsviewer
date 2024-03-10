@@ -4,6 +4,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const urls = params.get('urls') ? decodeURIComponent(params.get('urls')).split(',') : [];
     const iframeContainer = document.getElementById('iframeContainer');
 
+    // Add modal and modal content
+    const modal = document.getElementById('modal');
+    const modalContent = modal.querySelector('.modal-content');
+    const modalBody = modal.querySelector('.modal-body');
+
+    let activeContainerFrame = null; // Keep track of the active container frame globally
+    
     console.log('URLs to load:', urls);
 
     // Store initial proportions for each iframe
@@ -39,6 +46,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 urlTitle.textContent = 'Title unavailable'; // Fallback text
             });
         
+        // **Modal Trigger Setup**
+        urlTitle.addEventListener('click', function() {
+            activeContainerFrame = containerFrame; // Update the active container frame reference
+            clearAndDisplayModal(); // Display the modal
+            
+        });
+
         // Add copy URL button
         const copyButton = document.createElement('button');
         copyButton.className = 'copy-url-button'; // Use this class for styling
@@ -60,7 +74,7 @@ document.addEventListener('DOMContentLoaded', function() {
         };
         toolbar.appendChild(popOutButton);
 
-        // Add fullscreen toggle button with an icon (using Unicode as a placeholder)
+        // Add fullscreen toggle button with an icon
         const fullscreenButton = document.createElement('button');
         fullscreenButton.className = 'fullscreen-button';
         fullscreenButton.innerHTML = '&#9974;' // Placeholder, replace with an actual icon
@@ -170,6 +184,119 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
+    // Clear modal content and hide modal - Refactor this functionality into a single function
+    function closeModal() {
+        const modalBody = modal ? modal.querySelector('.modal-body') : null;
+        if (modalBody) {
+            modalBody.innerHTML = ''; // Clear previous dynamic content
+        }
+        if (modal) {
+            modal.style.display = 'none'; // Hide the modal
+        }
+    }
+    
+    // Listen for clicks outside the modal to close it
+    modal.addEventListener('click', function(event) {
+        if (event.target === modal) {
+            closeModal();
+        }
+    });
+
+    // Close button event listener
+    const closeButton = document.querySelector('.close-button');
+    closeButton.addEventListener('click', closeModal);
+
+    function clearAndDisplayModal() {
+        // Clear any previous content and then display the modal
+        closeModal(); // First, ensure the modal is reset
+        displayModal(); // Then display the modal with the new content
+    }
+    
+    function displayModal() {
+        console.log("Displaying modal...");
+
+        if (!activeContainerFrame) return; // Ensure there's an active container frame
+
+        // Calculate and set modal position and size based on activeContainerFrame's bounds
+        const rect = activeContainerFrame.getBoundingClientRect();
+        modal.style.position = 'absolute';
+        modal.style.top = `${rect.top}px`;
+        modal.style.left = `${rect.left}px`;
+        modal.style.width = `${rect.width}px`;
+        modal.style.height = `${rect.height}px`;
+        modal.style.display = 'block';
+
+        // Populate modal with filtered URLs
+        const modalBody = modal.querySelector('.modal-body'); // Reference to the dynamic content area
+        console.log("Modal body found:", modalBody);
+
+        modalBody.innerHTML = ''; // Clear previous dynamic content
+        console.log("Cleared modal body content.");
+
+        // Query the current window tabs
+        chrome.tabs.query({}, function(tabs) {
+            let validTabsFound = false;
+
+            tabs.forEach(function(tab) {
+                // Check if the tab's URL matches Google Docs, Sheets, or Slides
+                if (/https:\/\/docs\.google\.com\/(document|spreadsheets|presentation)/.test(tab.url)) {
+                    validTabsFound = true;
+                    const tabItem = document.createElement('div');
+                    tabItem.className = 'modal-url-option'; // Reuse your existing class for styling
+
+                    // Create an image element for the favicon
+                    const favicon = document.createElement('img');
+                    favicon.src = 'https://s2.googleusercontent.com/s2/favicons?domain_url='+tab.url;
+                    favicon.className = 'favicon'; // Use this class for additional styling (size, margin, etc.)
+                    favicon.alt = 'Favicon'; // Alternative text for accessibility
+
+                    // Create a span element for the tab's title
+                    const titleSpan = document.createElement('span');
+                    titleSpan.textContent = tab.title; // Set the tab's title as the text
+                    titleSpan.className = 'tab-title'; // Use this class for styling
+
+                    // Append the favicon and title span to the tabItem
+                    tabItem.appendChild(favicon);
+                    tabItem.appendChild(titleSpan); // Append the title span to the tabItem
+
+        // Event listener for clicking a tabItem
+        tabItem.addEventListener('click', () => {
+                        // Find the iframe within the active container frame to update its source
+                        const iframe = activeContainerFrame.querySelector('iframe');
+                        if (iframe) {
+                            iframe.src = tab.url; // Update the iframe source to the selected URL
+                        }
+
+                        // Update the title in the toolbar
+                        const titleElement = activeContainerFrame.querySelector('.url-text');
+                        if (titleElement) {
+                            titleElement.textContent = tab.title;
+                        }
+
+                        closeModal(); // Hide the modal after selection
+                    });
+                    modalBody.appendChild(tabItem); // Append to the modal content
+                }
+            });
+
+            if (!validTabsFound) {
+                modalBody.textContent = 'No Google Docs, Sheets, or Slides tabs found.';
+            }
+        });
+    }
+
+    function adjustModalPosition() {
+        if (!activeContainerFrame) return; // Ensure there's an active container frame
+
+        // Calculate and set modal position and size based on activeContainerFrame's bounds
+        const rect = activeContainerFrame.getBoundingClientRect();
+        modal.style.position = 'absolute';
+        modal.style.top = `${rect.top}px`;
+        modal.style.left = `${rect.left}px`;
+        modal.style.width = `${rect.width}px`;
+        modal.style.height = `${rect.height}px`;
+        modal.style.display = 'block';
+    }
 
     // Window resize event listener to adjust iframe sizes based on their flex-basis
     window.addEventListener('resize', () => {
@@ -192,6 +319,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Initial call to update proportions when content is loaded
         updateIframeProportions();
+        if (modal.style.display === 'block') {
+            adjustModalPosition(); // Adjust modal position on window resize
+        }
 
     }); // Close window resize event listener
     updateIframeProportions();
