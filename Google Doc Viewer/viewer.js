@@ -10,7 +10,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const modalBody = modal.querySelector('.modal-body');
 
     let activeContainerFrame = null; // Keep track of the active container frame globally
-    
+    let draggedItem = null;    // Keep track of the item being dragged
+    let draggedIndex = -1; // To track which item is being dragged
+
+
     console.log('URLs to load:', urls);
 
     // Fill 'initialProportions' of each iFrame with equal proportions for each window
@@ -20,6 +23,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Create a container for each URL
         const containerFrame = document.createElement('div');
         containerFrame.className = 'url-container'; // Use this class for styling
+        containerFrame.setAttribute('data-id', index); // Assign a data attribute to each frame
         iframeContainer.appendChild(containerFrame);
 
         // Create the toolbar
@@ -27,6 +31,60 @@ document.addEventListener('DOMContentLoaded', function() {
         toolbar.className = 'url-toolbar'; // Use this class for styling
         containerFrame.appendChild(toolbar); // Add the toolbar to the container frame
 
+        /// Create the draggable icon
+        const dragHandle = document.createElement('button');
+        dragHandle.className = 'drag-handle'; // Use this class for styling
+        dragHandle.innerHTML = '&#9776;'; // Draggable Icon
+        toolbar.appendChild(dragHandle); // Add to the toolbar
+        dragHandle.setAttribute('draggable', true);
+
+        // Draggable icon for reordering
+        dragHandle.addEventListener('dragstart', function(e) {
+            draggedItem = containerFrame;
+            draggedIndex = index; // Track the index of the dragged item
+            setTimeout(() => containerFrame.classList.add('dragging'), 0);
+        });
+
+        containerFrame.addEventListener('dragenter', function(e) {
+            e.preventDefault();
+            // Improved visual cue
+            const halfwayPoint = this.getBoundingClientRect().height / 2;
+            const mousePositionRelativeToTarget = e.clientY - this.getBoundingClientRect().top;
+            if (mousePositionRelativeToTarget < halfwayPoint) {
+                this.classList.add('drag-over-top');
+            } else {
+                this.classList.add('drag-over-bottom');
+            }
+        });
+
+        containerFrame.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            // Update visual cue during dragover
+            const halfwayPoint = this.getBoundingClientRect().height / 2;
+            const mousePositionRelativeToTarget = e.clientY - this.getBoundingClientRect().top;
+            this.classList.remove('drag-over-top', 'drag-over-bottom'); // Clear previous position classes
+            if (mousePositionRelativeToTarget < halfwayPoint) {
+                this.classList.add('drag-over-top');
+            } else {
+                this.classList.add('drag-over-bottom');
+            }
+        });
+
+        containerFrame.addEventListener('dragleave', function() {
+            this.classList.remove('drag-over-top', 'drag-over-bottom'); // Clear visual cues
+        });
+
+        containerFrame.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.classList.remove('drag-over-top', 'drag-over-bottom'); // Clear visual cues
+            if (draggedItem) {
+                const targetIndex = Array.from(iframeContainer.children).indexOf(this);
+                const movingUpwards = draggedIndex > targetIndex;
+                const insertBeforeElement = movingUpwards ? this : this.nextSibling;
+                iframeContainer.insertBefore(draggedItem, insertBeforeElement);
+                updateOrderAfterDrop(draggedIndex, Array.from(iframeContainer.children).indexOf(draggedItem));
+            }
+        });
         // Create the URL title span
         const urlTitle = document.createElement('span');
         urlTitle.className = 'url-text'; // Use this class for styling
@@ -318,6 +376,31 @@ document.addEventListener('DOMContentLoaded', function() {
         modal.style.height = `${rect.height}px`;
         modal.style.display = 'block';
     }
+
+    //  Event listener for dragend event
+
+    document.addEventListener('dragend', function() {
+        if (draggedItem) {
+            draggedItem.classList.remove('dragging');
+            iframeContainer.querySelectorAll('.url-container').forEach((container, index) => {
+                container.setAttribute('data-id', index); // Update data-ids to reflect new order
+            });
+            draggedItem = null;
+            draggedIndex = -1;
+        }
+    });
+
+    function updateOrderAfterDrop(oldIndex, newIndex) {
+        if (oldIndex < newIndex) {
+            newIndex--; // Adjust for the removal of the element
+        } else {
+            newIndex++;
+        }
+        const item = urls.splice(oldIndex, 1)[0];
+        urls.splice(newIndex, 0, item);
+        console.log("Updated URLs order:", urls);
+    }
+
 
     // Window resize event listener to adjust iframe sizes based on their flex-basis
     window.addEventListener('resize', () => {
