@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     console.log('URLs to load:', urls);
 
-    // Store initial proportions for each iframe
+    // Fill 'initialProportions' of each iFrame with equal proportions for each window
     let initialProportions = [];
 
     urls.forEach((url, index) => {
@@ -39,7 +39,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(html, "text/html");
                 const title = doc.querySelector('title').innerText;
-                urlTitle.textContent = title; // Set the title as the text content
+                urlTitle.textContent = title.replace(/( - Google (Sheets|Docs|Slides))/, ''); // Set the title as the text content
             })
             .catch(error => {
                 console.error('Error fetching or parsing URL:', error);
@@ -86,14 +86,17 @@ document.addEventListener('DOMContentLoaded', function() {
             document.querySelectorAll('.url-container').forEach((cf, cfIndex) => {
                 if (cf === containerFrame) {
                     if (!isExpanded) {
+                        updateIframeProportions();
                         cf.classList.add('expanded');
                         cf.style.flex = "1 1 100%";
                         fullscreenButton.innerHTML = '&#11138;'; 
+                        console.log(`Expanded: ${cfIndex}, Flex: ${cf.style.flex}`);
                     } else {
                         cf.classList.remove('expanded');
                         // Restore original proportions after exiting full-screen
                         cf.style.flex = `1 1 ${initialProportions[cfIndex]}%`; 
                         fullscreenButton.innerHTML = '&#9974;';
+                        console.log(`Restored: ${cfIndex}, Flex: ${cf.style.flex}`);
                     }
                 } else {
                     cf.style.display = isExpanded ? "" : "none"; // Toggle visibility of other frames
@@ -115,7 +118,6 @@ document.addEventListener('DOMContentLoaded', function() {
             divider.className = 'iframe-divider'; // Assuming you have CSS for this class
             iframeContainer.appendChild(divider);
             console.log(`Divider added between iframe ${index+1} and iframe ${index+2}`);
-
             
             // Make dividers draggable
             let startX, startWidthPrev, startWidthNext; // Variables to store initial mouse position and widths
@@ -252,7 +254,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                     // Create a span element for the tab's title
                     const titleSpan = document.createElement('span');
-                    titleSpan.textContent = tab.title; // Set the tab's title as the text
+                    titleSpan.textContent = tab.title.replace(/( - Google (Sheets|Docs|Slides))/, ''); // Remove "- Google Sheets," "- Google Docs," or "- Google Slides" from the title
                     titleSpan.className = 'tab-title'; // Use this class for styling
 
                     // Append the favicon and title span to the tabItem
@@ -270,10 +272,30 @@ document.addEventListener('DOMContentLoaded', function() {
                         // Update the title in the toolbar
                         const titleElement = activeContainerFrame.querySelector('.url-text');
                         if (titleElement) {
-                            titleElement.textContent = tab.title;
+                            titleElement.textContent = tab.title.replace(/( - Google (Sheets|Docs|Slides))/, '');
                         }
 
-                        closeModal(); // Hide the modal after selection
+                        // Update the copy button functionality with the new URL
+                        const copyButton = activeContainerFrame.querySelector('.copy-url-button');
+                        if (copyButton) {
+                            copyButton.onclick = function() {
+                                copyButton.title = 'Copy URL';
+                                navigator.clipboard.writeText(tab.url).then(() => {
+                                    alert('URL copied to clipboard!');
+                                });
+                            };
+                        }
+
+                        // Update the pop-out button functionality with the new URL
+                        const popOutButton = activeContainerFrame.querySelector('.pop-out-button');
+                        if (popOutButton) {
+                            popOutButton.onclick = function() {
+                                window.open(tab.url, '_blank');
+                            };
+                        }
+
+                        // Hide the modal after selection
+                        closeModal(); 
                     });
                     modalBody.appendChild(tabItem); // Append to the modal content
                 }
