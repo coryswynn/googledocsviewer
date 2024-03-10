@@ -15,7 +15,7 @@ h1, h3 {
 
 button {
     width: calc(100% - 0px); /* Adjust width considering padding */
-    margin-top: 10px;
+    margin-top: 20px;
     padding: 10px;
     border: none;
     border-radius: 5px;
@@ -62,13 +62,13 @@ button:hover {
 
 .header {
     text-align: center;
-    margin-bottom: 20px;
+    margin-bottom: 5px;
 }
 
 .logo {
     width:200px; /* Adjust based on actual logo size */
     height: auto;
-    margin-bottom: 10px;
+    margin-bottom: 5px;
 }
 
 .title {
@@ -83,3 +83,11 @@ button:hover {
     color: #666;
     margin-bottom: 20px;
 }
+
+/* Favicon Styles */
+.favicon {
+    width: 12px; /* Adjust width as needed */
+    height: 12px; /* Adjust height as needed */
+    margin-left: 5px; /* Adjust margin as needed */
+    margin-right: 8px; /* Adjust margin as needed */
+  }
