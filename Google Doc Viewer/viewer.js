@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     let activeContainerFrame = null; // Keep track of the active container frame globally
     let draggedItem = null;    // Keep track of the item being dragged
-    let draggedIndex = -1; // To track which item is being dragged
+    let draggedIndex = null; // To track which item is being dragged
 
 
     console.log('URLs to load:', urls);
@@ -77,14 +77,36 @@ document.addEventListener('DOMContentLoaded', function() {
         containerFrame.addEventListener('drop', function(e) {
             e.preventDefault();
             this.classList.remove('drag-over-top', 'drag-over-bottom'); // Clear visual cues
+        
             if (draggedItem) {
-                const targetIndex = Array.from(iframeContainer.children).indexOf(this);
-                const movingUpwards = draggedIndex > targetIndex;
-                const insertBeforeElement = movingUpwards ? this : this.nextSibling;
-                iframeContainer.insertBefore(draggedItem, insertBeforeElement);
-                updateOrderAfterDrop(draggedIndex, Array.from(iframeContainer.children).indexOf(draggedItem));
+                // Get the current 'data-id' for the draggedItem and the drop target
+                const draggedId = parseInt(draggedItem.getAttribute('data-id'), 10);
+                const targetId = parseInt(this.getAttribute('data-id'), 10);
+        
+                // Determine the insert location
+                const insertBefore = draggedId > targetId; // If dragging down, insert before the targetId
+        
+                // Find the reference element based on the 'data-id'
+                let referenceElement = null;
+                if (insertBefore) {
+                    referenceElement = this;
+                } else {
+                    // If not inserting before and this is not the last element, insert after the next sibling
+                    const nextElement = this.nextElementSibling;
+                    if (nextElement && nextElement.classList.contains('url-container')) {
+                        referenceElement = nextElement.nextElementSibling; // This would be the divider after the target container
+                    }
+                }
+        
+                // Insert the draggedItem at the new position based on referenceElement
+                iframeContainer.insertBefore(draggedItem, referenceElement);
+        
+                // Update the `data-id` attributes for all `.url-container` elements to reflect the new order
+                updateContainerFramesDataId();
+                updateDividers(); // Call the function to update divider positions according to the new order
             }
         });
+
         // Create the URL title span
         const urlTitle = document.createElement('span');
         urlTitle.className = 'url-text'; // Use this class for styling
@@ -172,60 +194,55 @@ document.addEventListener('DOMContentLoaded', function() {
         // If it's not the last iframe, add a divider
         if (index < urls.length - 1) {
             const divider = document.createElement('div');
-            divider.className = 'iframe-divider'; // Assuming you have CSS for this class
+            divider.className = 'iframe-divider'; // Use this class for styling
             iframeContainer.appendChild(divider);
-            console.log(`Divider added between iframe ${index+1} and iframe ${index+2}`);
-            
-            // Make dividers draggable
-            let startX, startWidthPrev, startWidthNext; // Variables to store initial mouse position and widths
+            console.log(`Divider added between iframe ${index + 1} and iframe ${index + 2}`);
 
-            // Event listener for mouse down on the divider
-            divider.addEventListener('mousedown', function(e) {
-                e.preventDefault(); // Prevent text selection during drag
-                startX = e.clientX; // Capture the starting mouse position
-                const prevIframe = divider.previousElementSibling; // Get the previous iframe element
-                const nextIframe = divider.nextElementSibling; // Get the next iframe element
-                let prevWidth = prevIframe.clientWidth; // Get the initial width of the previous iframe
-                let nextWidth = nextIframe.clientWidth; // Get the initial width of the next iframe
-
-                // Disable pointer events on all iframes to prevent interference
-                document.querySelectorAll('iframe').forEach(iframe => iframe.style.pointerEvents = 'none');
-
-                console.log('Drag started');
-
-                // Function to handle mouse movement during dragging
-                function onMouseMove(e) {
-                    const dx = e.clientX - startX; // Calculate the change in mouse position
-                    console.log(`Dragging... DeltaX: ${dx}px`);
-                    
-                    // Calculate new widths based on drag delta and convert to flex-basis
-                    const newPrevWidth = Math.max(prevWidth + dx, 0); // Prevent negative widths
-                    const newNextWidth = Math.max(nextWidth - dx, 0); // Prevent negative widths
-                    
-                    prevIframe.style.flex = `1 1 ${newPrevWidth}px`; // Update flex-basis for the previous iframe
-                    nextIframe.style.flex = `1 1 ${newNextWidth}px`; // Update flex-basis for the next iframe
-                };
-
-                // Function to handle mouse up event, i.e., when dragging ends
-                function onMouseUp() {
-                    // Re-enable pointer events on all iframes
-                    document.querySelectorAll('iframe').forEach(iframe => iframe.style.pointerEvents = '');
-
-                    // Remove event listeners for mousemove and mouseup
-                    document.removeEventListener('mousemove', onMouseMove);
-                    document.removeEventListener('mouseup', onMouseUp);
-
-                    console.log('Drag ended');
-                    updateIframeProportions(); // Update proportions when dragging stops
-                }
-                
-                // Add event listeners for mousemove and mouseup to the document
-                document.addEventListener('mousemove', onMouseMove);
-                document.addEventListener('mouseup', onMouseUp);
-            });
+            // Add draggable dividers
+            makeDividerDraggable(index, divider, iframeContainer, updateIframeProportions);
         }
+
     });
 
+    function makeDividerDraggable(index, divider, iframeContainer, updateIframeProportions) {
+        // Variables to store initial mouse position and widths
+        let startX;
+
+        // Event listener for mouse down on the divider
+        divider.addEventListener('mousedown', function(e) {
+            e.preventDefault(); // Prevent text selection during drag
+            startX = e.clientX; // Capture the starting mouse position
+            const prevIframe = divider.previousElementSibling;
+            const nextIframe = divider.nextElementSibling;
+            let prevWidth = prevIframe.clientWidth;
+            let nextWidth = nextIframe.clientWidth;
+
+            // Disable pointer events on all iframes to prevent interference
+            document.querySelectorAll('iframe').forEach(iframe => iframe.style.pointerEvents = 'none');
+            console.log('Drag started');
+
+            function onMouseMove(e) {
+                const dx = e.clientX - startX;
+                console.log(`Dragging... DeltaX: ${dx}px`);
+                const newPrevWidth = Math.max(prevWidth + dx, 0);
+                const newNextWidth = Math.max(nextWidth - dx, 0);
+                prevIframe.style.flex = `1 1 ${newPrevWidth}px`;
+                nextIframe.style.flex = `1 1 ${newNextWidth}px`;
+            }
+
+            function onMouseUp() {
+                document.querySelectorAll('iframe').forEach(iframe => iframe.style.pointerEvents = '');
+                document.removeEventListener('mousemove', onMouseMove);
+                document.removeEventListener('mouseup', onMouseUp);
+                console.log('Drag ended');
+                updateIframeProportions();
+            }
+    
+            document.addEventListener('mousemove', onMouseMove);
+            document.addEventListener('mouseup', onMouseUp);
+        });
+    }
+    
     // Function to update iframes' proportions based on current sizes
     function updateIframeProportions() {
         const totalWidth = iframeContainer.offsetWidth; 
@@ -382,25 +399,58 @@ document.addEventListener('DOMContentLoaded', function() {
     document.addEventListener('dragend', function() {
         if (draggedItem) {
             draggedItem.classList.remove('dragging');
-            iframeContainer.querySelectorAll('.url-container').forEach((container, index) => {
-                container.setAttribute('data-id', index); // Update data-ids to reflect new order
-            });
+
+            // Reset the draggedItem and draggedIndex variables after the drag operation is complete
             draggedItem = null;
-            draggedIndex = -1;
+            draggedIndex = null; // Use null to indicate no item is being dragged
+
         }
     });
 
-    function updateOrderAfterDrop(oldIndex, newIndex) {
-        if (oldIndex < newIndex) {
-            newIndex--; // Adjust for the removal of the element
-        } else {
-            newIndex++;
-        }
-        const item = urls.splice(oldIndex, 1)[0];
-        urls.splice(newIndex, 0, item);
-        console.log("Updated URLs order:", urls);
+    function updateContainerFramesDataId() {
+        const containerFrames = document.querySelectorAll('.url-container');
+
+        console.log("Before update:");
+        containerFrames.forEach((frame) => {
+            console.log(frame.getAttribute('data-id'));
+        });
+
+        containerFrames.forEach((containerFrame, index) => {
+            containerFrame.setAttribute('data-id', index);
+        });
+
+        console.log("After update:");
+        containerFrames.forEach((frame) => {
+            console.log(frame.getAttribute('data-id'));
+        });
+
+        // Log or perform additional actions as needed after updating data-ids
+        console.log('Updated data-ids for all container frames.');
+
     }
 
+    // Function to dynamically update the positions of dividers according to the current order of iframes
+    function updateDividers() {
+        // Remove existing dividers
+        const existingDividers = document.querySelectorAll('.iframe-divider');
+        existingDividers.forEach(divider => divider.remove());
+    
+        const containerFrames = document.querySelectorAll('.url-container'); // Corrected class selector
+    
+        containerFrames.forEach((container, index) => {
+            if (index < containerFrames.length - 1) { // Check if it's not the last container
+                // Create a new divider
+                const divider = document.createElement('div');
+                divider.className = 'iframe-divider';
+                
+                // Insert the divider after the current container frame
+                container.parentNode.insertBefore(divider, container.nextSibling);
+
+                // Add the draggable functionality to the divider
+                makeDividerDraggable(index, divider, iframeContainer, updateIframeProportions);
+            }
+        });
+    }
 
     // Window resize event listener to adjust iframe sizes based on their flex-basis
     window.addEventListener('resize', () => {
