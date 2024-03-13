@@ -70,8 +70,8 @@ export function createIframeContainer(url, index, iframeContainer, dragStartCall
             let newPrevWidth = Math.max(prevWidth + dx, 0);
             let newNextWidth = Math.max(nextWidth - dx, 0);
 
-            prevIframe.style.width = `${newPrevWidth}px`;
-            nextIframe.style.width = `${newNextWidth}px`;
+            prevIframe.style.flex = `1 1 ${newPrevWidth}px`;
+            nextIframe.style.flex = `1 1 ${newNextWidth}px`;
         }
 
         // Define what happens when the mouse button is released
@@ -83,7 +83,6 @@ export function createIframeContainer(url, index, iframeContainer, dragStartCall
             document.removeEventListener('mousemove', onMouseMove);
             document.removeEventListener('mouseup', onMouseUp);
             console.log('Drag ended');
-
 
             // Update iframe proportions based on the new sizes
             updateIframeProportions(iframeContainer);
@@ -103,7 +102,7 @@ export function createIframeContainer(url, index, iframeContainer, dragStartCall
     iframes.forEach((iframe, index) => {
       let proportionalWidth = (iframe.offsetWidth / totalWidth) * 100;
       totalProportionalWidth += proportionalWidth;
-      initialProportions[index] = proportionalWidth;
+      initialProportions[index] = proportionalWidth; // Store initial proportions
       if (index === iframes.length - 1 && totalProportionalWidth !== 100) {
         initialProportions[index] = 100 - (totalProportionalWidth - proportionalWidth);
       }
@@ -147,22 +146,21 @@ export function createIframeContainer(url, index, iframeContainer, dragStartCall
 
   export function setupWindowResizeListener(iframeContainer, updateIframeProportions, adjustModalPosition, modal) {
     window.addEventListener('resize', () => {
-      console.log('window resized')
       const activeContainerFrame = getActiveContainerFrame();
       const totalWidth = iframeContainer.offsetWidth; // Get the new total width of the iframe container
-      const iframes = iframeContainer.querySelectorAll('iframe');
+      const iframes = document.querySelectorAll('iframe');
   
       // Total proportional width should be recalculated based on the new container size
       let totalProportionalWidth = 0;
       let initialProportions = [];
 
       iframes.forEach(iframe => {
-        const proportionalWidth = parseFloat(iframe.style.flexBasis); // Assuming flexBasis is being used to store proportion
+        const proportionalWidth = parseFloat(iframe.getAttribute('data-proportional-width')); // Assuming flexBasis is being used to store proportion
         totalProportionalWidth += proportionalWidth;
       });
   
       iframes.forEach((iframe, index) => {
-        const proportionalWidth = parseFloat(iframe.style.flexBasis); // Get the stored proportion
+        const proportionalWidth = parseFloat(iframe.getAttribute('data-proportional-width')); // Get the stored proportion
         // Use flex-basis for adjusting sizes to maintain consistency with divider dragging
         const newFlexBasis = `${(proportionalWidth / totalProportionalWidth) * 100}%`;
         iframe.style.flex = `1 1 ${newFlexBasis}`;
