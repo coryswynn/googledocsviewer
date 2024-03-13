@@ -1,14 +1,14 @@
 {
   "manifest_version": 3,
   "name": "Side-by-Side Documents Viewer",
-  "version": "1.0",
+  "version": "1.01",
   "description": "Open documents side-by-side in a single Chrome tab.",
   "permissions": ["tabs", "activeTab", "storage"],
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "./js/background.js"
   },
   "action": {
-    "default_popup": "popup.html",
+    "default_popup": "./html/popup.html",
     "default_icon": {
       "16": "images/icon16.png",
       "48": "images/icon48.png",

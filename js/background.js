@@ -1,7 +1,6 @@
 chrome.action.onClicked.addListener(() => {
-    chrome.tabs.create({ url: chrome.runtime.getURL("viewer.html") });
+    chrome.tabs.create({ url: chrome.runtime.getURL("../html/viewer.html") });
 });
-
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.action === "openDocument" && message.docUrl) {
@@ -14,9 +13,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
 });
 
-
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.action === "openViewerWithUrls" && message.urls) {
-        chrome.tabs.create({ url: chrome.runtime.getURL("viewer.html") + "?urls=" + message.urls });
+        chrome.tabs.create({ url: chrome.runtime.getURL("../html/viewer.html") + "?urls=" + message.urls });
     }
 });
