@@ -53,20 +53,38 @@ function createUrlTitle(url, containerFrame) {
     urlTitle.className = 'url-text';
     urlTitle.textContent = 'Loading title...';
 
-    fetch(url)
-    .then(response => response.text())
-    .then(html => {
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(html, "text/html");
-      const title = doc.querySelector('title').innerText;
-      const newTitle = title.replace(/( - Google (Sheets|Docs|Slides))/, '')
-      updateContainerFrameTitle(containerFrame, newTitle );
-    })
-    .catch(error => {
-      console.error('Error fetching or parsing URL:', error);
-      updateContainerFrameTitle(containerFrame, 'Title unavailable');
+    // First attempt: Try to get the title from the active tabs
+    chrome.tabs.query({}, function(tabs) {
+        const matchingTab = tabs.find(tab => tab.url === url);
+        if (matchingTab && matchingTab.title) {
+            // Directly use the title from the matching tab
+            const newTitle = matchingTab.title.replace(/( - Google (Sheets|Docs|Slides))/, '');
+            updateContainerFrameTitle(containerFrame, newTitle);
+        } else {
+            // Second attempt: Fetch the HTML content to parse the title
+            fetch(url).then(response => {
+                if (!response.ok) throw new Error('Network response was not ok.');
+                return response.text();
+            })
+            .then(html => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, "text/html");
+                const titleTag = doc.querySelector('title');
+                if (titleTag && titleTag.innerText) {
+                    const newTitle = titleTag.innerText.replace(/( - Google (Sheets|Docs|Slides))/, '');
+                    updateContainerFrameTitle(containerFrame, newTitle);
+                } else {
+                    throw new Error('Title tag not found.');
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching or parsing URL:', error);
+                // Fallback: If both methods fail, show a generic message
+                updateContainerFrameTitle(containerFrame, 'Title unavailable');
+            });
+        }
     });
-
+        
     // Add click event listener for the URL title
     urlTitle.addEventListener('click', () => {
         clearAndDisplayModal(modal, containerFrame, (modal, activeContainerFrame) => {
