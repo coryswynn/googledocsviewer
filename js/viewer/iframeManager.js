@@ -170,7 +170,10 @@ export function createIframeContainer(url, index, iframeContainer, dragStartCall
 
       console.log('updating proportions')
       updateIframeProportions(iframeContainer, totalWidth, initialProportions)
-      adjustModalPosition(modal, activeContainerFrame);
+      if (modal.style.display === 'block') {
+        adjustModalPosition(modal, activeContainerFrame);
+      }
+
 
     });
   }
