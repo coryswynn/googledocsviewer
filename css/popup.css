@@ -1,11 +1,14 @@
 /* Improved styling for popup */
+
 body {
-    width: 400px;
+    width: 425px;
     margin: 0 auto;
-    padding: 20px;
+    padding: 15px;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background-color: #f5f5f5;
     color: #333;
+    box-sizing: border-box; /* Ensures padding is included in width calculation */
+
 }
 
 h1, h3 {
@@ -14,9 +17,9 @@ h1, h3 {
 }
 
 button {
-    width: calc(100% - 0px); /* Adjust width considering padding */
-    margin-top: 20px;
-    padding: 10px;
+    width: calc(100% - 30px); /* Adjust width considering padding */
+    margin: 25px auto 0;
+    padding: 8px;
     border: none;
     border-radius: 5px;
     background-color: #0078d7;
@@ -24,6 +27,9 @@ button {
     font-weight: bold;
     cursor: pointer;
     transition: background-color 0.3s ease;
+    display: block; /* Ensure block-level display */
+    font-family: 'Poppins', sans-serif; /* Now using Poppins */
+
 }
 
 button:hover {
@@ -31,19 +37,25 @@ button:hover {
 }
 
 .tab-item {
-    display: flex;
+    display: flexbox;
+    width: calc(100% - 30px); /* Adjust width considering padding */
     align-items: center;
-    margin: 5px 0;
+    margin: 5px auto 0;
     padding: 5px;
     background-color: white;
     border-radius: 5px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    transition: background-color 0.3s ease;
+    transition: background-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease; /* Updated to include transform and shadow transitions */
     cursor: pointer;
+    display: block; /* Ensure block-level display */
+    font-family: 'Poppins', sans-serif; /* Now using Poppins */
+
 }
 
 .tab-item:hover {
     background-color: #eaeaea;
+    transform: scale(1.03); /* Slightly scale up */
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2); /* Deeper shadow for a 'lifted' effect */
 }
 
 .checkbox {
@@ -66,8 +78,9 @@ button:hover {
 }
 
 .logo {
-    width:200px; /* Adjust based on actual logo size */
+    width:150px; /* Adjust based on actual logo size */
     height: auto;
+    margin-top: 10px;
     margin-bottom: 5px;
 }
 
@@ -78,6 +91,9 @@ button:hover {
 }
 
 .subtitle {
+    font-family: 'Poppins', sans-serif; /* Now using Poppins */
+    letter-spacing: 0.3px; /* Slightly spaced out for a modern look */
+    font-weight: 400; /* 400 for regular, 700 for bold */
     font-size: 14px;
     text-align: center;
     color: #666;
