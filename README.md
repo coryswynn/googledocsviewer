@@ -1,45 +1,45 @@
-# GDocs SplitView
+# Google Docs SplitView
 
-GDocs SplitView is a Google Chrome Extension that enhances your productivity by allowing you to view Google Docs, Sheets, Slides, and even Gmail tabs side-by-side within the same browser tab. With an easy-to-use interface, GDocs SplitView makes it simple to manage and interact with multiple documents without the need to switch between tabs constantly.
+Enhance your productivity with `Google Docs SplitView`, a Chrome Extension that allows you to manage and interact with Google Docs, Slides, and Sheets in a single browser tab. Enjoy seamless document management and an end to constant tab switching.
 
 ## Features
 
-- **Split View**: Effortlessly combine multiple Google Docs, Sheets, Slides, and Gmail tabs into a single tab with split views.
-- **Dynamic Resizing**: Adjust the size of each split section with a simple drag of the divider.
-- **Toolbar for Each Document**: Each split section comes with a toolbar providing options to copy the document URL, open in a new tab, or toggle fullscreen view for focused work.
-- **Title Display**: Automatically fetches and displays the title of each document for easy identification.
-- **Responsive Design**: Adapts to various screen sizes for a seamless experience on different devices.
+- **Side-by-Side SplitView**: Open multiple Google Docs, Sheets, or Slides side-by-side within the same browser tab.
+- **Fullscreen & Custom Split Sizing**: Toggle between fullscreen and side-by-size mode, customized to your chosen frame proportions.
+- **Dynamic Document Switching**: Easily switch between all open Google Docs, Slides, and Sheets in a single, unified interface.
+- **Drag-and-Drop Window Swapping**: Reorganize open documents within a splitview with an intuitive drag-and-drop interface.
+- **Flexible Frame Management**: Open and close document frames on demand, with no limitations on the number of frames you can manage.
+- **Dynamic URL State**: URLs update as you open and close frames for each SplitView, facilitating the reopening and sharing of your current layout.
 
 ## Installation
 
-1. Clone the repository or download the extension package.
-2. Open Google Chrome and navigate to `chrome://extensions/`.
-3. Enable Developer Mode by toggling the switch at the top right corner.
-4. Click on `Load unpacked` and select the directory where GDocs SplitView is located.
-5. The extension will now be added to your Chrome browser.
+1. Clone or download the extension package.
+2. Navigate to `chrome://extensions/` in Google Chrome.
+3. Enable Developer Mode at the top right corner.
+4. Choose 'Load unpacked' and select the directory containing Google Docs SplitView.
 
 ## Usage
 
-1. Click on the GDocs SplitView icon in the Chrome extension toolbar.
-2. A popup will appear, displaying a list of currently open Google Docs, Sheets, Slides, and Gmail tabs.
-3. Select the tabs you wish to view side-by-side and click `Open Combined Tab`.
-4. The selected documents will be displayed in a split view within the same tab. You can adjust the size of each section by dragging the divider.
+- Click on the Google Docs SplitView icon in the Chrome toolbar.
+- Select the Google Docs, Sheets, or Slides tabs you wish to combine into a SplitView.
+- Adjust the size and arrangement of each document section by dragging dividers.
 
 ## Customization
 
-- **Styling**: Customize the appearance by editing the `popup.css` and `viewer.css` files to match your preferred aesthetics.
-- **Functionality Enhancements**: Modify `popup.js` and `viewer.js` for additional features or to fine-tune the existing functionality.
+- **Styling**: Edit the `popup.css` and `viewer.css` files to personalize the look and feel of the extension.
+- **Enhancements**: Tweak `popup.js` and `viewer.js` to add new features or refine existing functionality.
 
-## Known Issues
+## Future Enhancements
 
-- Title fetching may not work for documents with restricted access or not loaded due to network issues.
-- Dynamic resizing might experience minor glitches on certain screen sizes or resolutions.
+- **Saved Documents**: A planned feature to quickly save and access documents for future use.
+- **Google Drive Integration**: Upcoming connectivity to Google Drive will enable direct access to your drive files within the SplitView.
 
-## Contributing
+## Contribution
 
-Contributions to GDocs SplitView are welcome! If you have suggestions for improvements or bug fixes, please feel free to fork the repository and submit a pull request.
+Your contributions are welcome! Please feel free to fork the repository, make improvements, fix bugs, and submit pull requests.
 
 ## Acknowledgments
 
-- Google Docs, Sheets, Slides, and Gmail are trademarks of Google LLC. This extension is not affiliated with or endorsed by Google LLC.
-- Special thanks to the open-source community for guidance and support.
+Google Docs, Sheets, Slides, and their logos are trademarks of Google LLC. This extension is independently created and is not endorsed by or affiliated with Google LLC.
+
+A shoutout to the open-source community for their continued guidance and support.
