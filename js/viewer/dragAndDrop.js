@@ -1,110 +1,93 @@
 // dragAndDrop.js
 
-import { updateContainerFramesDataId, updateDividers} from './iframeManager.js';
+import { updateContainerFramesDataId, updateDividers } from './iframeManager.js';
+import { updateBrowserURL } from './modalManager.js';
+
+// Helper function to find the closest ancestor of an element that matches a selector
+function closestFrom(el, selector) {
+    while (el && el !== document.body) {
+        if (el.matches(selector)) return el;
+        el = el.parentElement;
+    }
+    return null;
+}
 
 export const initializeDragAndDrop = (iframeContainer) => {
-    let draggedItem = null; // Keep track of the item being dragged
-    let draggedIndex = null; // To track which item is being dragged
+    let draggedItem = null;
 
-    const addDraggableHandlers = (containerFrame, index) => {
-        const dragHandle = containerFrame.querySelector('.drag-handle');
-        
-        dragHandle.addEventListener('dragstart', function(e) {
-            draggedItem = containerFrame;
-            draggedIndex = index; // Track the index of the dragged item
-            setTimeout(() => containerFrame.classList.add('dragging'), 0);
-        });
-
-        containerFrame.addEventListener('dragenter', dragEnterHandler);
-        containerFrame.addEventListener('dragover', dragOverHandler);
-        containerFrame.addEventListener('dragleave', dragLeaveHandler);
-        containerFrame.addEventListener('drop', (e) => dropHandler(containerFrame, index, e));
-    };
-
-    const dragEnterHandler = (e) => {
-        e.preventDefault();
-        const containerFrame = e.target.closest('.url-container'); // Find the closest container frame
-
-        const halfwayPoint = containerFrame.getBoundingClientRect().height / 2;
-        const mousePositionRelativeToTarget = e.clientY - containerFrame.getBoundingClientRect().top;
-        containerFrame.classList.remove('drag-over-top', 'drag-over-bottom');
-        if (mousePositionRelativeToTarget < halfwayPoint) {
-            containerFrame.classList.add('drag-over-top');
-        } else {
-            containerFrame.classList.add('drag-over-bottom');
-        }
-    };
-
-    const dragOverHandler = (e) => {
-        e.preventDefault();
-        const containerFrame = e.target.closest('.url-container'); // Find the closest container frame
-
-        const halfwayPoint = containerFrame.getBoundingClientRect().height / 2;
-        const mousePositionRelativeToTarget = e.clientY - containerFrame.getBoundingClientRect().top;
-        containerFrame.classList.remove('drag-over-top', 'drag-over-bottom'); // Clear previous position classes
-        if (mousePositionRelativeToTarget < halfwayPoint) {
-            containerFrame.classList.add('drag-over-top');
-        } else {
-            containerFrame.classList.add('drag-over-bottom');
-        }
-    };
-
-    const dragLeaveHandler = (e) => {
-        const containerFrame = e.target.closest('.url-container'); // Find the closest container frame
-
-        containerFrame.classList.remove('drag-over-top', 'drag-over-bottom'); // Clear visual cues
-    };
-
-    const dropHandler = (containerFrame, index, e) => {
-        e.preventDefault();
-        containerFrame.classList.remove('drag-over-top', 'drag-over-bottom'); // Clear visual cues
-    
-            if (draggedItem) {
-                // Get the current 'data-id' for the draggedItem and the drop target
-                const draggedId = parseInt(draggedItem.getAttribute('data-id'), 10);
-                const targetId = parseInt(containerFrame.getAttribute('data-id'), 10);
-        
-                // Determine the insert location
-                const insertBefore = draggedId > targetId; // If dragging down, insert before the targetId
-        
-                // Find the reference element based on the 'data-id'
-                let referenceElement = null;
-                if (insertBefore) {
-                    referenceElement = containerFrame;
-                } else {
-                    // If not inserting before and this is not the last element, insert after the next sibling
-                    const nextElement = containerFrame.nextElementSibling;
-                    if (nextElement && nextElement.classList.contains('url-container')) {
-                        referenceElement = nextElement.nextElementSibling; // This would be the divider after the target container
-                    }
-                }
-        
-                // Insert the draggedItem at the new position based on referenceElement
-                iframeContainer.insertBefore(draggedItem, referenceElement);
+    // Drag start event with event delegation
+    iframeContainer.addEventListener('dragstart', function(e) {
+        const dragHandle = closestFrom(e.target, '.drag-handle');
+        if (dragHandle) {
+            const containerFrame = dragHandle.closest('.url-container');
+            if (containerFrame) {
+                draggedItem = containerFrame;
+                setTimeout(() => containerFrame.classList.add('dragging'), 0);
             }
-    
-        // Update container frames and dividers to reflect new order
-        updateContainerFramesDataId(iframeContainer);
-        updateDividers(iframeContainer);
-        console.log('Dividers Updated');
-    
-        // Clean up
-        draggedItem.classList.remove('dragging');
-        draggedItem = null;
-        draggedIndex = null;
-    };
+        }
+    }, false);
 
-    const containerFrames = iframeContainer.querySelectorAll('.url-container');
-    containerFrames.forEach((containerFrame, index) => {
-        addDraggableHandlers(containerFrame, index);
+    // Drag over event with event delegation
+    iframeContainer.addEventListener('dragover', function(e) {
+        e.preventDefault(); // Necessary to allow dropping
+        const containerFrame = closestFrom(e.target, '.url-container');
+        if (containerFrame && draggedItem) {
+            const halfwayPoint = containerFrame.getBoundingClientRect().height / 2;
+            const mousePositionRelativeToTarget = e.clientY - containerFrame.getBoundingClientRect().top;
+            containerFrame.classList.remove('drag-over-top', 'drag-over-bottom'); // Clear previous position classes
+            if (mousePositionRelativeToTarget < halfwayPoint) {
+                containerFrame.classList.add('drag-over-top');
+            } else {
+                containerFrame.classList.add('drag-over-bottom');
+            }
+        }
     });
 
+    // Drag enter event with event delegation
+    iframeContainer.addEventListener('dragenter', function(e) {
+        e.preventDefault(); // Necessary to allow dropping
+    });
+
+    // Drag leave event with event delegation
+    iframeContainer.addEventListener('dragleave', function(e) {
+        const containerFrame = closestFrom(e.target, '.url-container');
+        if (containerFrame) {
+            containerFrame.classList.remove('drag-over-top', 'drag-over-bottom'); // Clear visual cues
+        }
+    });
+
+    // Drop event with event delegation
+    iframeContainer.addEventListener('drop', function(e) {
+        e.preventDefault();
+        const containerFrame = closestFrom(e.target, '.url-container');
+        if (containerFrame && draggedItem) {
+            containerFrame.classList.remove('drag-over-top', 'drag-over-bottom'); // Clear visual cues
+
+            // Perform the drop logic here
+            const draggedId = parseInt(draggedItem.getAttribute('data-id'), 10);
+            const targetId = parseInt(containerFrame.getAttribute('data-id'), 10);
+            const insertBefore = draggedId > targetId;
+
+            let referenceElement = insertBefore ? containerFrame : containerFrame.nextElementSibling;
+            iframeContainer.insertBefore(draggedItem, referenceElement);
+
+            // Update container frames and dividers to reflect new order
+            updateContainerFramesDataId(iframeContainer);
+            updateDividers(iframeContainer);
+            updateBrowserURL();
+            console.log('Dividers Updated');
+
+            // Cleanup
+            draggedItem.classList.remove('dragging');
+            draggedItem = null;
+        }
+    });
+
+    // Cleanup on dragend
     document.addEventListener('dragend', function() {
         if (draggedItem) {
             draggedItem.classList.remove('dragging');
             draggedItem = null;
-            draggedIndex = null;
         }
     });
 };
-

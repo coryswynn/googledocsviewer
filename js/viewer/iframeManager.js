@@ -16,7 +16,7 @@ export function createIframeContainer(url, index, iframeContainer, dragStartCall
   
   // Function to create and setup an iframe inside the container
   export function setupIframe(containerFrame, url) {
-    console.log('starting')
+    // console.log('starting')
     const iframe = document.createElement('iframe');
     iframe.src = url;
     iframe.style.flex = "1";
@@ -65,13 +65,18 @@ export function createIframeContainer(url, index, iframeContainer, dragStartCall
         // Define what happens when the mouse is moved
         function onMouseMove(e) {
             let dx = e.clientX - startX;
-            console.log(`Dragging... DeltaX: ${dx}px`);
+            // console.log(`Dragging... DeltaX: ${dx}px`);
 
             let newPrevWidth = Math.max(prevWidth + dx, 0);
             let newNextWidth = Math.max(nextWidth - dx, 0);
 
             prevIframe.style.flex = `1 1 ${newPrevWidth}px`;
             nextIframe.style.flex = `1 1 ${newNextWidth}px`;
+
+            // If the modal is displayed, adjust its position
+            if (modal.style.display === 'block') {
+                adjustModalPosition(modal, getActiveContainerFrame());
+            }
         }
 
         // Define what happens when the mouse button is released
@@ -86,6 +91,7 @@ export function createIframeContainer(url, index, iframeContainer, dragStartCall
 
             // Update iframe proportions based on the new sizes
             updateIframeProportions(iframeContainer);
+
         }
 
         // Attach the event listeners for mouse move and mouse up
@@ -94,36 +100,59 @@ export function createIframeContainer(url, index, iframeContainer, dragStartCall
     });
   }
   
-  // Function to update iframes' proportions based on current sizes
-  export function updateIframeProportions(iframeContainer, totalWidth, initialProportions) {
+// Function to update iframes' proportions based on current sizes
+export function updateIframeProportions(iframeContainer, totalWidth, initialProportions) {
     const iframes = iframeContainer.querySelectorAll('.url-container');
-    let totalProportionalWidth = 0;
+  
+    // Ensure initialProportions is an array and has the proper length
+    if (!Array.isArray(initialProportions) || initialProportions.length !== iframes.length) {
+      initialProportions = new Array(iframes.length).fill(0);
+    }
+
+    // First, calculate the total width of all iframes
+    iframes.forEach(iframe => {
+        totalWidth += iframe.offsetWidth;
+    });
   
     iframes.forEach((iframe, index) => {
       let proportionalWidth = (iframe.offsetWidth / totalWidth) * 100;
-      totalProportionalWidth += proportionalWidth;
-      initialProportions[index] = proportionalWidth; // Store initial proportions
-      if (index === iframes.length - 1 && totalProportionalWidth !== 100) {
-        initialProportions[index] = 100 - (totalProportionalWidth - proportionalWidth);
+    //   console.log('initial proportions: ' + initialProportions);
+      initialProportions[index] = proportionalWidth; // Safely store initial proportions
+    //   console.log('initial proportions of index ' + index + ': ' + initialProportions[index]);
+      if (index === iframes.length - 1 && totalWidth !== 100) {
+        initialProportions[index] = 100 - (totalWidth - proportionalWidth);
       }
     });
+  
+    // Optionally, return the updated proportions if needed elsewhere
+    return initialProportions;
   }
   
   // Function to dynamically update the positions of dividers according to the current order of iframes
   export function updateDividers(iframeContainer) {
     // Remove existing dividers
-    console.log('Starting update dividers');
+    // console.log('Starting update dividers');
     const existingDividers = iframeContainer.querySelectorAll('.iframe-divider');
     existingDividers.forEach(divider => divider.remove());
   
-    // Add new dividers and make them draggable
+    // After removing dividers, check the current number of frames
     const containerFrames = iframeContainer.querySelectorAll('.url-container');
+
+    // If only one frame remains, no dividers should be added
+    if (containerFrames.length <= 1) {
+        console.log('Only one frame remains, no dividers needed.');
+        return; // Exit the function early as no dividers are needed
+    }
+
+    // Add new dividers and make them draggable if more than one frame exists
     containerFrames.forEach((container, index) => {
       if (index < containerFrames.length - 1) {
         const divider = document.createElement('div');
         divider.className = 'iframe-divider';
         iframeContainer.insertBefore(divider, container.nextSibling);
         makeDividerDraggable(divider, iframeContainer, updateIframeProportions);
+      } else {
+        return null;
       }
     });
     console.log('Dividers updated');
@@ -166,7 +195,7 @@ export function createIframeContainer(url, index, iframeContainer, dragStartCall
         iframe.style.flex = `1 1 ${newFlexBasis}`;
       });
 
-      console.log('updating proportions')
+    //   console.log('updating proportions')
       updateIframeProportions(iframeContainer, totalWidth, initialProportions)
       if (modal.style.display === 'block') {
         adjustModalPosition(modal, activeContainerFrame);

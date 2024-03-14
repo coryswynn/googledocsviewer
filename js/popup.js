@@ -1,3 +1,4 @@
+//popup.js
 
 document.getElementById('docForm').addEventListener('submit', function(e) {
     e.preventDefault(); // Prevent the default form submission
@@ -22,10 +23,10 @@ document.getElementById('docForm').addEventListener('submit', function(e) {
 
 // This should be outside and directly executed when the DOM is fully loaded
 document.addEventListener('DOMContentLoaded', function() {
-    var queryInfo = { currentWindow: true };
+    // var queryInfo = { currentWindow: true }; //Query only the current window
 
     // Query the current window tabs
-    chrome.tabs.query(queryInfo, function(tabs) {
+    chrome.tabs.query({}, function(tabs) {
         const tabList = document.getElementById('tab-list'); // Ensure this element exists in your HTML
         let validTabsFound = false; // Flag to track if valid tabs are found
 
@@ -35,14 +36,14 @@ document.addEventListener('DOMContentLoaded', function() {
             if (/https:\/\/docs\.google\.com\/(document|spreadsheets|presentation)/.test(tab.url)) {
                 const tabItem = document.createElement('label');
                 // tabItem.textContent = tab.url; // Display tab title. You can also use `tab.url` if needed.
-                tabItem.className = 'tab-item'; // Ensure you have defined this class in your CSS for styling
+                tabItem.className = 'tab-item'; 
 
                 // Add checkboxes and tie checkboxes to tabs
                 const checkbox = document.createElement('input');
                 checkbox.type = 'checkbox';
                 checkbox.id = `tab-${index}`;
                 checkbox.value = tab.id; // Use tab ID as value for easy identification
-                checkbox.className = 'checkbox'; // Assuming you have CSS for this class
+                checkbox.className = 'checkbox'; 
 
                 // Create an image element for the favicon
                 const favicon = document.createElement('img');

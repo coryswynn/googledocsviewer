@@ -45,7 +45,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     initializeDragAndDrop(iframeContainer, updateContainerFramesDataId, updateIframeProportions); // Initialize drag and drop functionality for iframe containers.
     setupWindowResizeListener(iframeContainer, updateIframeProportions, adjustModalPosition, modal);
-
 });
 
   // Function to get the currently active container frame

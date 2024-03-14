@@ -1,8 +1,11 @@
+/* viewer.css*/
+
 body, html {
     margin: 0;
     padding: 0;
     height: 100%;
     overflow: hidden; /* Disable scroll on body */
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
 #iframeContainer {
@@ -22,6 +25,7 @@ iframe {
     background: linear-gradient(to right, #f0f0f0, #a0a0a0, #f0f0f0);
     box-shadow: 0 2px 5px rgba(0,0,0,0.2);
     height: 100%; /* Full height of the container */
+    transition: background 0.2s ease;
 }
 
 .iframe-divider:hover {
@@ -38,6 +42,7 @@ iframe {
     height: 100%; /* Ensure it fills the parent vertically */
     width: 100%; /* Ensure it fills the parent horizontally */
     border: 1px solid #ccc; /* Optional, just for visibility */
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
 }
 
 .url-toolbar {
@@ -56,12 +61,13 @@ iframe {
     white-space: nowrap; /* Keep the URL in one line */
 }
 
-.copy-url-button, .pop-out-button, .fullscreen-button {
+.copy-url-button, .pop-out-button, .fullscreen-button, .close-frame-button {
     background: none;
     border: 2px solid transparent; /* Define a transparent border */
     cursor: pointer;
     font-size: 16px; /* Adjust as needed */
     margin-left: 5px; /* Space out buttons */
+    transition: all 0.2s ease-in-out;
 }
 
 .drag-handle {
@@ -84,7 +90,7 @@ iframe {
     background-color: rgba(0, 255, 0, 0.1); /* Slightly tinted background */
 }
 
-.copy-url-button:hover, .pop-out-button:hover, .fullscreen-button:hover {
+.copy-url-button:hover, .pop-out-button:hover, .fullscreen-button:hover, .close-frame-button:hover {
     background-color: #e3e3e3; /* Light grey background on hover */
     border-color: #ccc; /* Slightly darker border on hover for definition */
     border-radius: 5px; /* Optional: Adds rounded corners for a modern look */
@@ -126,11 +132,33 @@ iframe {
     position: relative;
     background-color: #fefefe;
     margin: 5% auto; /* Lower margin for better use of screen space */
-    padding: 20px;
+    padding: 10px 20px 20px; /* top, right and left, bottom */
     border-radius: 10px; /* Rounded corners for a modern look */
     box-shadow: 0 4px 8px rgba(0,0,0,0.2); /* Subtle shadow for depth */
     width: 50%; /* Adapt width for better content presentation */
     animation: modalFadeIn 0.5s; /* Smooth fade-in effect */
+    max-width: 600px;
+}
+
+
+/* Modal content title styling */
+.modal-content h3 {
+    font-size: 17px; /* Larger font size for clear hierarchy */
+    color: #333; /* Dark color for emphasis */
+    margin-bottom: 0.25rem; /* Space below the title */
+    font-weight: 600; /* Semi-bold for a heavier weight */
+    text-align: left; /* Align to the start, adjusting as per design requirements */
+    padding-bottom: 0.25rem; /* Padding to add space below the text */
+    border-bottom: 2px solid #eaeaea; /* A subtle bottom border to separate from the content */
+}
+
+/* Modal content paragraph styling */
+.modal-content p {
+    font-size: 12px; /* Standard font size for readability */
+    color: #666; /* Lighter color for less emphasis */
+    margin-bottom: 1rem; /* Ample space below the paragraph for separation */
+    line-height: 1.5; /* Line height for improved readability */
+    text-align: left; /* Align to the start, adjusting as per design requirements */
 }
 
 @keyframes modalFadeIn {
@@ -156,6 +184,9 @@ iframe {
 
 /* Enhanced usability with specific styles for modal items */
 .modal-url-option {
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* This will push the button to the far right */
     padding: 10px;
     margin-bottom: 5px;
     background-color: #f9f9f9;
@@ -168,6 +199,9 @@ iframe {
 .modal-url-option:hover {
     background-color: #eef;
     border-color: #bbb; /* Highlight option on hover */
+    transition: all 0.3s;
+    /* transform: scale(1.02); /* Slightly scale up */
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2); /* Deeper shadow for a 'lifted' effect */
 }
 
 /* Favicon Styles */
@@ -177,3 +211,23 @@ iframe {
     margin-right: 10px; /* Adjust margin as needed */
     vertical-align: middle; /* Align the favicon vertically in the middle */
   }
+
+  .add-frame-button {
+    margin-left: auto; /* Ensures alignment to the far right */
+    border: transparent;
+    background: transparent; /* Keeps the button background transparent */
+    cursor: pointer; /* Indicates clickable area */
+    border-radius: 5px; /* More pronounced rounded corners for a modern look */
+    display: flex; /* Ensures proper alignment of icons/text inside the button */
+    align-items: center; /* Centers items vertically */
+    justify-content: center; /* Centers items horizontally */
+    transition: all 0.3s;
+
+}
+
+/* Enhanced hover effect for the plus button */
+.add-frame-button:hover {
+    transform: scale(1.3); /* Slightly enlarges the button */
+    border-color: #ccc; /* Slightly darker border on hover for definition */
+    border-radius: 5px; /* Optional: Adds rounded corners for a modern look */
+}
