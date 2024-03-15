@@ -1,25 +1,29 @@
 /* Improved styling for popup */
 
 body {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; /* Ensures the form/button are pushed to the bottom */
     width: 425px;
-    margin: 0 auto;
-    padding: 15px;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    padding: 0px 15px 0px;
+    font-family: 'Poppins', sans-serif;
     background-color: #f5f5f5;
     color: #333;
     box-sizing: border-box; /* Ensures padding is included in width calculation */
+    height: auto;
+    overflow: hidden;
 
 }
 
-h1, h3 {
-    margin: 0 0 10px;
+.header, .footer {
     text-align: center;
+    overflow: hidden;
 }
 
 button {
     width: calc(100% - 30px); /* Adjust width considering padding */
-    margin: 25px auto 0;
-    padding: 8px;
+    margin: 25px 0px 0px;
+    padding: 0px;
     border: none;
     border-radius: 5px;
     background-color: #0078d7;
@@ -84,12 +88,6 @@ button:hover {
     margin-bottom: 5px;
 }
 
-.title {
-    margin: 0;
-    font-size: 24px;
-    color: #0078d7; /* Theme color */
-}
-
 .subtitle {
     font-family: 'Poppins', sans-serif; /* Now using Poppins */
     letter-spacing: 0.3px; /* Slightly spaced out for a modern look */
@@ -97,7 +95,8 @@ button:hover {
     font-size: 12px;
     text-align: center;
     color: #666;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
+    margin-top: 10px;
 }
 
 /* Favicon Styles */
@@ -116,4 +115,36 @@ button:hover {
     background-size: 10px 1px;
     box-shadow: 0px 1px 2px rgba(0,0,0,0.1);
     margin: 3px 0;
+}
+
+#tab-list-wrapper {
+    /* Adjust the height to ensure the list and button fit within the popup window */
+    max-height: calc(60vh); /* Example value, adjust based on your popup's height */
+    overflow-y: auto; /* Allows scrolling within the tab list if it exceeds the max height */
+    margin-bottom: 0px; /* Space between the list and the button */
+}
+
+.launch-splitview-button {
+    width: calc(100% - 20px); /* Adjust width considering padding */
+    padding: 8px;
+    margin: 10px 0px 10px;
+    border: none;
+    border-radius: 5px;
+    background-color: #0078d7;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    font-family: 'Poppins', sans-serif;
+    display: block; /* Ensure block-level display */
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.br {
+    font-size: 1px;
+}
+
+.docForm {
+    margin: 0px 0px 0px;
 }
