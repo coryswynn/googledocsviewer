@@ -3,7 +3,7 @@
 import { updateContainerFrameTitle } from './urlManager.js';
 import { setActiveContainerFrame } from './init.js'; // Adjust the path as needed
 import { updateContainerFramesDataId, updateDividers} from './iframeManager.js';
-import { updateBrowserURL} from './modalManager.js';
+import { updateBrowserURL, addNewFrame} from './modalManager.js';
 
 
 import {
@@ -27,6 +27,10 @@ export function createToolbar(containerFrame, url) {
     // Add the URL title span
     const urlTitle = createUrlTitle(url, containerFrame);
     toolbar.appendChild(urlTitle);
+
+    // Add a duplicate frame button
+    const duplicateButton = createDuplicateButton(url);
+    toolbar.appendChild(duplicateButton);
 
     // Add the copy, pop out, and fullscreen buttons
     const copyButton = createCopyButton(url);
@@ -106,10 +110,22 @@ function createUrlTitle(url, containerFrame) {
     return urlTitle;
 }
 
+function createDuplicateButton(url) {
+    const duplicateButton = document.createElement('button');
+    duplicateButton.className = 'duplicate-frame-button';
+    duplicateButton.title = 'Duplicate Frame';
+    duplicateButton.innerHTML = '<i class="bx bx-duplicate"></i>'; // Icon for duplicating, make sure to include the icon library or replace with a suitable icon
+    duplicateButton.onclick = () => {
+        addNewFrame(url); // This function should handle the creation and insertion of a new frame
+    };
+    return duplicateButton;
+}
+
+
 function createCopyButton(url) {
     const copyButton = document.createElement('button');
     copyButton.className = 'copy-url-button';
-    copyButton.innerHTML = '<i class="bx bx-copy"></i>'; // BoxIcons copy icon
+    copyButton.innerHTML = '<i class="bx bx-paste bx-flip-horizontal"></i>'; // BoxIcons copy icon
     //copyButton.innerHTML = '&#128203;'; // Unicode icon
     copyButton.title = 'Copy URL';
     copyButton.onclick = () => {
@@ -200,8 +216,3 @@ function createCloseButton(containerFrame) {
     };
     return closeButton;
 }
-
-
-
-
-// Further utilities and helper functions can also be included here as needed
