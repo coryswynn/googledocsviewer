@@ -61,7 +61,7 @@ iframe {
     white-space: nowrap; /* Keep the URL in one line */
 }
 
-.copy-url-button, .pop-out-button, .fullscreen-button, .close-frame-button {
+.copy-url-button, .pop-out-button, .fullscreen-button, .close-frame-button, .duplicate-frame-button {
     background: none;
     border: 2px solid transparent; /* Define a transparent border */
     cursor: pointer;
@@ -90,7 +90,7 @@ iframe {
     background-color: rgba(0, 255, 0, 0.1); /* Slightly tinted background */
 }
 
-.copy-url-button:hover, .pop-out-button:hover, .fullscreen-button:hover, .close-frame-button:hover {
+.copy-url-button:hover, .pop-out-button:hover, .fullscreen-button:hover, .close-frame-button:hover, .duplicate-frame-button:hover {
     background-color: #e3e3e3; /* Light grey background on hover */
     border-color: #ccc; /* Slightly darker border on hover for definition */
     border-radius: 5px; /* Optional: Adds rounded corners for a modern look */
@@ -253,4 +253,5 @@ iframe {
     border-top: 1px solid #eee; /* Subtle top border as a separator */
     padding: 10px 5px; /* Padding for spacing around tab items */
     background-color: #fff; /* Background color to match modal */
+    margin-bottom: 15px;
 }
