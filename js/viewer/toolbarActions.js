@@ -4,8 +4,6 @@ import { updateContainerFrameTitle } from './urlManager.js';
 import { setActiveContainerFrame } from './init.js'; // Adjust the path as needed
 import { updateContainerFramesDataId, updateDividers} from './iframeManager.js';
 import { updateBrowserURL, addNewFrame} from './modalManager.js';
-
-
 import {
     closeModal,
     clearAndDisplayModal,
@@ -66,61 +64,48 @@ function createUrlTitle(url, containerFrame) {
     urlTitle.textContent = 'Loading title...';
     urlTitle.title = 'Add or Replace Frame';
 
-    // Check if running as a Chrome extension or as a web application
-    if (typeof chrome !== 'undefined' && chrome.tabs && chrome.tabs.query) {
-
-        // First attempt: Try to get the title from the active tabs
-        chrome.tabs.query({}, function(tabs) {
-            const matchingTab = tabs.find(tab => tab.url === url);
-            if (matchingTab && matchingTab.title) {
-                // Directly use the title from the matching tab
-                const newTitle = matchingTab.title.replace(/( - Google (Sheets|Docs|Slides))/, '');
-                updateContainerFrameTitle(containerFrame, newTitle);
-            } else {
-                // Second attempt: Fetch the HTML content to parse the title
-                fetch(url).then(response => {
-                    if (!response.ok) throw new Error('Network response was not ok.');
-                    return response.text();
-                })
-                .then(html => {
-                    const parser = new DOMParser();
-                    const doc = parser.parseFromString(html, "text/html");
-                    const titleTag = doc.querySelector('title');
-                    if (titleTag && titleTag.innerText) {
-                        const newTitle = titleTag.innerText.replace(/( - Google (Sheets|Docs|Slides))/, '');
-                        updateContainerFrameTitle(containerFrame, newTitle);
-                    } else {
-                        throw new Error('Title tag not found.');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error fetching or parsing URL:', error);
-                    // Fallback: If both methods fail, show a generic message
-                    updateContainerFrameTitle(containerFrame, 'Title unavailable');
-                });
-            }
-        });
-    } else {
-        // Web application environment
-        return fetchTitleFromUrl(url, containerFrame);
-    }
-    
-    // Check if running as a Chrome extension or as a web application
-    if (typeof chrome !== 'undefined' && chrome.tabs && chrome.tabs.query) {
-
-        // Add click event listener for the URL title
-        urlTitle.addEventListener('click', () => {
-            clearAndDisplayModal(modal, containerFrame, (modal, activeContainerFrame) => {
-                setActiveContainerFrame(containerFrame); // Update the active container frame reference
-                displayModal(modal, activeContainerFrame); // Call displayModal with the modal and the active container frame
-                setupModalDismissal(modal, closeModal); // Setup global modal dismissal functionality
+    // First attempt: Try to get the title from the active tabs
+    chrome.tabs.query({}, function(tabs) {
+        const matchingTab = tabs.find(tab => tab.url === url);
+        if (matchingTab && matchingTab.title) {
+            // Directly use the title from the matching tab
+            const newTitle = matchingTab.title.replace(/( - Google (Sheets|Docs|Slides))/, '');
+            updateContainerFrameTitle(containerFrame, newTitle);
+        } else {
+            // Second attempt: Fetch the HTML content to parse the title
+            fetch(url).then(response => {
+                if (!response.ok) throw new Error('Network response was not ok.');
+                return response.text();
+            })
+            .then(html => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, "text/html");
+                const titleTag = doc.querySelector('title');
+                if (titleTag && titleTag.innerText) {
+                    const newTitle = titleTag.innerText.replace(/( - Google (Sheets|Docs|Slides))/, '');
+                    updateContainerFrameTitle(containerFrame, newTitle);
+                } else {
+                    throw new Error('Title tag not found.');
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching or parsing URL:', error);
+                // Fallback: If both methods fail, show a generic message
+                updateContainerFrameTitle(containerFrame, 'Title unavailable');
             });
+        }
+    });
+        
+    // Add click event listener for the URL title
+    urlTitle.addEventListener('click', () => {
+        clearAndDisplayModal(modal, containerFrame, (modal, activeContainerFrame) => {
+            setActiveContainerFrame(containerFrame); // Update the active container frame reference
+            displayModal(modal, activeContainerFrame); // Call displayModal with the modal and the active container frame
+            setupModalDismissal(modal, closeModal); // Setup global modal dismissal functionality
         });
+    });
 
-        return urlTitle;
-    } else {
-        return fetchTitleFromUrl(url, containerFrame);
-    }
+    return urlTitle;
 }
 
 function createDuplicateButton(url) {
@@ -228,29 +213,4 @@ function createCloseButton(containerFrame) {
         
     };
     return closeButton;
-}
-
-function fetchTitleFromUrl(url, containerFrame) {
-    // Fetch the HTML content to parse the title
-    fetch(url).then(response => {
-        if (!response.ok) throw new Error('Network response was not ok.');
-        return response.text();
-    })
-    .then(html => {
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(html, "text/html");
-        const titleTag = doc.querySelector('title');
-        if (titleTag && titleTag.innerText) {
-            const newTitle = titleTag.innerText.replace(/( - Google (Sheets|Docs|Slides))/, '');
-            return (updateContainerFrameTitle(containerFrame, newTitle));
-        } else {
-            throw new Error('Title tag not found.');
-            return ('Title Unavailable')
-        }
-    })
-    .catch(error => {
-        console.error('Error fetching or parsing URL:', error);
-        updateContainerFrameTitle(containerFrame, 'Title unavailable');
-        return ('Title Unavailable')
-    });
 }
