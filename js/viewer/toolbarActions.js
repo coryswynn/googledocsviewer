@@ -242,13 +242,15 @@ function fetchTitleFromUrl(url, containerFrame) {
         const titleTag = doc.querySelector('title');
         if (titleTag && titleTag.innerText) {
             const newTitle = titleTag.innerText.replace(/( - Google (Sheets|Docs|Slides))/, '');
-            updateContainerFrameTitle(containerFrame, newTitle);
+            return (updateContainerFrameTitle(containerFrame, newTitle));
         } else {
             throw new Error('Title tag not found.');
+            return ('Title Unavailable')
         }
     })
     .catch(error => {
         console.error('Error fetching or parsing URL:', error);
         updateContainerFrameTitle(containerFrame, 'Title unavailable');
+        return ('Title Unavailable')
     });
 }
