@@ -1,4 +1,29 @@
-<!DOCTYPE html>
+<html>
+<head>
+    <title>Google Docs SplitView</title>
+    <link rel="stylesheet" href="../css/viewer.css">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+</head>
+<body>
+    <div id="iframeContainer"></div>
+    <script type="module" src="../js/viewer/init.js"></script>
+
+    <!-- Modal Structure -->
+    <div id="modal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h3>Manage Tabs</h3>
+            <p>Select a document to replace the current tab's content, or click the plus icon to open it in a new view.</p>
+            <div class="modal-body"></div> <!-- Dedicated area for dynamic content -->
+            <!-- Dynamic content will be appended here -->
+        </div>
+    </div>
+</body>
+</html>
+
+// Website below LEAVE
+
+<!-- <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -665,3 +690,4 @@ margin-top: 0;
   
 </body>
 </html>
+ -->
