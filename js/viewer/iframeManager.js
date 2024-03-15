@@ -23,6 +23,7 @@ export function createIframeContainer(url, index, iframeContainer, dragStartCall
     containerFrame.appendChild(iframe);
 
     console.log(`Iframe added for URL: ${url}`);
+    setupIframeResizeListener(containerFrame);
 
     return iframe;
   }
@@ -116,7 +117,7 @@ export function updateIframeProportions(iframeContainer, totalWidth, initialProp
   
     iframes.forEach((iframe, index) => {
       let proportionalWidth = (iframe.offsetWidth / totalWidth) * 100;
-    //   console.log('initial proportions: ' + initialProportions);
+      console.log('initial proportions: ' + initialProportions);
       initialProportions[index] = proportionalWidth; // Safely store initial proportions
     //   console.log('initial proportions of index ' + index + ': ' + initialProportions[index]);
       if (index === iframes.length - 1 && totalWidth !== 100) {
@@ -200,7 +201,87 @@ export function updateIframeProportions(iframeContainer, totalWidth, initialProp
       if (modal.style.display === 'block') {
         adjustModalPosition(modal, activeContainerFrame);
       }
-
-
     });
   }
+
+
+  export function setupIframeResizeListener(containerFrame) {
+    const fullTitles = new Map(); // Store full titles mapped to their elements for later restoration
+
+    function shortenTitle(title, frameWidth) {
+      // Fine-tune the estimated space taken up by toolbar buttons/icons
+      const estimatedButtonsWidth = 100; // Adjust based on actual button sizes
+      const adjustedWidth = frameWidth - estimatedButtonsWidth; // Adjust this based on your toolbar's layout
+      const averageCharWidth = 8; // Adjust this based on the average character width of your font at its current size
+      
+      // Calculate max allowed characters based on the adjusted available width
+      const maxAllowedChars = Math.max(Math.floor(adjustedWidth / averageCharWidth), 10); // Ensure at least 10 characters are shown
+      
+      if (title.length > maxAllowedChars) {
+          return title.substring(0, maxAllowedChars - 3) + "...";
+      }
+      return title;
+  }
+
+    // Create a ResizeObserver instance and pass the callback function
+    const resizeObserver = new ResizeObserver(entries => {
+        entries.forEach(entry => {
+            const containerFrame = entry.target;
+            const frameWidth = entry.contentRect.width;
+
+            // Define width thresholds for button visibility
+            const thresholds = {
+                urlTitle: 500, // Width at which the URL title disappears or becomes shorter
+                dragHandle: 500,
+                closeButton: 100,
+                fullscreenButton: 100,
+                popOutButton: 450,
+                copyButton: 500,
+                duplicateButton: 250
+            };
+
+            // Get all buttons from the toolbar
+            const toolbarButtons = containerFrame.querySelectorAll('.url-toolbar button');
+
+            // Adjust button visibility based on the current width of the frame
+            toolbarButtons.forEach(button => {
+                if (button.classList.contains('drag-handle') && frameWidth < thresholds.dragHandle) {
+                    button.style.display = 'none';
+                } else if (button.classList.contains('close-frame-button') && frameWidth < thresholds.closeButton) {
+                    button.style.display = 'none';
+                } else if (button.classList.contains('fullscreen-button') && frameWidth < thresholds.fullscreenButton) {
+                    button.style.display = 'none';
+                } else if (button.classList.contains('pop-out-button') && frameWidth < thresholds.popOutButton) {
+                    button.style.display = 'none';
+                } else if (button.classList.contains('copy-url-button') && frameWidth < thresholds.copyButton) {
+                    button.style.display = 'none';
+                } else if (button.classList.contains('duplicate-frame-button') && frameWidth < thresholds.duplicateButton) {
+                    button.style.display = 'none';
+                } else {
+                    button.style.display = ''; // This resets the display property to default
+                }
+            });
+
+            // Adjust URL title visibility or formatting based on the current width
+            const urlTitle = containerFrame.querySelector('.url-text');
+            if (urlTitle) {
+                if (frameWidth < thresholds.urlTitle) {
+                    if (!fullTitles.has(urlTitle)) {
+                        fullTitles.set(urlTitle, urlTitle.textContent); // Save the full title
+                    }
+                    // Shorten title logic here
+                    urlTitle.textContent = shortenTitle(urlTitle.textContent, frameWidth);
+                } else {
+                    // Restore the full title if it was shortened
+                    if (fullTitles.has(urlTitle)) {
+                        urlTitle.textContent = fullTitles.get(urlTitle);
+                        fullTitles.delete(urlTitle); // Remove the entry from the map once restored
+                    }
+                }
+            }
+        });
+    });
+
+    // Start observing the container frame
+    resizeObserver.observe(containerFrame);
+}
