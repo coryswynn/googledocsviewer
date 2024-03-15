@@ -28,10 +28,24 @@ document.addEventListener('DOMContentLoaded', function() {
     // Query the current window tabs
     chrome.tabs.query({}, function(tabs) {
         const tabList = document.getElementById('tab-list'); // Ensure this element exists in your HTML
+        
+        // Filter for Google Docs, Slides, Sheets, remove duplicates, and sort tabs
+        const filteredAndSortedTabs = tabs
+        .filter(tab => /https:\/\/docs\.google\.com\/(document|spreadsheets|presentation)/.test(tab.url))
+        .reduce((acc, current) => {
+            const x = acc.find(item => item.title === current.title);
+            if (!x) {
+                return acc.concat([current]);
+            } else {
+                return acc;
+            }
+        }, [])
+        .sort((a, b) => a.title.localeCompare(b.title));
+        
         let validTabsFound = false; // Flag to track if valid tabs are found
 
         // For each tab, create a new div element to display the tab's title
-        tabs.forEach(function(tab, index) {
+        filteredAndSortedTabs.forEach(function(tab, index) {
             // Check if the tab's URL matches Google Docs, Sheets, or Slides
             if (/https:\/\/docs\.google\.com\/(document|spreadsheets|presentation)/.test(tab.url)) {
                 const tabItem = document.createElement('label');
