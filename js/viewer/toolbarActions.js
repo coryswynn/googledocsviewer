@@ -102,7 +102,7 @@ function createUrlTitle(url, containerFrame) {
         });
     } else {
         // Web application environment
-        fetchTitleFromUrl(url, containerFrame);
+        return fetchTitleFromUrl(url, containerFrame);
     }
     
     // Check if running as a Chrome extension or as a web application
