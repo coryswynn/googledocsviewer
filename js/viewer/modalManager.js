@@ -56,11 +56,11 @@ export function closeModal(modal) {
     const searchInput = document.createElement('input');
     searchInput.type = 'text';
     searchInput.placeholder = 'Search tabs...';
-    searchInput.className = 'modal-search-input'; // Ensure you have styles for this class
+    searchInput.className = 'modal-search-input'; 
     modalBody.appendChild(searchInput);
 
     const tabsContainer = document.createElement('div');
-    tabsContainer.className = 'tabs-container'; // Use this for additional styling if needed
+    tabsContainer.className = 'tabs-container'; 
     modalBody.appendChild(tabsContainer);
 
     // Filter tabs based on search input
@@ -75,8 +75,18 @@ export function closeModal(modal) {
   
     // Query the current window tabs
     chrome.tabs.query({}, function(tabs) {
+        // Remove duplicate tabs based on title
+        const uniqueTabs = tabs.reduce((acc, current) => {
+            const x = acc.find(item => item.title === current.title);
+            if (!x) {
+                return acc.concat([current]);
+            } else {
+                return acc;
+            }
+        }, []);
+
         // Sort tabs by title in alphabetical order
-        const sortedTabs = tabs.sort((a, b) => a.title.localeCompare(b.title));
+        const sortedTabs = uniqueTabs.sort((a, b) => a.title.localeCompare(b.title));
 
         let validTabsFound = false;
 
@@ -121,6 +131,15 @@ export function closeModal(modal) {
                     const titleElement = activeContainerFrame.querySelector('.url-text');
                     if (titleElement) {
                         titleElement.textContent = tab.title.replace(/( - Google (Sheets|Docs|Slides))/, '');
+                    }
+
+                    // Update the duplicate button functionality with the new URL
+                    const duplicateButton = activeContainerFrame.querySelector('.duplicate-frame-button');
+                    if (duplicateButton) {
+                        duplicateButton.onclick = function() {
+                            duplicateButton.title = 'Duplicate URL';
+                            addNewFrame(tab.url);
+                        };
                     }
 
                     // Update the copy button functionality with the new URL
