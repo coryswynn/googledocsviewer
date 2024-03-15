@@ -10,10 +10,13 @@
     </div>
     <p class="subtitle">Easily merge multiple documents into a single tab.</p>
     
-    <form id="docForm">
+    <form id="docForm" class="docForm">
         <!-- <input type="text" id="docLabel" placeholder="Document Label"> -->
-        <div id="tab-list"></div>
-        <button type="submit">&#128640; Launch SplitView</button>
+        <div id="tab-list-wrapper">
+            <div id="tab-list"></div>
+            <br>
+        </div>
+        <button type="submit" class="launch-splitview-button">&#128640; Launch SplitView</button>
     </form>
 
     <script type="module" src="../js/popup.js"></script>
