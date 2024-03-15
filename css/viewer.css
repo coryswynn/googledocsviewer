@@ -231,3 +231,26 @@ iframe {
     border-color: #ccc; /* Slightly darker border on hover for definition */
     border-radius: 5px; /* Optional: Adds rounded corners for a modern look */
 }
+
+/* Functionality for modal serach */
+
+.modal-search-input {
+    width: calc(100% - 10px); /* Adjust width as necessary, considering padding */
+    padding: 5px;
+    margin: 5px 0;
+    border: 1px solid #ccc; /* Subtle border */
+    border-radius: 5px; /* Rounded corners for modern look */
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1); /* Inner shadow for depth */
+    outline: none; /* Removes the default focus outline */
+    font-size: 13px; /* Sufficiently large font for easy reading */
+    color: #333; /* Dark color for contrast */
+    background-color: #f9f9f9; /* Light background */
+}
+
+.tabs-container {
+    max-height: 50%; /* Limit height to enforce a manageable size */
+    overflow-y: auto; /* Allows scrolling within the container */
+    border-top: 1px solid #eee; /* Subtle top border as a separator */
+    padding: 10px 5px; /* Padding for spacing around tab items */
+    background-color: #fff; /* Background color to match modal */
+}
