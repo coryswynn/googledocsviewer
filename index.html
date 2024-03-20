@@ -130,7 +130,10 @@
         @media screen and (max-width: 768px) {
 
             .navbar {
-                padding: 10px 15px;
+                justify-content: flex-end;
+                /* Align items to the right */
+                padding-right: 20px;
+                /* Ensure some spacing on the right */
                 /* Reduce the vertical padding */
             }
 
@@ -139,6 +142,9 @@
             }
 
             .navbar-logo img {
+                order: 2;
+                /* Move the logo to the end of the flex container */
+
                 width: 100px;
                 /* Reduce the logo size for more space */
             }
@@ -146,13 +152,17 @@
             .navbar ul.active {
                 display: flex;
                 flex-direction: column;
+                align-items: flex-end;
+                /* Align menu items to the right */
             }
 
             .hamburger {
-                display: block;
-                position: absolute;
-                right: 20px;
-                top: 20px;
+                order: 1;
+                /* Place the hamburger menu before the logo */
+                position: static;
+                /* Reset any absolute positioning */
+                margin-right: auto;
+                /* Push everything else to the right */
             }
 
             .container {
