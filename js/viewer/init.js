@@ -20,7 +20,7 @@ import {
 } from './modalManager.js';
 import { createToolbar } from './toolbarActions.js';
 import { initializeDragAndDrop } from './dragAndDrop.js';
-import './keyboardShortcut.js';
+import './keyboardShortcuts.js';
 
 let activeContainerFrame = null; // Keep track of the active container frame globally
 
