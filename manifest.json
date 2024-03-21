@@ -1,9 +1,9 @@
 {
   "manifest_version": 3,
   "name": "Google Docs SplitView",
-  "version": "1.02",
+  "version": "1.03",
   "description": "Open documents side-by-side in a single Chrome tab.",
-  "permissions": ["tabs", "activeTab", "storage"],
+  "permissions": ["tabs", "activeTab"],
   "background": {
     "service_worker": "./js/background.js"
   },
