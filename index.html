@@ -500,6 +500,21 @@
         document.querySelector('.hamburger').addEventListener('click', function () {
             document.querySelector('.navbar ul').classList.toggle('active');
         });
+
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+
+        let target = document.querySelector(this.getAttribute('href'));
+        let navbarHeight = document.querySelector('.navbar').offsetHeight;
+        let position = target.offsetTop - navbarHeight;
+
+        window.scrollTo({
+            top: position,
+            behavior: 'smooth'
+                });
+            });
+        });
     </script>
 
 
