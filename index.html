@@ -524,11 +524,11 @@
                 if (targetId !== "#" && target !== null) {
                     let navbarHeight = document.querySelector('.navbar').offsetHeight;
                     position = target.offsetTop - navbarHeight;
-                }
-    
-                window.scrollTo({
-                    top: position,
-                    behavior: 'smooth'
+                } else {
+                    window.scrollTo({
+                        top: position,
+                        behavior: 'smooth'
+                    }
                 });
             });
         });
