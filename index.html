@@ -524,12 +524,16 @@
                 if (targetId !== "#" && target !== null) {
                     let navbarHeight = document.querySelector('.navbar').offsetHeight;
                     position = target.offsetTop - navbarHeight;
-                } else {
                     window.scrollTo({
                         top: position,
                         behavior: 'smooth'
-                    }
-                });
+                    });
+                } else {
+                   window.scrollTo({
+                        top: position,
+                        behavior: 'smooth'
+                    }); // Fixed: Added the missing closing parenthesis here
+                }
             });
         });
     </script>
