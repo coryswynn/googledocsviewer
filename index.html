@@ -507,7 +507,6 @@
         </div>
     </footer>
 
-
     <script>
         document.querySelector('.hamburger').addEventListener('click', function () {
             document.querySelector('.navbar ul').classList.toggle('active');
@@ -518,26 +517,27 @@
                 e.preventDefault();
     
                 let targetId = this.getAttribute('href');
-                let target = document.querySelector(targetId);
-                let position = 0; // Default to top of the page
-    
-                if (targetId !== "#" && target !== null) {
-                    let navbarHeight = document.querySelector('.navbar').offsetHeight;
-                    position = target.offsetTop - navbarHeight;
+                if (targetId === "#") {
+                    // Directly scroll to the top if the href is "#"
                     window.scrollTo({
-                        top: position,
+                        top: 0,
                         behavior: 'smooth'
                     });
                 } else {
-                   window.scrollTo({
-                        top: position,
-                        behavior: 'smooth'
-                    }); // Fixed: Added the missing closing parenthesis here
+                    // For other anchors, find the target and calculate its position
+                    let target = document.querySelector(targetId);
+                    if (target !== null) {
+                        let navbarHeight = document.querySelector('.navbar').offsetHeight;
+                        let position = target.offsetTop - navbarHeight;
+                        window.scrollTo({
+                            top: position,
+                            behavior: 'smooth'
+                        });
+                    }
                 }
             });
         });
     </script>
-
 
 </body>
 
