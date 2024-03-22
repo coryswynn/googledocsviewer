@@ -510,18 +510,23 @@
         document.querySelector('.hamburger').addEventListener('click', function () {
             document.querySelector('.navbar ul').classList.toggle('active');
         });
-
+    
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function (e) {
-        e.preventDefault();
-
-        let target = document.querySelector(this.getAttribute('href'));
-        let navbarHeight = document.querySelector('.navbar').offsetHeight;
-        let position = target.offsetTop - navbarHeight;
-
-        window.scrollTo({
-            top: position,
-            behavior: 'smooth'
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+    
+                let targetId = this.getAttribute('href');
+                let target = document.querySelector(targetId);
+                let position = 0; // Default to top of the page
+    
+                if (targetId !== "#" && target !== null) {
+                    let navbarHeight = document.querySelector('.navbar').offsetHeight;
+                    position = target.offsetTop - navbarHeight;
+                }
+    
+                window.scrollTo({
+                    top: position,
+                    behavior: 'smooth'
                 });
             });
         });
