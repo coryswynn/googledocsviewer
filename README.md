@@ -4,7 +4,7 @@ Enhance your productivity with `Google Docs SplitView`, a Chrome Extension that 
 
 ## Features
 
-- **Side-by-Side SplitView**: Open multiple Google Docs, Sheets, or Slides side-by-side within the same browser tab.
+- **Side-by-Side SplitView**: Open the same file or multiple Google Docs, Sheets, or Slides side-by-side within the same browser tab.
 - **Fullscreen & Custom Split Sizing**: Toggle between fullscreen and side-by-size mode, customized to your chosen frame proportions.
 - **Dynamic Document Switching**: Easily switch between all open Google Docs, Slides, and Sheets in a single, unified interface.
 - **Drag-and-Drop Window Swapping**: Reorganize open documents within a splitview with an intuitive drag-and-drop interface.
