@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Docs SplitView</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="https://i.imgur.com/WOEydjy.png">
+    <style>
+        body,
+        html {
+            overflow-x: hidden;
+            /* Prevent horizontal scrolling */
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Roboto', sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: auto;
+            padding: 0 20px;
+        }
+
+        .navbar {
+            background: #ffffff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 0 10px;
+            /* Updated padding for consistent spacing */
+            position: fixed;
+            width: 100%;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+            display: flex;
+            /* Use flexbox for better alignment */
+            justify-content: space-between;
+            /* Space between items and hamburger menu */
+            align-items: center;
+            /* Center items vertically */
+            transition: all 0.3s ease;
+        }
+
+        .navbar ul {
+            list-style: none;
+            padding: 0 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: transform 0.3s ease;
+            /* Smooth transition for responsive menu */
+        }
+
+        .navbar ul li {
+            margin: 0 15px;
+        }
+
+        .navbar ul li a {
+            text-decoration: none;
+            color: #333;
+            font-weight: 500;
+            padding: 10px;
+            /* Add padding for a larger clickable area */
+            border-radius: 5px;
+            /* Rounded edges for aesthetic */
+            transition: background-color 0.2s ease;
+            /* Smooth background transition on hover */
+        }
+
+        .navbar ul li a:hover,
+        .navbar ul li a:focus {
+            background-color: #f0f0f0;
+            /* Slight background on hover/focus for feedback */
+        }
+
+        .navbar-logo img {
+            width: 300px;
+            /* Adjust based on your logo's design */
+            width: auto;
+            /* Maintain aspect ratio */
+            transition: transform 0.3s ease;
+            /* Optional: Adds a subtle scale effect on hover */
+            padding-left: 20px;
+        }
+
+        .navbar-logo {
+            display: flex;
+            /* Ensures alignment */
+            align-items: center;
+            /* Vertically centers the logo */
+        }
+
+        .navbar-logo:hover img {
+            transform: scale(1.1);
+            /* Optional: Slightly enlarges the logo on hover */
+        }
+
+        /* Responsive Hamburger Menu */
+        .hamburger {
+            display: none;
+            cursor: pointer;
+        }
+
+        .hamburger div {
+            width: 25px;
+            height: 3px;
+            background-color: #333;
+            margin: 5px;
+            transition: all 0.3s ease;
+        }
+
+        /* Toggle the .change class on click */
+        .change .bar1 {
+            transform: rotate(-45deg) translate(-5px, 6px);
+        }
+
+        .change .bar2 {
+            opacity: 0;
+        }
+
+        .change .bar3 {
+            transform: rotate(45deg) translate(-5px, -6px);
+        }
+
+        @media screen and (max-width: 768px) {
+
+            .navbar {
+                justify-content: flex-end;
+                /* Align items to the right */
+                padding-right: 20px;
+                /* Ensure some spacing on the right */
+                /* Reduce the vertical padding */
+            }
+
+            .navbar ul {
+                display: none;
+            }
+
+            .navbar-logo img {
+                order: 2;
+                /* Move the logo to the end of the flex container */
+
+                width: 100px;
+                /* Reduce the logo size for more space */
+            }
+
+            .navbar ul.active {
+                display: flex;
+                flex-direction: column;
+                align-items: flex-end;
+                /* Align menu items to the right */
+            }
+
+            .hamburger {
+                order: 1;
+                /* Place the hamburger menu before the logo */
+                position: static;
+                /* Reset any absolute positioning */
+                margin-right: auto;
+                /* Push everything else to the right */
+            }
+
+            .container {
+                padding: 0 10px;
+                /* Reduce the side padding for the container on mobile devices */
+            }
+        }
+
+        .header {
+            text-align: center;
+            padding: 100px 20px;
+            padding-top: 60px;
+            /* Adjust based on navbar height */
+            color: #fff;
+            transition: padding-top 0.3s ease;
+            background-image: url('https://i.imgur.com/AZN9xgy.png');
+            /* Path to your image */
+            background-size: cover;
+            /* Cover the entire section */
+            background-position: center;
+            /* Center the background image */
+            background-repeat: no-repeat;
+            /* Do not repeat the image */
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            margin-top: 10px;
+        }
+
+        /* Header image CSS for dynamic scaling */
+        .header img {
+            max-width: 100%;
+            /* Ensure image is never larger than its container */
+            width: auto;
+            /* Maintain aspect ratio */
+            display: block;
+            /* Remove any default inline spacing */
+            margin: 0 auto;
+            /* Center image if it's not full-width */
+        }
+
+        @media screen and (max-width: 768px) {
+            .navbar {
+                flex-direction: column;
+                /* Stack logo and hamburger menu vertically */
+                padding: 15px 0px;
+                /* Reduce padding for smaller screens */
+            }
+
+            .navbar ul.active {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                /* Center menu items */
+                padding: 20px 0;
+                /* Add some padding above and below the menu */
+            }
+
+            .header {
+                padding-top: 90px;
+                /* Increase padding to account for taller navbar */
+            }
+
+            .header h1 {
+                margin: 0;
+                font-size: 1.9rem;
+            }
+
+            .header p {
+                font-size: 1.0rem;
+            }
+
+        }
+
+        .button-group {
+            margin-top: 20px;
+        }
+
+        .btn {
+            display: inline-block;
+            background: #fff;
+            color: #333;
+            padding: 15px 30px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: 500;
+            margin: 10px 10px;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+            background-color: #a20d00;
+            color: white;
+        }
+
+        .btn-primary {
+            background: #ffd000;
+            color: #000000;
+        }
+
+        .footer {
+            background: #333;
+            color: #fff;
+            text-align: center;
+            vertical-align: middle;
+            padding: 20px 0;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .navbar ul {
+                flex-direction: column;
+            }
+
+            .navbar ul li {
+                margin: 10px 0;
+            }
+        }
+
+        .features {
+            text-align: center;
+        }
+
+        .feature-section {
+            padding: 40px 0;
+            text-align: center;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            padding: 20px 0;
+        }
+
+        /* Ensure no more than three columns */
+        @media (min-width: 750px) {
+
+            /* Adjust this breakpoint as needed */
+            .feature-grid {
+                grid-template-columns: repeat(auto-fit, minmax(250px, calc(33.333% - 20px)));
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .feature-grid {
+                grid-template-columns: repeat(3, minmax(250px, 1fr));
+            }
+        }
+
+        .feature {
+            background: #fff;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .feature h3 {
+            color: #946114;
+        }
+
+        .feature:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        @media (max-width: 768px) {
+            .feature-section {
+                padding-top: 90px;
+                margin: 50px 0px;
+                /* Offset the added padding if needed */
+
+            }
+
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Download Section Styling */
+        .download-section {
+            padding: 40px 0;
+            text-align: center;
+        }
+
+        .download-bg {
+            background-color: #f39871;
+            /* Background color spanning full width */
+            padding: 50px 0;
+            /* Vertical padding */
+            text-align: center;
+            /* Center align the text for all screen sizes */
+        }
+
+        #download {
+            border-radius: 8px;
+            text-align: center;
+            align-items: center;
+            width: 100%;
+        }
+
+        #download h2 {
+            color: #35221c;
+        }
+
+        #download p {
+            margin-bottom: 30px;
+        }
+
+        #download .btn-primary {
+            background-color: #ffd000;
+            border: none;
+            padding: 10px 40px;
+            font-size: 1rem;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+        }
+
+        #download .btn-primary:hover {
+            background-color: #a20d00;
+            color: #fff;
+            transform: scale(1.05);
+        }
+
+        @media screen and (max-width: 768px) {
+
+            .container,
+            #download {
+                width: 100%;
+                /* Ensure full width */
+                max-width: none;
+                /* Remove any max-width restrictions */
+                padding: 0 15px;
+                /* Adjust padding as needed for mobile */
+                box-sizing: border-box;
+                /* Include padding in the element's total width */
+            }
+
+            #download .btn-primary {
+                display: block;
+                /* Ensure button is a block element for mobile */
+                margin: 20px auto;
+                /* Center button with auto margins */
+                padding: 15px 40px;
+                /* Adjust button padding for mobile */
+            }
+        }
+
+        .testimonials-section {
+            background-color: #fff;
+            padding: 40px 0;
+            text-align: center;
+        }
+
+        .testimonials-section h2 {
+            margin-bottom: 30px;
+            color: #333;
+            font-size: 2rem;
+        }
+
+        .testimonials-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .testimonial {
+            background-color: #f5f5f5;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .testimonial-text {
+            font-style: italic;
+            color: #333;
+        }
+
+        .testimonial-author {
+            margin-top: 20px;
+            color: #946114;
+            font-weight: 500;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="navbar">
+        <a href="#" class="navbar-logo">
+            <img src="https://i.imgur.com/yUm3oGG.png" alt="Logo" style="width: 300px; vertical-align: middle;">
+            <!-- Adjust the height as needed -->
+        </a>
+        <div class="hamburger" onclick="this.classList.toggle('change');">
+            <div class="bar1"></div>
+            <div class="bar2"></div>
+            <div class="bar3"></div>
+        </div>
+        <ul>
+            <li><a href="#">Home</a></li>
+            <li><a href="#features">Features</a></li>
+            <li><a
+                    href="https://chromewebstore.google.com/detail/google-docs-splitview/mhekpeihiapfhjefakclpbmdofbmldcb">Download</a>
+            </li>
+        </ul>
+    </div>
+
+    <div class="header">
+        <div class="container">
+            <a href="#" style="display: inline-block; cursor: pointer;">
+                <img src="https://i.imgur.com/TvH9b74.png" alt="Header Image"
+                    style="max-width: 80%; width: auto; margin-top: 20px; height:auto;">
+            </a>
+            <h1>Google Docs SplitView</h1>
+            <p>Boost your productivity by managing Google Docs, Slides, and Sheets in a single tab. Effortless document
+                management and reduced tab switching.</p>
+            <div class="button-group">
+                <a href="https://chromewebstore.google.com/detail/google-docs-splitview/mhekpeihiapfhjefakclpbmdofbmldcb"
+                    class="btn btn-primary">Download Now</a>
+                <a href="#features" class="btn">Learn More</a>
+            </div>
+        </div>
+    </div>
+
+
+    <section id="features" class="container feature-section">
+        <h2>Features</h2>
+        <p>Discover the powerful features of Google Docs SplitView:</p>
+        <div class="feature-grid">
+            <div class="feature">
+                <h3>Side-by-Side SplitView</h3>
+                <p>Open multiple Google Docs, Sheets, or Slides side-by-side within the same browser tab for efficient
+                    multitasking.</p>
+            </div>
+            <div class="feature">
+                <h3>Fullscreen & Custom Sizing</h3>
+                <p>Easily switch between fullscreen and split views, customizing to your preferred frame proportions for
+                    optimal workspace utilization.</p>
+            </div>
+            <div class="feature">
+                <h3>Dynamic Document Switching</h3>
+                <p>Seamlessly switch between open Google Docs, Slides, and Sheets in a unified interface without losing
+                    focus or workflow momentum.</p>
+            </div>
+            <div class="feature">
+                <h3>Drag-and-Drop Window Swapping</h3>
+                <p>Reorganize documents within the SplitView using a simple drag-and-drop interface, enhancing your
+                    organization and productivity.</p>
+            </div>
+            <div class="feature">
+                <h3>Flexible Frame Management</h3>
+                <p>Manage your workspace with the flexibility to open and close document frames on demand, with no limit
+                    on the number of frames.</p>
+            </div>
+            <div class="feature">
+                <h3>Dynamic URL State</h3>
+                <p>Keep track of your workspace with URLs that update as you open and close frames, making it easy to
+                    share or reopen layouts.</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="testimonials" class="testimonials-section">
+        <div class="container">
+            <h2>What Our Users Say</h2>
+            <div class="testimonials-grid">
+                <div class="testimonial">
+                    <p class="testimonial-text">"Google Docs SplitView has revolutionized the way I manage my documents.
+                        It's a game-changer!"</p>
+                    <p class="testimonial-author">- Jane Doe, Digital Marketer</p>
+                </div>
+                <div class="testimonial">
+                    <p class="testimonial-text">"This tool has significantly improved my productivity. Highly recommend
+                        it!"</p>
+                    <p class="testimonial-author">- John Smith, Freelance Writer</p>
+                </div>
+                <div class="testimonial">
+                    <p class="testimonial-text">"A must-have for anyone looking to streamline their workflow with Google
+                        Docs."</p>
+                    <p class="testimonial-author">- Emily White, Project Manager</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Full-width background for the Download section -->
+    <div class="download-bg">
+        <section id="download" class="container">
+            <h2>Download Google Docs SplitView</h2>
+            <p>Ready to enhance your productivity? Download Google Docs SplitView today.</p>
+            <a href="https://chromewebstore.google.com/detail/google-docs-splitview/mhekpeihiapfhjefakclpbmdofbmldcb"
+                class="btn btn-primary">Download for Chrome</a>
+        </section>
+    </div>
+
+    <footer class="footer">
+        <div class="container">
+            &copy; 2024 Google Docs SplitView. All rights reserved.
+            <a href="https://github.com/coryswynn/googledocsviewer/" target="_blank" style=" margin-left: 10px;">
+                <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAAAXNSR0IArs4c6QAAAStJREFUSEu1VQEOwjAIpC/TvUx9mfoy9BZoaAulM67JsiWDO+CAFjr5lJPxKSVg5isR4blIMPh+EdEb71IKvsMTEgjwTcBnGCB4REQuATPfiQjgRw5I4NecgeBHcAUdSDwCFus9dSlRlI3a2FJutlwNQRe9m7KGCo0UqPOD8JvaVQIR9WkK2BjOxHDKWrOwBL2w0wwsoRNc9Y0IlqM3JUP2mBGc6m8JVNzGYLVPmdkSUPn2LHwtgRvBWQQ1ggMEbgX+JXLYILM2RfBpJwWTP3YR0IxQGBR0hE5w01XJImyC6icZoBB7BzTRDZn0XWO0igkkC61ntiq8jZsvu45knwlv3zu1X1vXZjJ1t0MHr0SawfELp9szABquRhEa8/Lblbk6YJldeulnANn/D8z4vhkk6mz7AAAAAElFTkSuQmCC"
+                    alt="GitHub" style="width: 24px; height: auto; vertical-align: middle;">
+            </a>
+        </div>
+    </footer>
+
+    <script>
+        document.querySelector('.hamburger').addEventListener('click', function () {
+            document.querySelector('.navbar ul').classList.toggle('active');
+        });
+
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+
+                let targetId = this.getAttribute('href');
+                if (targetId === "#") {
+                    // Directly scroll to the top if the href is "#"
+                    window.scrollTo({
+                        top: 0,
+                        behavior: 'smooth'
+                    });
+                } else {
+                    // For other anchors, find the target and calculate its position
+                    let target = document.querySelector(targetId);
+                    if (target !== null) {
+                        let navbarHeight = document.querySelector('.navbar').offsetHeight;
+                        let position = target.offsetTop - navbarHeight;
+                        window.scrollTo({
+                            top: position,
+                            behavior: 'smooth'
+                        });
+                    }
+                }
+            });
+        });
+    </script>
+
+</body>
+
+</html>

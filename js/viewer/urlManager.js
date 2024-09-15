@@ -17,7 +17,10 @@ export function updateURL(containerFrame, newURL) {
 export function updateContainerFrameTitle(containerFrame, newTitle) {
   const titleElement = containerFrame.querySelector('.url-text');
   if (titleElement) {
+    console.log(`Updating title for container: ${newTitle}`);
     titleElement.textContent = newTitle;
+  } else {
+    console.error('Title element not found in the container frame.');
   }
 }
 

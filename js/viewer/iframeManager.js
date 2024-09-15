@@ -48,58 +48,60 @@ export function createIframeContainer(url, index, iframeContainer, dragStartCall
   }
   
   // Function to make a divider draggable and update iframe proportions
-  export function makeDividerDraggable(divider, iframeContainer, updateIframeProportions) {
-    divider.addEventListener('mousedown', function onMouseDown(e) {
-        e.preventDefault(); // Prevent text selection during drag
+export function makeDividerDraggable(divider, iframeContainer, updateIframeProportions) {
+  divider.addEventListener('mousedown', function onMouseDown(e) {
+      e.preventDefault(); // Prevent text selection during drag
 
-        // Capture the starting mouse position
-        let startX = e.clientX;
-        let prevIframe = divider.previousElementSibling;
-        let nextIframe = divider.nextElementSibling;
-        let prevWidth = prevIframe.clientWidth;
-        let nextWidth = nextIframe.clientWidth;
+      // Determine the current orientation
+      const isVertical = iframeContainer.style.flexDirection === 'column';
 
-        // Disable pointer events on all iframes to prevent interference
-        document.querySelectorAll('iframe').forEach(iframe => iframe.style.pointerEvents = 'none');
-        console.log('Drag started');
+      // Capture the starting mouse position
+      let startPos = isVertical ? e.clientY : e.clientX;
+      let prevIframe = divider.previousElementSibling;
+      let nextIframe = divider.nextElementSibling;
+      let prevSize = isVertical ? prevIframe.clientHeight : prevIframe.clientWidth;
+      let nextSize = isVertical ? nextIframe.clientHeight : nextIframe.clientWidth;
 
-        // Define what happens when the mouse is moved
-        function onMouseMove(e) {
-            let dx = e.clientX - startX;
-            // console.log(`Dragging... DeltaX: ${dx}px`);
+      // Disable pointer events on all iframes to prevent interference
+      document.querySelectorAll('iframe').forEach(iframe => iframe.style.pointerEvents = 'none');
+      console.log('Drag started');
 
-            let newPrevWidth = Math.max(prevWidth + dx, 0);
-            let newNextWidth = Math.max(nextWidth - dx, 0);
+      // Define what happens when the mouse is moved
+      function onMouseMove(e) {
+          let currentPos = isVertical ? e.clientY : e.clientX;
+          let delta = currentPos - startPos;
 
-            prevIframe.style.flex = `1 1 ${newPrevWidth}px`;
-            nextIframe.style.flex = `1 1 ${newNextWidth}px`;
+          let newPrevSize = Math.max(prevSize + delta, 0);
+          let newNextSize = Math.max(nextSize - delta, 0);
 
-            // If the modal is displayed, adjust its position
-            if (modal.style.display === 'block') {
-                adjustModalPosition(modal, getActiveContainerFrame());
-            }
-        }
+          prevIframe.style.flex = `1 1 ${newPrevSize}px`;
+          nextIframe.style.flex = `1 1 ${newNextSize}px`;
 
-        // Define what happens when the mouse button is released
-        function onMouseUp() {
-            // Re-enable pointer events
-            document.querySelectorAll('iframe').forEach(iframe => iframe.style.pointerEvents = '');
-            
-            // Remove the event listeners
-            document.removeEventListener('mousemove', onMouseMove);
-            document.removeEventListener('mouseup', onMouseUp);
-            console.log('Drag ended');
+          // If the modal is displayed, adjust its position
+          if (modal && modal.style.display === 'block') {
+              adjustModalPosition(modal, getActiveContainerFrame());
+          }
+      }
 
-            // Update iframe proportions based on the new sizes
-            updateIframeProportions(iframeContainer);
+      // Define what happens when the mouse button is released
+      function onMouseUp() {
+          // Re-enable pointer events
+          document.querySelectorAll('iframe').forEach(iframe => iframe.style.pointerEvents = '');
+          
+          // Remove the event listeners
+          document.removeEventListener('mousemove', onMouseMove);
+          document.removeEventListener('mouseup', onMouseUp);
+          console.log('Drag ended');
 
-        }
+          // Update iframe proportions based on the new sizes
+          updateIframeProportions(iframeContainer);
+      }
 
-        // Attach the event listeners for mouse move and mouse up
-        document.addEventListener('mousemove', onMouseMove);
-        document.addEventListener('mouseup', onMouseUp);
-    });
-  }
+      // Attach the event listeners for mouse move and mouse up
+      document.addEventListener('mousemove', onMouseMove);
+      document.addEventListener('mouseup', onMouseUp);
+  });
+}
   
 // Function to update iframes' proportions based on current sizes
 export function updateIframeProportions(iframeContainer, totalWidth, initialProportions) {
@@ -132,10 +134,9 @@ export function updateIframeProportions(iframeContainer, totalWidth, initialProp
   // Function to dynamically update the positions of dividers according to the current order of iframes
   export function updateDividers(iframeContainer) {
     // Remove existing dividers
-    // console.log('Starting update dividers');
     const existingDividers = iframeContainer.querySelectorAll('.iframe-divider');
     existingDividers.forEach(divider => divider.remove());
-  
+
     // After removing dividers, check the current number of frames
     const containerFrames = iframeContainer.querySelectorAll('.url-container');
 
@@ -145,19 +146,32 @@ export function updateIframeProportions(iframeContainer, totalWidth, initialProp
         return; // Exit the function early as no dividers are needed
     }
 
+    // Determine the current orientation
+    const isVertical = iframeContainer.style.flexDirection === 'column';
+
     // Add new dividers and make them draggable if more than one frame exists
     containerFrames.forEach((container, index) => {
-      if (index < containerFrames.length - 1) {
-        const divider = document.createElement('div');
-        divider.className = 'iframe-divider';
-        iframeContainer.insertBefore(divider, container.nextSibling);
-        makeDividerDraggable(divider, iframeContainer, updateIframeProportions);
-      } else {
-        return null;
-      }
+        if (index < containerFrames.length - 1) {
+            const divider = document.createElement('div');
+            divider.className = 'iframe-divider';
+
+            // Set the cursor and style based on orientation
+            if (isVertical) {
+                divider.style.height = '5px'; // Adjust thickness as needed
+                divider.style.width = '100%';
+                divider.style.cursor = 'row-resize';
+            } else {
+                divider.style.width = '5px'; // Adjust thickness as needed
+                divider.style.height = '100%';
+                divider.style.cursor = 'col-resize';
+            }
+
+            iframeContainer.insertBefore(divider, container.nextSibling);
+            makeDividerDraggable(divider, iframeContainer, updateIframeProportions);
+        }
     });
     console.log('Dividers updated');
-  }
+}
 
   // Function to create and insert a divider in the DOM
   export function createDivider(iframeContainer, index, urlsLength) {

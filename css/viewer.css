@@ -1,11 +1,13 @@
 /* viewer.css*/
 
-body, html {
+body,
+html {
     margin: 0;
     padding: 0;
     height: 100%;
-    overflow: hidden; /* Disable scroll on body */
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    overflow: hidden;
+    /* Disable scroll on body */
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
 #iframeContainer {
@@ -13,23 +15,29 @@ body, html {
     flex-direction: row;
     height: 100%;
 }
+
 iframe {
-    flex: 1; /* Distribute space evenly */
-    width: 100%; /* Fill the container horizontally */
+    flex: 1;
+    /* Distribute space evenly */
+    width: 100%;
+    /* Fill the container horizontally */
     border: none;
 }
 
 .iframe-divider {
-    min-width: 5px; /* Width of the divider */
+    min-width: 5px;
+    /* Width of the divider */
     cursor: ew-resize;
     background: linear-gradient(to right, #f0f0f0, #a0a0a0, #f0f0f0);
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-    height: 100%; /* Full height of the container */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    height: 100%;
+    /* Full height of the container */
     transition: background 0.2s ease;
 }
 
 .iframe-divider:hover {
-    cursor: col-resize; /* Shows a horizontal arrow cursor indicating the divider can be dragged */
+    cursor: col-resize;
+    /* Shows a horizontal arrow cursor indicating the divider can be dragged */
 }
 
 .iframe-container {
@@ -39,10 +47,13 @@ iframe {
 .url-container {
     display: flex;
     flex-direction: column;
-    height: 100%; /* Ensure it fills the parent vertically */
-    width: 100%; /* Ensure it fills the parent horizontally */
-    border: 1px solid #ccc; /* Optional, just for visibility */
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    height: 100%;
+    /* Ensure it fills the parent vertically */
+    width: 100%;
+    /* Ensure it fills the parent horizontally */
+    border: 1px solid #ccc;
+    /* Optional, just for visibility */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .url-toolbar {
@@ -50,50 +61,83 @@ iframe {
     justify-content: space-between;
     align-items: center;
     padding: 4px 10px;
-    background-color: #f0f0f0; /* Light grey background */
-    border-bottom: 1px solid #ccc; /* Optional, adds a divider look */
+    background-color: #f0f0f0;
+    /* Light grey background */
+    border-bottom: 1px solid #ccc;
+    /* Optional, adds a divider look */
 }
 
 .url-text {
-    flex-grow: 1; /* Allow the URL text to take up any available space */
-    overflow: hidden; /* Hide overflow */
-    text-overflow: ellipsis; /* Show ellipsis for overflow */
-    white-space: nowrap; /* Keep the URL in one line */
+    flex-grow: 1;
+    /* Allow the URL text to take up any available space */
+    overflow: hidden;
+    /* Hide overflow */
+    text-overflow: ellipsis;
+    /* Show ellipsis for overflow */
+    white-space: nowrap;
+    /* Keep the URL in one line */
+    font-size: 12px;
+    /* Standard font size for readability */
+
 }
 
-.copy-url-button, .pop-out-button, .fullscreen-button, .close-frame-button, .duplicate-frame-button {
+.copy-url-button,
+.pop-out-button,
+.share-button,
+.fullscreen-button,
+.close-frame-button,
+.duplicate-frame-button {
     background: none;
-    border: 2px solid transparent; /* Define a transparent border */
+    border: 2px solid transparent;
+    /* Define a transparent border */
     cursor: pointer;
-    font-size: 16px; /* Adjust as needed */
-    margin-left: 5px; /* Space out buttons */
+    font-size: 16px;
+    /* Adjust as needed */
+    margin-left: 5px;
+    /* Space out buttons */
     transition: all 0.2s ease-in-out;
 }
 
 .drag-handle {
     background: none;
-    border: 2px solid transparent; /* Define a transparent border */
-    cursor: grab; /* Show a move cursor */
-    font-size: 16px; /* Adjust as needed */
-    margin-left: 5px; /* Space out buttons */
+    border: 2px solid transparent;
+    /* Define a transparent border */
+    cursor: grab;
+    /* Show a move cursor */
+    font-size: 16px;
+    /* Adjust as needed */
+    margin-left: 5px;
+    /* Space out buttons */
 }
 
 /* Style for when an item is dragged over the top half of a target */
 .drag-over-top {
-    border-top: 2px solid blue; /* Blue top border indicating a drop above */
-    background-color: rgba(0, 0, 255, 0.1); /* Slightly tinted background */
+    border-top: 2px solid blue;
+    /* Blue top border indicating a drop above */
+    background-color: rgba(0, 0, 255, 0.1);
+    /* Slightly tinted background */
 }
 
 /* Style for when an item is dragged over the bottom half of a target */
 .drag-over-bottom {
-    border-bottom: 2px solid green; /* Green bottom border indicating a drop below */
-    background-color: rgba(0, 255, 0, 0.1); /* Slightly tinted background */
+    border-bottom: 2px solid green;
+    /* Green bottom border indicating a drop below */
+    background-color: rgba(0, 255, 0, 0.1);
+    /* Slightly tinted background */
 }
 
-.copy-url-button:hover, .pop-out-button:hover, .fullscreen-button:hover, .close-frame-button:hover, .duplicate-frame-button:hover {
-    background-color: #e3e3e3; /* Light grey background on hover */
-    border-color: #ccc; /* Slightly darker border on hover for definition */
-    border-radius: 5px; /* Optional: Adds rounded corners for a modern look */
+.copy-url-button:hover,
+.pop-out-button:hover,
+.share-button:hover,
+.fullscreen-button:hover,
+.close-frame-button:hover,
+.duplicate-frame-button:hover {
+    background-color: #e3e3e3;
+    /* Light grey background on hover */
+    border-color: #ccc;
+    /* Slightly darker border on hover for definition */
+    border-radius: 5px;
+    /* Optional: Adds rounded corners for a modern look */
 }
 
 .url-container.dragging {
@@ -101,9 +145,12 @@ iframe {
 }
 
 .url-container.drag-over {
-    background-color: rgba(0, 123, 255, 0.1); /* Light blue background */
-    border: 2px dashed #007bff; /* Dashed blue border */
-    box-shadow: 0 0 10px rgba(0, 123, 255, 0.2); /* Slight shadow for depth */
+    background-color: rgba(0, 123, 255, 0.1);
+    /* Light blue background */
+    border: 2px dashed #007bff;
+    /* Dashed blue border */
+    box-shadow: 0 0 10px rgba(0, 123, 255, 0.2);
+    /* Slight shadow for depth */
 }
 
 .url-container.expanded {
@@ -111,59 +158,93 @@ iframe {
 }
 
 .url-text:hover {
-    color: #007bff; /* Highlight color on hover to indicate interactivity */
+    color: #007bff;
+    /* Highlight color on hover to indicate interactivity */
 }
 
 /* Modal Styles */
 .modal {
-    display: none; /* Hidden by default */
-    position: fixed; /* Stay in place */
-    z-index: 1000; /* Sit on top */
+    display: none;
+    /* Hidden by default */
+    position: fixed;
+    /* Stay in place */
+    z-index: 1000;
+    /* Sit on top */
     left: 0;
     top: 0;
-    width: 100%; /* Full width */
-    height: 100%; /* Full height */
-    overflow: auto; /* Enable scroll if needed */
-    background-color: rgb(0,0,0); /* Fallback color */
-    background-color: rgba(0,0,0,0.6); /* Black w/ opacity */
+    width: 100%;
+    /* Full width */
+    height: 100%;
+    /* Full height */
+    overflow: auto;
+    /* Enable scroll if needed */
+    background-color: rgb(0, 0, 0);
+    /* Fallback color */
+    background-color: rgba(0, 0, 0, 0.6);
+    /* Black w/ opacity */
 }
 
 .modal-content {
     position: relative;
     background-color: #fefefe;
-    margin: 5% auto; /* Lower margin for better use of screen space */
-    padding: 10px 20px 20px; /* top, right and left, bottom */
-    border-radius: 10px; /* Rounded corners for a modern look */
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2); /* Subtle shadow for depth */
-    width: 50%; /* Adapt width for better content presentation */
-    animation: modalFadeIn 0.5s; /* Smooth fade-in effect */
+    margin: 5% auto;
+    /* Lower margin for better use of screen space */
+    padding: 10px 20px 20px;
+    /* top, right and left, bottom */
+    border-radius: 10px;
+    /* Rounded corners for a modern look */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    /* Subtle shadow for depth */
+    width: 50%;
+    /* Adapt width for better content presentation */
+    animation: modalFadeIn 0.5s;
+    /* Smooth fade-in effect */
     max-width: 600px;
 }
 
 
 /* Modal content title styling */
 .modal-content h3 {
-    font-size: 17px; /* Larger font size for clear hierarchy */
-    color: #333; /* Dark color for emphasis */
-    margin-bottom: 0.25rem; /* Space below the title */
-    font-weight: 600; /* Semi-bold for a heavier weight */
-    text-align: left; /* Align to the start, adjusting as per design requirements */
-    padding-bottom: 0.25rem; /* Padding to add space below the text */
-    border-bottom: 2px solid #eaeaea; /* A subtle bottom border to separate from the content */
+    font-size: 17px;
+    /* Larger font size for clear hierarchy */
+    color: #333;
+    /* Dark color for emphasis */
+    margin-bottom: 0.25rem;
+    /* Space below the title */
+    font-weight: 600;
+    /* Semi-bold for a heavier weight */
+    text-align: left;
+    /* Align to the start, adjusting as per design requirements */
+    padding-bottom: 0.25rem;
+    /* Padding to add space below the text */
+    border-bottom: 2px solid #eaeaea;
+    /* A subtle bottom border to separate from the content */
 }
 
 /* Modal content paragraph styling */
 .modal-content p {
-    font-size: 12px; /* Standard font size for readability */
-    color: #666; /* Lighter color for less emphasis */
-    margin-bottom: 1rem; /* Ample space below the paragraph for separation */
-    line-height: 1.5; /* Line height for improved readability */
-    text-align: left; /* Align to the start, adjusting as per design requirements */
+    font-size: 12px;
+    /* Standard font size for readability */
+    color: #666;
+    /* Lighter color for less emphasis */
+    margin-bottom: 1rem;
+    /* Ample space below the paragraph for separation */
+    line-height: 1.5;
+    /* Line height for improved readability */
+    text-align: left;
+    /* Align to the start, adjusting as per design requirements */
 }
 
 @keyframes modalFadeIn {
-    from {top: -30%; opacity: 0;}
-    to {top: 5%; opacity: 1;}
+    from {
+        top: -30%;
+        opacity: 0;
+    }
+
+    to {
+        top: 5%;
+        opacity: 1;
+    }
 }
 
 .close-button {
@@ -186,72 +267,215 @@ iframe {
 .modal-url-option {
     display: flex;
     align-items: center;
-    justify-content: space-between; /* This will push the button to the far right */
+    justify-content: space-between;
+    /* This will push the button to the far right */
     padding: 10px;
     margin-bottom: 5px;
     background-color: #f9f9f9;
     border: 1px solid #ddd;
     cursor: pointer;
-    border-radius: 5px; /* Rounded corners for options */
+    border-radius: 5px;
+    /* Rounded corners for options */
     transition: background-color 0.3s, border-color 0.3s;
 }
 
 .modal-url-option:hover {
     background-color: #eef;
-    border-color: #bbb; /* Highlight option on hover */
+    border-color: #bbb;
+    /* Highlight option on hover */
     transition: all 0.3s;
     /* transform: scale(1.02); /* Slightly scale up */
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2); /* Deeper shadow for a 'lifted' effect */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    /* Deeper shadow for a 'lifted' effect */
 }
 
 /* Favicon Styles */
 .favicon {
-    width: 16px; /* Adjust width as needed */
-    height: 16px; /* Adjust height as needed */
-    margin-right: 10px; /* Adjust margin as needed */
-    vertical-align: middle; /* Align the favicon vertically in the middle */
-  }
+    width: 16px;
+    /* Adjust width as needed */
+    height: 16px;
+    /* Adjust height as needed */
+    margin-right: 10px;
+    /* Adjust margin as needed */
+    vertical-align: middle;
+    /* Align the favicon vertically in the middle */
+}
 
-  .add-frame-button {
-    margin-left: auto; /* Ensures alignment to the far right */
+.add-frame-button {
+    margin-left: auto;
+    /* Ensures alignment to the far right */
     border: transparent;
-    background: transparent; /* Keeps the button background transparent */
-    cursor: pointer; /* Indicates clickable area */
-    border-radius: 5px; /* More pronounced rounded corners for a modern look */
-    display: flex; /* Ensures proper alignment of icons/text inside the button */
-    align-items: center; /* Centers items vertically */
-    justify-content: center; /* Centers items horizontally */
+    background: transparent;
+    /* Keeps the button background transparent */
+    cursor: pointer;
+    /* Indicates clickable area */
+    border-radius: 5px;
+    /* More pronounced rounded corners for a modern look */
+    display: flex;
+    /* Ensures proper alignment of icons/text inside the button */
+    align-items: center;
+    /* Centers items vertically */
+    justify-content: center;
+    /* Centers items horizontally */
     transition: all 0.3s;
 
 }
 
 /* Enhanced hover effect for the plus button */
 .add-frame-button:hover {
-    transform: scale(1.3); /* Slightly enlarges the button */
-    border-color: #ccc; /* Slightly darker border on hover for definition */
-    border-radius: 5px; /* Optional: Adds rounded corners for a modern look */
+    transform: scale(1.3);
+    /* Slightly enlarges the button */
+    border-color: #ccc;
+    /* Slightly darker border on hover for definition */
+    border-radius: 5px;
+    /* Optional: Adds rounded corners for a modern look */
 }
 
 /* Functionality for modal serach */
 
 .modal-search-input {
-    width: calc(100% - 10px); /* Adjust width as necessary, considering padding */
+    width: calc(100%);
+    /* Adjust width as necessary, considering padding */
     padding: 5px;
     margin: 5px 0;
-    border: 1px solid #ccc; /* Subtle border */
-    border-radius: 5px; /* Rounded corners for modern look */
-    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1); /* Inner shadow for depth */
-    outline: none; /* Removes the default focus outline */
-    font-size: 13px; /* Sufficiently large font for easy reading */
-    color: #333; /* Dark color for contrast */
-    background-color: #f9f9f9; /* Light background */
+    border: 1px solid #ccc;
+    /* Subtle border */
+    border-radius: 5px;
+    /* Rounded corners for modern look */
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+    /* Inner shadow for depth */
+    outline: none;
+    /* Removes the default focus outline */
+    font-size: 13px;
+    /* Sufficiently large font for easy reading */
+    color: #333;
+    /* Dark color for contrast */
+    background-color: #f9f9f9;
+    /* Light background */
 }
 
 .tabs-container {
-    max-height: 50%; /* Limit height to enforce a manageable size */
-    overflow-y: auto; /* Allows scrolling within the container */
-    border-top: 1px solid #eee; /* Subtle top border as a separator */
-    padding: 10px 5px; /* Padding for spacing around tab items */
-    background-color: #fff; /* Background color to match modal */
+    max-height: 50%;
+    /* Limit height to enforce a manageable size */
+    overflow-y: auto;
+    /* Allows scrolling within the container */
+    border-top: 1px solid #eee;
+    /* Subtle top border as a separator */
+    padding: 10px 5px;
+    /* Padding for spacing around tab items */
+    background-color: #fff;
+    /* Background color to match modal */
     margin-bottom: 15px;
 }
+
+.extension-download-prompt {
+    padding: 20px;
+    background-color: #f8f5c2;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    /* subtle shadow for depth */
+}
+
+.extension-download-prompt p {
+    margin-bottom: 30px;
+    /* Increased bottom margin for better visual separation */
+    color: #333;
+    /* Darker text for better readability */
+    line-height: 1.4;
+    /* Improved line spacing for better readability */
+    font-size: 14px;
+    /* Increased font size for better visibility */
+    text-align: center;
+    /* Ensures the text within the <p> is centered */
+}
+
+.extension-download-prompt a {
+    display: inline-block;
+    background-color: #4285f4;
+    color: white;
+    padding: 12px 20px;
+    /* Larger padding for a more clickable area */
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: bold;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    /* subtle shadow for depth */
+    transition: background-color 0.3s;
+    /* Smooth background color transition for hover effect */
+}
+
+.extension-download-prompt a:hover {
+    background-color: #12b049;
+    /* Slightly darker shade on hover for interaction feedback */
+}
+
+/* Title for the saved tabs section */
+.saved-tabs-section h3 {
+    margin-top: 20px;
+    margin-bottom: 10px;
+    color: #333;
+    font-size: 18px;
+    /* Larger font size for section title */
+}
+
+/* Container for saved tabs */
+.saved-tabs-container {
+    padding: 10px;
+    background-color: #f0f0f0;
+    /* Light grey background for contrast */
+    border: 1px solid #ccc;
+    /* Border to distinguish the section */
+    border-radius: 5px;
+    /* Rounded corners for modern look */
+    max-height: 200px;
+    /* Fixed height with overflow control */
+    overflow-y: auto;
+    /* Enable vertical scrolling for overflow content */
+}
+
+/* Individual saved tab items */
+.modal-url-option.saved-tab {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 5px;
+    margin-bottom: 5px;
+    background-color: #fff;
+    /* White background for each item */
+    border: 1px solid #ddd;
+    /* Slight border for each tab item */
+    border-radius: 3px;
+    /* Slightly rounded corners for tab items */
+}
+
+.tab-title {
+    text-align: left !important;
+    display: block !important;
+    width: 100% !important;
+}
+
+/* Styles for the 'Save' and 'Delete' buttons */
+.save-button,
+.delete-button {
+    margin-left: 10px;
+    padding: 5px 10px;
+    background: transparent;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+/* Hover effects for buttons */
+.save-button:hover,
+.delete-button:hover {
+    transform: scale(1.3);
+    /* Slightly enlarges the button */
+    border-color: #ccc;
+    /* Slightly darker border on hover for definition */
+    border-radius: 5px;
+    /* Optional: Adds rounded corners for a modern look */
+}
+

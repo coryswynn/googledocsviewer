@@ -1,0 +1,673 @@
+/* Google Fonts Import Link */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Poppins', sans-serif;
+}
+
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 300px;
+  background: #11101d;
+  z-index: 100;
+  transition: all 0.5s ease;
+  /* Prevent content from overflowing the sidebar */
+}
+
+.sidebar.close {
+  width: 78px;
+}
+
+.sidebar .logo-details {
+  height: 60px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.sidebar .logo-details i {
+  font-size: 30px;
+  color: #fff;
+  height: 50px;
+  min-width: 78px;
+  text-align: center;
+  line-height: 50px;
+}
+
+.sidebar .logo-details .logo_name {
+  font-size: 22px;
+  color: #fff;
+  font-weight: 600;
+  transition: 0.3s ease;
+  transition-delay: 0.1s;
+}
+
+.sidebar.close .logo-details .logo_name {
+  transition-delay: 0s;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.sidebar .nav-links {
+  height: 100%;
+  padding: 30px 0 150px 0;
+  overflow: auto;
+}
+
+.sidebar.close .nav-links {
+  overflow: visible;
+}
+
+.sidebar .nav-links::-webkit-scrollbar {
+  display: none;
+}
+
+.sidebar .nav-links li {
+  position: relative;
+  list-style: none;
+  transition: all 0.4s ease;
+}
+
+.sidebar .nav-links li:hover {
+  background: #1d1b31;
+}
+
+.sidebar .nav-links li .iocn-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.sidebar.close .nav-links li .iocn-link {
+  display: block
+}
+
+.sidebar .nav-links li i {
+  height: 50px;
+  min-width: 78px;
+  text-align: center;
+  line-height: 50px;
+  color: #fff;
+  font-size: 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.sidebar .nav-links li.showMenu i.arrow {
+  transform: rotate(-180deg);
+}
+
+.sidebar.close .nav-links i.arrow {
+  display: none;
+}
+
+.sidebar .nav-links li a {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.sidebar .nav-links li a .link_name {
+  font-size: 18px;
+  font-weight: 400;
+  color: #fff;
+  transition: all 0.4s ease;
+  flex-grow: 1;
+  /* Allow the title to take available space */
+  white-space: nowrap;
+  /* Prevent text from wrapping */
+  overflow: hidden;
+  /* Ensure overflow is hidden */
+  text-overflow: ellipsis;
+  /* Show ellipsis (...) for long text */
+  margin-right: 8px;
+  /* Space between the title and the icons */
+  max-width: calc(100% - 50px);
+  /* Ensure enough space for icons */
+}
+
+.sidebar.close .nav-links li a .link_name {
+  display: none;
+}
+
+.sidebar .nav-links li .sub-menu {
+  padding: 6px 6px 14px 80px;
+  margin-top: -10px;
+  transition: all 0.4s ease;
+  display: none;
+}
+
+.sidebar .nav-links li.showMenu .sub-menu {
+  display: block;
+}
+
+.sidebar .nav-links li .sub-menu a {
+  color: #fff;
+  font-size: 15px;
+  padding: 5px 0;
+  white-space: nowrap;
+  opacity: 0.6;
+  transition-delay: 0s;
+}
+
+.sidebar .nav-links li .sub-menu a:hover {
+  opacity: 1;
+}
+
+.sidebar.close .nav-links li .sub-menu {
+  position: absolute;
+  left: 100%;
+  top: -10px;
+  margin-top: 0;
+  padding: 10px 20px;
+  border-radius: 0 6px 6px 0;
+  opacity: 0;
+  display: block;
+  pointer-events: none;
+  transition: 0s;
+  z-index: 200;
+}
+
+.sidebar.close .nav-links li:hover .sub-menu {
+  display: block;
+  background-color:#1d1b31;
+  top: 0;
+  opacity: 1;
+  pointer-events: auto;
+  transition: all 0.4s ease;
+  z-index: 200;
+}
+
+.sidebar .nav-links li .sub-menu .link_name {
+  display: none;
+}
+
+.sidebar.close .nav-links li .sub-menu .link_name {
+  font-size: 18px;
+  opacity: 1;
+  display: block;
+}
+
+.sidebar .nav-links li .sub-menu.blank {
+  opacity: 1;
+  pointer-events: auto;
+  padding: 3px 20px 6px 16px;
+  opacity: 0;
+  pointer-events: none;
+  transition-delay: 0s;
+}
+
+.sidebar .nav-links li:hover .sub-menu.blank {
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.sidebar .profile-details {
+  position: fixed;
+  bottom: 0;
+  width: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #1d1b31;
+  padding: 12px 0;
+  transition: all 0.5s ease;
+}
+
+.sidebar.close .profile-details {
+  background: none;
+}
+
+.sidebar.close .profile-details {
+  width: 78px;
+}
+
+.sidebar .profile-details .profile-content {
+  display: flex;
+  align-items: center;
+}
+
+.sidebar .profile-details img {
+  height: 52px;
+  width: 52px;
+  object-fit: cover;
+  border-radius: 16px;
+  margin: 0 14px 0 12px;
+  background: #1d1b31;
+  transition: all 0.5s ease;
+}
+
+.sidebar.close .profile-details img {
+  padding: 10px;
+}
+
+.sidebar .profile-details .profile_name,
+.sidebar .profile-details .job {
+  color: #fff;
+  font-size: 18px;
+  font-weight: 500;
+  white-space: nowrap;
+  margin: 0 40px 0 0
+}
+
+.sidebar.close .profile-details i,
+.sidebar.close .profile-details .profile_name,
+.sidebar.close .profile-details .job {
+  display: none;
+}
+
+.sidebar .profile-details .job {
+  font-size: 12px;
+}
+
+.home-section {
+  position: relative;
+  background: #E4E9F7;
+  height: 100vh;
+  left: 300px;
+  width: calc(100% - 300px);
+  transition: all 0.5s ease;
+}
+
+.sidebar.close~.home-section {
+  left: 78px;
+  width: calc(100% - 78px);
+}
+
+.home-section .home-content {
+  height: 60px;
+  display: flex;
+  align-items: center;
+}
+
+.home-section .home-content .bx-menu,
+.home-section .home-content .text {
+  color: #11101d;
+  font-size: 35px;
+}
+
+.home-section .home-content .bx-menu {
+  margin: 0 15px;
+  cursor: pointer;
+}
+
+.home-section .home-content .text {
+  font-size: 26px;
+  font-weight: 600;
+}
+
+@media (max-width: 400px) {
+  .sidebar.close .nav-links li .sub-menu {
+    display: none;
+  }
+
+  .sidebar {
+    width: 78px;
+  }
+
+  .sidebar.close {
+    width: 0;
+  }
+
+  .home-section {
+    left: 78px;
+    width: calc(100% - 78px);
+    z-index: 100;
+  }
+}
+
+/* When sidebar is hidden */
+.sidebar.hidden {
+  display: none;
+  width: 0;
+}
+
+
+/* Adjust the layout when the sidebar is hidden */
+body.sidebar-hidden .home-section {
+  left: 0;
+  width: 100%;
+}
+
+/* Ensure proper transition effects */
+.sidebar {
+  transition: all 0.5s ease;
+}
+
+/* Ensure this rule comes after the existing .home-section styles */
+.home-section {
+  position: relative;
+  background: #E4E9F7;
+  height: 100vh;
+  left: 300px;
+  /* Width of the sidebar when open */
+  width: calc(100% - 300px);
+  transition: all 0.5s ease;
+}
+
+.sidebar.close~.home-section {
+  left: 78px;
+  /* Width of the sidebar when closed */
+  width: calc(100% - 78px);
+}
+
+.sidebar.hidden~.home-section {
+  left: 0;
+  width: 100%;
+}
+
+/* Icon container for the arrow and gear icon */
+
+.sidebar.close .edit-gear-icon {
+  display: none;
+}
+
+/* Adjust the arrow icon */
+.arrow {
+  color: rgb(219, 219, 219) !important;
+  font-size: 16px;
+  /* Match the arrow icon size */
+  cursor: pointer;
+  transition: color 0.8s ease;
+  width: 12px; /* Adjust to create a smaller clickable area */
+
+}
+
+/* Adjust the arrow icon */
+.arrow:hover {
+  color: white !important;
+  width: 12px;
+}
+
+/* Adjust the gear icon */
+.edit-gear-icon {
+  margin: 0;
+  /* Ensure no extra space is added around the arrow */
+  font-size: 14px !important;
+  cursor: pointer;
+  padding-right: 20%;
+  color: #4b3f3f !important;
+  transition: all 0.8s ease;
+}
+
+.edit-gear-icon:hover {
+
+  color: white !important;
+}
+
+/* New styles for arrow alignment */
+
+
+.sidebar .nav-links li .arrow {
+  position: absolute;
+  right: 0;
+  width: 5px; /* Adjust to create a smaller clickable area */
+}
+
+.sidebar .nav-links li .edit-gear-icon {
+  position: absolute;
+  right: 10px;
+  padding-left: 5px;
+  /* Space between the gear icon and the arrow */
+  font-size: 16px;
+  color: #4b3f3f !important;
+  cursor: pointer;
+  width: 12px; /* Adjust to create a smaller clickable area */
+  margin-right: 5px; /* Space between the gear icon and the arrow */
+
+
+}
+.sidebar .nav-links li .edit-gear-icon:hover {
+  color: white !important;
+}
+
+.sidebar .nav-links li .folder-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  padding-right: 30px; /* Reserve space for the arrow */
+}
+
+.bx-delete-icon {
+  display: inline-block;
+  color: red;  /* Change the color to whatever you like */
+  cursor: pointer;
+}
+
+.bx-pencil {
+  cursor: pointer;
+  margin-left: 10px; /* Adjust spacing if needed */
+}
+
+/* ADD NEW FOLDER MODAL */
+
+/* Icon Selection Board */
+.icon-board {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+}
+
+.icon-option {
+  font-size: 24px;
+  cursor: pointer;
+  padding: 10px;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  margin: 5px;
+  border-radius: 5px;
+}
+
+
+.icon-option:hover {
+  background-color: #f0f0f0;
+  border-radius: 5px;
+}
+
+/* Highlight the selected icon */
+.icon-option.selected {
+  background-color: #0078d7;
+  color: white;
+  border-radius: 5px;
+}
+
+/* Add Folder Button Styling */
+.styled-submit-button {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  background-color: #0078d7;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+  cursor: pointer;
+  margin-top: 20px;
+  transition: background-color 0.3s ease;
+}
+
+.styled-submit-button:hover {
+  background-color: #005bb5;
+}
+
+/* Styled input for folder name */
+.styled-input {
+  width: calc(100% - 10px);
+  padding: 10px;
+  margin-top: 5px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 14px;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+  background-color: #f9f9f9;
+  outline: none;
+  transition: border-color 0.3s ease;
+}
+
+.styled-input:focus {
+  border-color: #0078d7;
+}
+
+/* EDIT MODAL DELETE BUTTON */
+/* Position delete button next to close button */
+#addFolderModal .modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+#editFolderModal .bx-trash {
+  font-size: 19px;
+  cursor: pointer;
+  right: 45px;
+  top: 21px;
+  color: #aaa;
+  position: absolute;
+}
+
+#editFolderModal .bx-trash:hover,
+#editFolderModal .bx-trash:focus {
+  color: black;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.tabs-container {
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 12px;
+  margin-bottom: 20px;
+  background-color: #f9f9f9;
+}
+
+.tab-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  background-color: white;
+  transition: background-color 0.2s ease;
+}
+
+.tab-item:hover {
+  background-color: #e8f4fd;
+}
+
+.tab-item.selected {
+  background-color: #d2ebf5; /* Background color when selected */
+  border-color: #a0cde8; /* Change border when selected */
+}
+
+.tab-item:last-child {
+  margin-bottom: 0;
+}
+
+.tab-checkbox {
+  margin-right: 12px;
+  cursor: pointer;
+}
+
+.tab-favicon {
+  width: 16px;
+  height: 16px;
+  margin-right: 8px; /* Space between favicon and title */
+}
+
+.tab-title {
+  font-size: 0.8rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  color: #333;
+}
+
+.tab-title:hover {
+  text-decoration: underline;
+}
+
+.tab-search-bar {
+  width: 100%;
+  padding: 8px 12px;
+  margin-bottom: 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  box-sizing: border-box;
+}
+
+.tab-search-bar:focus {
+  outline: none;
+  border-color: #a0cde8;
+  background-color: #f0f8ff;
+}
+
+.tab-selections{
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 12px;
+  margin-bottom: 20px;
+  background-color: #f9f9f9;
+}
+
+/* Bookmark List */
+.bookmark-list {
+  padding: 0;
+  list-style-type: none;
+  margin-bottom: 20px;
+}
+
+.bookmark-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+}
+
+.bookmark-list li img.bookmark-favicon {
+  width: 16px;
+  height: 16px;
+  margin-right: 10px;
+}
+
+.bookmark-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.bookmark-actions i {
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.bookmark-actions i:hover {
+  color: #007bff;
+}
+
+.hidden {
+  display: none;
+}
+
+.clickable-label {
+  cursor: pointer;
+  color: #007BFF; /* Highlight Add Bookmark */
+}
+
+.clickable-label:hover {
+  text-decoration: underline;
+}

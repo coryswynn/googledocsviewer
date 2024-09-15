@@ -2,15 +2,19 @@
 
 import { updateContainerFrameTitle } from './urlManager.js';
 import { setActiveContainerFrame } from './init.js'; // Adjust the path as needed
-import { updateContainerFramesDataId, updateDividers} from './iframeManager.js';
-import { updateBrowserURL, addNewFrame} from './modalManager.js';
+import { updateContainerFramesDataId, updateDividers } from './iframeManager.js';
+import { updateBrowserURL, addNewFrame } from './modalManager.js';
 import {
     closeModal,
     clearAndDisplayModal,
     displayModal,
     adjustModalPosition,
-    setupModalDismissal
-  } from './modalManager.js';
+    setupModalDismissal,
+    encodeAndJoinFrameURLs,
+    getSavedTabTitle
+} from './modalManager.js';
+
+const isChromeExtension = typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.id;
 
 // Create the toolbar
 export function createToolbar(containerFrame, url) {
@@ -37,6 +41,9 @@ export function createToolbar(containerFrame, url) {
     const popOutButton = createPopOutButton(url);
     toolbar.appendChild(popOutButton);
 
+    // const shareButton = createShareButton('');
+    // toolbar.appendChild(shareButton);
+
     const fullscreenButton = createFullscreenButton(containerFrame);
     toolbar.appendChild(fullscreenButton);
 
@@ -58,54 +65,80 @@ function createDragHandle() {
     return dragHandle;
 }
 
+function fetchWithRetry(url, retries = 3) {
+    console.log(url);
+    return fetch(url).then(response => {
+        if (!response.ok) throw new Error('Network response was not ok.');
+        console.log('ERROR' + response);
+        return response.text();
+    }).catch(err => {
+        const isLastAttempt = retries <= 1;
+        console.log(`Fetch attempt failed for ${url}. Retries left: ${retries - 1}.`, err);
+        if (isLastAttempt) throw err;
+        return fetchWithRetry(url, retries - 1);
+    });
+}
+
 function createUrlTitle(url, containerFrame) {
     const urlTitle = document.createElement('span');
     urlTitle.className = 'url-text';
-    urlTitle.textContent = 'Loading title...';
+    urlTitle.textContent = 'Loading title...'; // Default text before loading
     urlTitle.title = 'Add or Replace Frame';
 
-    // First attempt: Try to get the title from the active tabs
-    chrome.tabs.query({}, function(tabs) {
-        const matchingTab = tabs.find(tab => tab.url === url);
-        if (matchingTab && matchingTab.title) {
-            // Directly use the title from the matching tab
-            const newTitle = matchingTab.title.replace(/( - Google (Sheets|Docs|Slides))/, '');
-            updateContainerFrameTitle(containerFrame, newTitle);
-        } else {
-            // Second attempt: Fetch the HTML content to parse the title
-            fetch(url).then(response => {
-                if (!response.ok) throw new Error('Network response was not ok.');
-                return response.text();
-            })
-            .then(html => {
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(html, "text/html");
-                const titleTag = doc.querySelector('title');
-                if (titleTag && titleTag.innerText) {
-                    const newTitle = titleTag.innerText.replace(/( - Google (Sheets|Docs|Slides))/, '');
-                    updateContainerFrameTitle(containerFrame, newTitle);
-                } else {
-                    throw new Error('Title tag not found.');
-                }
-            })
-            .catch(error => {
-                console.error('Error fetching or parsing URL:', error);
-                // Fallback: If both methods fail, show a generic message
-                updateContainerFrameTitle(containerFrame, 'Title unavailable');
+    // Ensure the title element is appended to the container frame
+    containerFrame.appendChild(urlTitle);
+
+
+    // First, try to get the title from saved memory
+    const savedTitle = getSavedTabTitle(url);
+    if (savedTitle) {
+        updateContainerFrameTitle(containerFrame, savedTitle);
+    } else if (isChromeExtension) {
+        console.log('running as extension');
+        chrome.tabs.query({}, function (tabs) {
+            const matchingTab = tabs.find(tab => tab.url === url);
+            if (matchingTab && matchingTab.title) {
+                const newTitle = matchingTab.title.replace(/( - Google (Sheets|Docs|Slides))/, '');
+                updateContainerFrameTitle(containerFrame, newTitle);
+            }
+            // Always attempt to fetch the title from the URL
+            fetchWithRetry(url).then(html => {
+                updateTitleFromHtml(html, containerFrame);
             });
-        }
-    });
-        
+        });
+    } else {
+        // Always attempt to fetch the title from the URL
+        fetchWithRetry(url).then(html => {
+            updateTitleFromHtml(html, containerFrame);
+        });
+    }
+
     // Add click event listener for the URL title
     urlTitle.addEventListener('click', () => {
         clearAndDisplayModal(modal, containerFrame, (modal, activeContainerFrame) => {
-            setActiveContainerFrame(containerFrame); // Update the active container frame reference
-            displayModal(modal, activeContainerFrame); // Call displayModal with the modal and the active container frame
-            setupModalDismissal(modal, closeModal); // Setup global modal dismissal functionality
+            setActiveContainerFrame(containerFrame);
+            displayModal(modal, activeContainerFrame);
+            setupModalDismissal(modal, closeModal);
         });
     });
 
     return urlTitle;
+}
+
+function updateTitleFromHtml(html, containerFrame) {
+    try {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, "text/html");
+        const titleTag = doc.querySelector('title');
+        if (titleTag && titleTag.innerText) {
+            const newTitle = titleTag.innerText.replace(/( - Google (Sheets|Docs|Slides))/, '');
+            updateContainerFrameTitle(containerFrame, newTitle);
+        } else {
+            updateContainerFrameTitle(containerFrame, 'Title unavailable');
+        }
+    } catch (parseError) {
+        console.log('Error processing fetched HTML:', parseError);
+    }
 }
 
 function createDuplicateButton(url) {
@@ -146,12 +179,34 @@ function createPopOutButton(url) {
     return popOutButton;
 }
 
+export function createShareButton() {
+    const shareButton = document.createElement('button');
+    shareButton.className = 'share-button';
+    shareButton.title = 'Share Frame';
+    shareButton.innerHTML = '<i class="bx bx-share bx-flip-horizontal"></i>'; // BoxIcons external link icon
+
+    shareButton.onclick = () => {
+        console.log("Share button clicked.");
+
+        let newURL;
+        newURL = 'https://coryswynn.github.io/SplitViewWeb/?urls=' + encodeAndJoinFrameURLs();
+
+        const state = { page: newURL };
+        const title = ''; // Optional: You can set a title for the new state
+        const url = newURL; // The new URL you want to show in the browser
+
+        window.open(url, '_blank');
+    };
+
+    return shareButton;
+}
+
 function createFullscreenButton(containerFrame) {
     const fullscreenButton = document.createElement('button');
     fullscreenButton.className = 'fullscreen-button';
     fullscreenButton.title = 'Enter Fullscreen';
     fullscreenButton.innerHTML = '<i class="bx bx-fullscreen"></i>'; // BoxIcons external link icon
-    
+
     let initialProportions = [];
 
     // fullscreenButton.innerHTML = '&#9974;'; // Unicode icon
@@ -203,14 +258,14 @@ function createCloseButton(containerFrame) {
     closeButton.title = 'Close Frame';
     closeButton.onclick = () => {
         const iframeContainer = containerFrame.parentNode;
-        
+
         // Remove the containerFrame from the DOM
         containerFrame.remove();
         // Call function to update the layout, dividers, and frame IDs
         updateContainerFramesDataId(iframeContainer);
         updateDividers(iframeContainer);
         updateBrowserURL();
-        
+
     };
     return closeButton;
 }
