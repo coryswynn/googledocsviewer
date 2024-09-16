@@ -23,20 +23,52 @@ document.getElementById('docForm').addEventListener('submit', function (e) {
 
 // This should be outside and directly executed when the DOM is fully loaded
 document.addEventListener('DOMContentLoaded', function () {
-    // var queryInfo = { currentWindow: true }; //Query only the current window
-
     // Initialize the sidebar toggle
     const sidebarToggle = document.getElementById('sidebar-toggle-checkbox');
+    const darkModeToggle = document.getElementById('darkmode-toggle-checkbox'); // Get dark mode toggle checkbox
 
-    // Load the sidebarEnabled value from local storage
-    chrome.storage.local.get(['sidebarEnabled'], function (result) {
+    // Load the sidebarEnabled and darkModeEnabled values from local storage
+    chrome.storage.local.get(['sidebarEnabled', 'darkModeEnabled'], function (result) {
         sidebarToggle.checked = result.sidebarEnabled || false;
+        darkModeToggle.checked = result.darkModeEnabled || false;
+
+        // Apply dark mode if previously enabled
+        if (darkModeToggle.checked) {
+            document.body.classList.add('dark-mode');
+        }
     });
 
-    // Add event listener to update local storage when toggled
+    // Add event listener to update local storage when sidebar is toggled
     sidebarToggle.addEventListener('change', function () {
         chrome.storage.local.set({ 'sidebarEnabled': sidebarToggle.checked }, function () {
             console.log('sidebarEnabled set to ' + sidebarToggle.checked);
+        });
+    });
+
+    // Add event listener to toggle dark mode and update local storage
+    // Add event listener to toggle dark mode and update local storage
+    darkModeToggle.addEventListener('change', function () {
+        const isDarkMode = darkModeToggle.checked;
+        const logoImage = document.getElementById('logo-img');
+
+        // Toggle the dark mode styles for the popup
+        if (isDarkMode) {
+            document.body.classList.add('dark-mode'); // Apply dark mode
+            logoImage.src = 'https://i.imgur.com/m4Ge84P.png'; // Change to dark mode logo
+        } else {
+            document.body.classList.remove('dark-mode'); // Remove dark mode
+            logoImage.src = 'https://i.imgur.com/yUm3oGG.png'; // Remove dark mode logo
+        }
+
+        // Save the dark mode state in local storage
+        chrome.storage.local.set({ 'darkModeEnabled': isDarkMode }, function () {
+            console.log('darkModeEnabled set to ' + isDarkMode);
+
+            // Send a message to the viewer page to toggle dark mode
+            chrome.runtime.sendMessage({
+                action: "toggleDarkMode",
+                enabled: isDarkMode
+            });
         });
     });
 
@@ -64,7 +96,6 @@ document.addEventListener('DOMContentLoaded', function () {
             // Check if the tab's URL matches Google Docs, Sheets, or Slides
             if (/https:\/\/docs\.google\.com\/(document|spreadsheets|presentation)/.test(tab.url)) {
                 const tabItem = document.createElement('label');
-                // tabItem.textContent = tab.url; // Display tab title. You can also use `tab.url` if needed.
                 tabItem.className = 'tab-item';
 
                 // Add checkboxes and tie checkboxes to tabs
@@ -77,11 +108,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 // Create an image element for the favicon
                 const favicon = document.createElement('img');
                 favicon.src = 'https://s2.googleusercontent.com/s2/favicons?domain_url=' + tab.url;
-                favicon.className = 'favicon'; // Use this class for additional styling (size, margin, etc.)
-                favicon.alt = 'Favicon'; // Alternative text for accessibility
+                favicon.className = 'favicon';
+                favicon.alt = 'Favicon';
 
                 // Extract the title from the tab's URL and remove the unwanted suffixes
-                let labelText = tab.title.replace(/( - Google (Sheets|Docs|Slides))/, ''); // Remove "- Google Sheets," "- Google Docs," or "- Google Slides" from the title
+                let labelText = tab.title.replace(/( - Google (Sheets|Docs|Slides))/, ''); // Remove "- Google Sheets," "- Google Docs," or "- Google Slides"
 
                 // Combine checkbox and tab label
                 labelText = document.createTextNode(labelText);
@@ -96,12 +127,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (!validTabsFound) {
             document.querySelector('button[type="submit"]').style.display = 'none';
-            // Display a message within the popup instead of an alert
             const noTabsMessage = document.createElement('p');
             noTabsMessage.id = 'no-tabs-message';
             noTabsMessage.textContent = 'Please open a Google Docs, Sheets, or Slides tab to use this feature.';
             document.body.appendChild(noTabsMessage);
-
         }
     });
 });

@@ -5,26 +5,37 @@
 </head>
 <body>
     <div class="header">
-        <img src="https://i.imgur.com/yUm3oGG.png" alt="Extension Logo" class="logo">
+        <img src="https://i.imgur.com/yUm3oGG.png" id='logo-img' alt="Extension Logo" class="logo">
         <hr class="dashed-shadow">
     </div>
     <p class="subtitle">Easily merge multiple documents into a single tab.</p>
     
     <form id="docForm" class="docForm">
-        <!-- <input type="text" id="docLabel" placeholder="Document Label"> -->
         <div id="tab-list-wrapper">
             <div id="tab-list"></div>
             <br>
         </div>
         <button type="submit" class="launch-splitview-button">&#128640; Launch SplitView</button>
     </form>
-    <div class="sidebar-toggle">
-        <label class="toggle-label">
-            <input type="checkbox" id="sidebar-toggle-checkbox">
-            <span class="slider"></span>
-            Enable Sidebar
-        </label>
+
+    <!-- Sidebar and Dark Mode Toggles -->
+    <div class="toggle-container">
+        <div class="sidebar-toggle">
+            <label class="toggle-label">
+                <input type="checkbox" id="sidebar-toggle-checkbox">
+                <span class="slider"></span>
+                Enable Sidebar
+            </label>
+        </div>
+        <div class="darkmode-toggle">
+            <label class="toggle-label">
+                <input type="checkbox" id="darkmode-toggle-checkbox">
+                <span class="slider"></span>
+                Dark Mode
+            </label>
+        </div>
     </div>
+
     <br>
     <script type="module" src="../js/popup.js"></script>
 </body>

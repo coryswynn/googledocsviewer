@@ -63,3 +63,43 @@ export function setActiveContainerFrame(frame) {
   activeContainerFrame = frame;
   return activeContainerFrame;
 }
+
+// In init.js
+
+// Function to apply dark mode based on local storage or message from popup.js
+function applyDarkMode() {
+  chrome.storage.local.get(['darkModeEnabled'], function (result) {
+      const darkModeEnabled = result.darkModeEnabled || false;
+      const bodyElement = document.body;
+
+      console.log("Dark Mode Enabled:", darkModeEnabled); // Debugging log
+
+      if (darkModeEnabled) {
+          console.log("Adding dark-mode class");
+          bodyElement.classList.add('dark-mode');
+      } else {
+          console.log("Removing dark-mode class");
+          bodyElement.classList.remove('dark-mode');
+      }
+  });
+}
+
+// Call applyDarkMode on initial page load
+document.addEventListener('DOMContentLoaded', function () {
+  applyDarkMode();
+});
+
+// Listen for messages from popup.js to toggle dark mode
+chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
+  if (request.action === "toggleDarkMode") {
+      const bodyElement = document.body;
+
+      console.log("Toggling Dark Mode:", request.enabled); // Debugging log
+
+      if (request.enabled) {
+          bodyElement.classList.add('dark-mode');
+      } else {
+          bodyElement.classList.remove('dark-mode');
+      }
+  }
+});

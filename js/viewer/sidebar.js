@@ -330,6 +330,16 @@ function initializeSidebar(sidebar) {
     // Clear the folder name input field
     folderNameInput.value = '';
 
+    // Clear all selected bookmarks before adding a new folder
+    const tabCheckboxes = document.querySelectorAll('.tab-checkbox');
+    tabCheckboxes.forEach(checkbox => {
+      checkbox.checked = false; // Uncheck all checkboxes
+      const tabItem = checkbox.closest('.tab-item');
+      if (tabItem) {
+        tabItem.classList.remove('selected'); // Remove 'selected' class
+      }
+    });
+
     // Reset icon selection by removing 'selected' class from all icons
     iconOptions.forEach((icon) => {
       icon.classList.remove('selected');
@@ -345,6 +355,7 @@ function initializeSidebar(sidebar) {
     // Open modal
     modal.style.display = 'block';
 
+
     // Close modal when clicking close button or outside the modal
     closeModalBtn.onclick = () => {
       modal.style.display = 'none';
@@ -355,6 +366,7 @@ function initializeSidebar(sidebar) {
         modal.style.display = 'none';
       }
     };
+
 
     // Icon selection logic
     iconOptions.forEach((icon) => {
@@ -373,6 +385,11 @@ function initializeSidebar(sidebar) {
     // Populate the open and saved tabs (combined)
     const tabsContainer = document.querySelector('.tabs-container'); // Assuming the tabs container has this class
     populateTabsForSelection(tabsContainer); // Call the updated function
+
+    // Clear previously selected bookmarks
+    if (tabsContainer) {
+      tabsContainer.innerHTML = ''; // Clear any previously populated tabs
+    }
 
 
     // Form submission handler
@@ -406,6 +423,9 @@ function initializeSidebar(sidebar) {
               // Find the corresponding tab from chrome.tabs.query based on the selected tabs
               const matchingTab = tabs.find(tab => tab.url === url);
 
+              // If no matching tab is found, skip creating a bookmark for it
+              if (!matchingTab) return null;
+
               // Use the tab's title if found, otherwise fallback to saved title or 'Title Unavailable'
               let tabTitle = matchingTab
                 ? matchingTab.title
@@ -417,6 +437,8 @@ function initializeSidebar(sidebar) {
               // Return the bookmark object
               return { name: tabTitle, url };
             })
+              // Filter out null values (i.e., when no matching tab was found)
+              .filter(Boolean)
           };
 
           // Save the selected tabs to 'savedTabs'
@@ -533,7 +555,10 @@ function initializeSidebar(sidebar) {
         trashIcon.addEventListener('click', () => {
           if (confirm('Are you sure you want to delete this bookmark?')) {
             bookmarks.splice(bookmarkIndex, 1); // Remove the bookmark
+            sidebarData.folders[folderIndex].bookmarks = bookmarks;
             saveToLocalStorage(SIDEBAR_DATA_KEY, sidebarData);
+            // Re-render the bookmark list
+            updateBookmarkList(bookmarks);
             li.remove(); // Remove from UI
 
             // Uncheck the corresponding tab in the tabs container
