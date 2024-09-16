@@ -541,9 +541,26 @@ function deleteFolder(folderIndex, sidebarData, SIDEBAR_DATA_KEY) {
                     bookmarks.splice(bookmarkIndex, 1); // Remove the bookmark
                     saveToLocalStorage(SIDEBAR_DATA_KEY, sidebarData);
                     li.remove(); // Remove from UI
+    
+                    // Uncheck the corresponding tab in the tabs container
+                    const tabsContainer = document.querySelector('.tab-selections');
+                    if (tabsContainer) {
+                        const checkboxes = tabsContainer.querySelectorAll('.tab-checkbox');
+                        checkboxes.forEach((checkbox) => {
+                            if (checkbox.value === bookmark.url) {
+                                checkbox.checked = false; // Uncheck the checkbox
+    
+                                // Remove "selected" class from the tab item
+                                const tabItem = checkbox.closest('.tab-item');
+                                if (tabItem) {
+                                    tabItem.classList.remove('selected');
+                                }
+                            }
+                        });
+                    }
                 }
             });
-
+    
             // Append to bookmark list
             bookmarkList.appendChild(li);
         });
@@ -689,25 +706,61 @@ function deleteFolder(folderIndex, sidebarData, SIDEBAR_DATA_KEY) {
     }
   }
 
-  // Function to delete a bookmark
   function deleteBookmark(folderIndex, bookmarkIndex) {
+    console.log('deleteBookmark called'); // Check if function is called
+  
     const folder = sidebarData.folders[folderIndex];
-
     if (!folder || !folder.bookmarks || !folder.bookmarks.length) {
       console.error('Invalid folder or no bookmarks found');
       return;
     }
-
+  
+    const bookmark = folder.bookmarks[bookmarkIndex];
+    console.log('Bookmark to delete:', bookmark); // Log the bookmark details
+  
     if (confirm('Are you sure you want to delete this bookmark?')) {
-      // Splice only the bookmark at the provided bookmarkIndex
+      // Splice the bookmark from the list
       folder.bookmarks.splice(bookmarkIndex, 1);
-
-      // Save the updated sidebar data to localStorage
+  
+      // Save the updated data to localStorage
       saveToLocalStorage(SIDEBAR_DATA_KEY, sidebarData);
-
+  
       // Re-render the sidebar
+      console.log("Rendering sidebar after bookmark deletion");
       renderSidebar();
-
+  
+      // Uncheck the checkbox in the tabs container
+      const tabsContainer = document.querySelector('.tabs-container'); // Ensure the class is correct
+      if (tabsContainer) {
+        console.log("Tabs container found. Attempting to uncheck checkboxes.");
+        const checkboxes = tabsContainer.querySelectorAll('.tab-checkbox');
+        let bookmarkFound = false;
+  
+        checkboxes.forEach((checkbox) => {
+          console.log(`Checking checkbox with value: ${checkbox.value}`);
+          if (checkbox.value === bookmark.url) {
+            console.log(`Match found. Unchecking checkbox for bookmark URL: ${bookmark.url}`);
+  
+            // Uncheck the checkbox
+            checkbox.checked = false;
+  
+            // Remove "selected" class from the tab item
+            const tabItem = checkbox.closest('.tab-item');
+            if (tabItem) {
+              tabItem.classList.remove('selected');
+            }
+  
+            bookmarkFound = true;
+          }
+        });
+  
+        if (!bookmarkFound) {
+          console.warn(`Bookmark URL not found in tabs container: ${bookmark.url}`);
+        }
+      } else {
+        console.error('Tabs container not found in DOM.');
+      }
+  
       // Reapply sidebar toggle functionality
       reapplySidebarToggleListeners();
     }
