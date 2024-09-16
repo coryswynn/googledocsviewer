@@ -207,8 +207,8 @@ function populateModalWithContent(modal, activeContainerFrame) {
 
       // Create a span for the tab title
       const titleSpan = document.createElement('span');
-      titleSpan.textContent = tab.title.replace(/( - Google (Sheets|Docs|Slides))/g, '');      // Remove "- Google Sheets," "- Google Docs," or "- Google Slides" from the title
-      titleSpan.className = 'tab-title'; // Add class for styling
+      // Ensure tab.title exists, otherwise use a fallback title
+      titleSpan.textContent = (tab.title || 'Untitled Tab').replace(/( - Google (Sheets|Docs|Slides))/g, ''); titleSpan.className = 'tab-title'; // Add class for styling
       tabItem.appendChild(titleSpan);
 
       // Create and append the delete button

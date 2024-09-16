@@ -277,16 +277,16 @@ function initializeSidebar(sidebar) {
         saveToLocalStorage(SIDEBAR_DATA_KEY, sidebarData);
       });
 
-          // Add event listener to toggle submenu visibility and open all bookmarks on folder click
-    folderDiv.addEventListener('click', (e) => {
-      e.stopPropagation();
-      // folderLi.classList.toggle('showMenu');
+      // Add event listener to toggle submenu visibility and open all bookmarks on folder click
+      folderDiv.addEventListener('click', (e) => {
+        e.stopPropagation();
+        // folderLi.classList.toggle('showMenu');
 
-      // Open all bookmarks in new frames
-      folder.bookmarks.forEach((bookmark) => {
-        addNewFrame(bookmark.url);
+        // Open all bookmarks in new frames
+        folder.bookmarks.forEach((bookmark) => {
+          addNewFrame(bookmark.url);
+        });
       });
-    });
 
       navLinks.appendChild(folderLi);
     });
@@ -384,31 +384,59 @@ function initializeSidebar(sidebar) {
         alert('Please provide a folder name');
       }
 
+      // Check if the folder name already exists to avoid duplicates
+      const folderExists = sidebarData.folders.some(folder => folder.name === folderName);
+      if (folderExists) {
+        alert('A folder with this name already exists');
+        return;
+      }
+
       // Get selected tabs
       const selectedTabs = Array.from(document.querySelectorAll('.tab-checkbox:checked')).map(
         (checkbox) => checkbox.value
       );
 
-      if (folderName) {
-        // Use chrome.tabs.query to get tab information
+      if (folderName && selectedTabs.length > 0) {
+        // Use chrome.tabs.query to get tab information for open tabs
         chrome.tabs.query({}, function (tabs) {
           const newFolder = {
             name: folderName,
             icon: selectedIcon,
             bookmarks: selectedTabs.map((url) => {
-              // 1. Check for the tab's title from open tabs
+              // Find the corresponding tab from chrome.tabs.query based on the selected tabs
               const matchingTab = tabs.find(tab => tab.url === url);
-              const tabTitle = matchingTab
-                ? matchingTab.title // 2. Use tab's title if found
-                : getSavedTabTitle(url) || 'Title Unavailable'; // 3. Fallback to saved title or 'Title Unavailable'
 
+              // Use the tab's title if found, otherwise fallback to saved title or 'Title Unavailable'
+              let tabTitle = matchingTab
+                ? matchingTab.title
+                : getSavedTabTitle(url) || 'Title Unavailable';
+
+              // Clean up the title by removing " - Google Sheets", " - Google Docs", and " - Google Slides"
+              tabTitle = tabTitle.replace(/ - Google (Sheets|Docs|Slides)/, '');
+
+              // Return the bookmark object
               return { name: tabTitle, url };
             })
           };
 
+          // Save the selected tabs to 'savedTabs'
+          // let savedTabs = loadFromLocalStorage('savedTabs') || [];
+
+          // selectedTabs.forEach(url => {
+          //   // Only add the tab to savedTabs if it’s not already there
+          //   if (!savedTabs.some(tab => tab.url === url)) {
+          //     const matchingTab = tabs.find(tab => tab.url === url);
+          //     const tabTitle = matchingTab ? matchingTab.title : getSavedTabTitle(url) || 'Title Unavailable';
+          //     savedTabs.push({ name: tabTitle, url });
+          //   }
+          // });
+
           // Push new folder to sidebarData and save to localStorage
           sidebarData.folders.push(newFolder);
           saveToLocalStorage(SIDEBAR_DATA_KEY, sidebarData);
+
+          // // Save updated savedTabs back to localStorage
+          // saveToLocalStorage('savedTabs', savedTabs);
 
           // Re-render the sidebar
           renderSidebar();
@@ -438,8 +466,8 @@ function initializeSidebar(sidebar) {
 
     // Check if folderNameInput exists
     if (!folderNameInput) {
-        console.error("Error: folderNameInput not found in the DOM.");
-        return;
+      console.error("Error: folderNameInput not found in the DOM.");
+      return;
     }
 
     const deleteFolderBtn = document.createElement('i');
@@ -453,36 +481,36 @@ function initializeSidebar(sidebar) {
 
     // Pre-select the current icon in the modal
     iconOptions.forEach((icon) => {
-        icon.classList.remove('selected');
-        if (icon.getAttribute('data-icon') === folder.icon) {
-            icon.classList.add('selected');
-        }
+      icon.classList.remove('selected');
+      if (icon.getAttribute('data-icon') === folder.icon) {
+        icon.classList.add('selected');
+      }
     });
 
     // Function to delete a folder
-function deleteFolder(folderIndex, sidebarData, SIDEBAR_DATA_KEY) {
-  if (confirm('Are you sure you want to delete this folder?')) {
-    // Remove the folder from the sidebarData
-    sidebarData.folders.splice(folderIndex, 1);
+    function deleteFolder(folderIndex, sidebarData, SIDEBAR_DATA_KEY) {
+      if (confirm('Are you sure you want to delete this folder?')) {
+        // Remove the folder from the sidebarData
+        sidebarData.folders.splice(folderIndex, 1);
 
-    // Save the updated sidebar data to localStorage
-    saveToLocalStorage(SIDEBAR_DATA_KEY, sidebarData);
+        // Save the updated sidebar data to localStorage
+        saveToLocalStorage(SIDEBAR_DATA_KEY, sidebarData);
 
-    // Re-render the sidebar to reflect the changes
-    renderSidebar();
+        // Re-render the sidebar to reflect the changes
+        renderSidebar();
 
-    // Reapply event listeners for sidebar toggle after re-render
-    reapplySidebarToggleListeners();
-  }
-}
+        // Reapply event listeners for sidebar toggle after re-render
+        reapplySidebarToggleListeners();
+      }
+    }
 
     // Function to update the bookmark list
     function updateBookmarkList(bookmarks) {
-        bookmarkList.innerHTML = ''; // Clear the existing list
+      bookmarkList.innerHTML = ''; // Clear the existing list
 
-        bookmarks.forEach((bookmark, bookmarkIndex) => {
-            const li = document.createElement('li');
-            li.innerHTML = `
+      bookmarks.forEach((bookmark, bookmarkIndex) => {
+        const li = document.createElement('li');
+        li.innerHTML = `
                 <img src="https://s2.googleusercontent.com/s2/favicons?domain_url=${bookmark.url}" class="bookmark-favicon">
                 <span>${bookmark.name}</span>
                 <div class="bookmark-actions">
@@ -491,45 +519,45 @@ function deleteFolder(folderIndex, sidebarData, SIDEBAR_DATA_KEY) {
                 </div>
             `;
 
-            // Add event listeners for edit and delete
-            li.querySelector('.bx-pencil').addEventListener('click', () => {
-                const newName = prompt('Rename bookmark:', bookmark.name);
-                if (newName) {
-                    bookmarks[bookmarkIndex].name = newName;
-                    saveToLocalStorage(SIDEBAR_DATA_KEY, sidebarData);
-                    li.querySelector('span').textContent = newName; // Update UI immediately
-                }
-            });
-
-            const trashIcon = li.querySelector('.bx-trash-alt');
-            trashIcon.addEventListener('click', () => {
-                if (confirm('Are you sure you want to delete this bookmark?')) {
-                    bookmarks.splice(bookmarkIndex, 1); // Remove the bookmark
-                    saveToLocalStorage(SIDEBAR_DATA_KEY, sidebarData);
-                    li.remove(); // Remove from UI
-    
-                    // Uncheck the corresponding tab in the tabs container
-                    const tabsContainer = document.querySelector('.tab-selections');
-                    if (tabsContainer) {
-                        const checkboxes = tabsContainer.querySelectorAll('.tab-checkbox');
-                        checkboxes.forEach((checkbox) => {
-                            if (checkbox.value === bookmark.url) {
-                                checkbox.checked = false; // Uncheck the checkbox
-    
-                                // Remove "selected" class from the tab item
-                                const tabItem = checkbox.closest('.tab-item');
-                                if (tabItem) {
-                                    tabItem.classList.remove('selected');
-                                }
-                            }
-                        });
-                    }
-                }
-            });
-    
-            // Append to bookmark list
-            bookmarkList.appendChild(li);
+        // Add event listeners for edit and delete
+        li.querySelector('.bx-pencil').addEventListener('click', () => {
+          const newName = prompt('Rename bookmark:', bookmark.name);
+          if (newName) {
+            bookmarks[bookmarkIndex].name = newName;
+            saveToLocalStorage(SIDEBAR_DATA_KEY, sidebarData);
+            li.querySelector('span').textContent = newName; // Update UI immediately
+          }
         });
+
+        const trashIcon = li.querySelector('.bx-trash-alt');
+        trashIcon.addEventListener('click', () => {
+          if (confirm('Are you sure you want to delete this bookmark?')) {
+            bookmarks.splice(bookmarkIndex, 1); // Remove the bookmark
+            saveToLocalStorage(SIDEBAR_DATA_KEY, sidebarData);
+            li.remove(); // Remove from UI
+
+            // Uncheck the corresponding tab in the tabs container
+            const tabsContainer = document.querySelector('.tab-selections');
+            if (tabsContainer) {
+              const checkboxes = tabsContainer.querySelectorAll('.tab-checkbox');
+              checkboxes.forEach((checkbox) => {
+                if (checkbox.value === bookmark.url) {
+                  checkbox.checked = false; // Uncheck the checkbox
+
+                  // Remove "selected" class from the tab item
+                  const tabItem = checkbox.closest('.tab-item');
+                  if (tabItem) {
+                    tabItem.classList.remove('selected');
+                  }
+                }
+              });
+            }
+          }
+        });
+
+        // Append to bookmark list
+        bookmarkList.appendChild(li);
+      });
     }
 
     // Initially populate the bookmark list with current bookmarks
@@ -540,44 +568,44 @@ function deleteFolder(folderIndex, sidebarData, SIDEBAR_DATA_KEY) {
 
     // Ensure the toggle works more than once by toggling the class each time it's clicked
     let isTabSelectionVisible = false;
-    addBookmarkToggle.addEventListener('click', function() {
-        isTabSelectionVisible = !isTabSelectionVisible;
-        searchBarContainer.classList.toggle('hidden', !isTabSelectionVisible);
-        tabSelectionContainer.classList.toggle('hidden', !isTabSelectionVisible);
+    addBookmarkToggle.addEventListener('click', function () {
+      isTabSelectionVisible = !isTabSelectionVisible;
+      searchBarContainer.classList.toggle('hidden', !isTabSelectionVisible);
+      tabSelectionContainer.classList.toggle('hidden', !isTabSelectionVisible);
     });
 
     // Search functionality to filter tabs
-    tabSearchInput.addEventListener('input', function() {
-        const filterText = tabSearchInput.value.toLowerCase();
-        const tabItems = tabSelectionContainer.querySelectorAll('.tab-item');
-        tabItems.forEach(tabItem => {
-            const tabTitle = tabItem.querySelector('.tab-title').textContent.toLowerCase();
-            if (tabTitle.includes(filterText)) {
-                tabItem.style.display = '';
-            } else {
-                tabItem.style.display = 'none';
-            }
-        });
+    tabSearchInput.addEventListener('input', function () {
+      const filterText = tabSearchInput.value.toLowerCase();
+      const tabItems = tabSelectionContainer.querySelectorAll('.tab-item');
+      tabItems.forEach(tabItem => {
+        const tabTitle = tabItem.querySelector('.tab-title').textContent.toLowerCase();
+        if (tabTitle.includes(filterText)) {
+          tabItem.style.display = '';
+        } else {
+          tabItem.style.display = 'none';
+        }
+      });
     });
 
     // Add delete button next to the close button if it exists
     if (closeModalBtn.parentNode) {
-        closeModalBtn.parentNode.insertBefore(deleteFolderBtn, closeModalBtn);
+      closeModalBtn.parentNode.insertBefore(deleteFolderBtn, closeModalBtn);
     } else {
-        console.error("Error: Cannot find parent node of closeModalBtn.");
+      console.error("Error: Cannot find parent node of closeModalBtn.");
     }
 
     // Attach event listener to delete folder
     deleteFolderBtn.addEventListener('click', function () {
       deleteFolder(folderIndex, sidebarData, SIDEBAR_DATA_KEY)
-        modal.style.display = 'none';
+      modal.style.display = 'none';
     });
 
     // Reset and hide the search bar and tab selection when closing the modal
     function hideAddBookmarkSection() {
-        searchBarContainer.classList.add('hidden');
-        tabSelectionContainer.classList.add('hidden');
-        isTabSelectionVisible = false;
+      searchBarContainer.classList.add('hidden');
+      tabSelectionContainer.classList.add('hidden');
+      isTabSelectionVisible = false;
     }
 
     // Open modal
@@ -585,75 +613,56 @@ function deleteFolder(folderIndex, sidebarData, SIDEBAR_DATA_KEY) {
 
     // Close modal when clicking close button or outside the modal
     closeModalBtn.onclick = () => {
-        modal.style.display = 'none';
-        hideAddBookmarkSection(); // Hide Add Bookmark when closing modal
+      modal.style.display = 'none';
+      hideAddBookmarkSection(); // Hide Add Bookmark when closing modal
     };
 
     window.onclick = function (event) {
-        if (event.target === modal) {
-            modal.style.display = 'none';
-            hideAddBookmarkSection(); // Hide Add Bookmark when closing modal
-        }
+      if (event.target === modal) {
+        modal.style.display = 'none';
+        hideAddBookmarkSection(); // Hide Add Bookmark when closing modal
+      }
     };
 
     // Handle icon selection logic
     iconOptions.forEach((icon) => {
-        icon.addEventListener('click', function () {
-            // Remove 'selected' class from all icons
-            iconOptions.forEach((icon) => icon.classList.remove('selected'));
+      icon.addEventListener('click', function () {
+        // Remove 'selected' class from all icons
+        iconOptions.forEach((icon) => icon.classList.remove('selected'));
 
-            // Add 'selected' class to the clicked icon
-            this.classList.add('selected');
+        // Add 'selected' class to the clicked icon
+        this.classList.add('selected');
 
-            // Set selectedIcon to the clicked icon's data-icon value
-            selectedIcon = this.getAttribute('data-icon');
-        });
+        // Set selectedIcon to the clicked icon's data-icon value
+        selectedIcon = this.getAttribute('data-icon');
+      });
     });
 
     // Form submission handler for editing the folder
     editFolderForm.onsubmit = function (e) {
-        e.preventDefault(); // Prevent form from refreshing the page
+      e.preventDefault(); // Prevent form from refreshing the page
 
-        const newFolderName = folderNameInput.value.trim();
-        if (newFolderName) {
-            // Update the existing folder's name, icon, and bookmarks
-            folder.name = newFolderName;
-            folder.icon = selectedIcon;
+      const newFolderName = folderNameInput.value.trim();
+      if (newFolderName) {
+        // Update the existing folder's name, icon, and bookmarks
+        folder.name = newFolderName;
+        folder.icon = selectedIcon;
 
-            // Save updated folder data to localStorage
-            saveToLocalStorage(SIDEBAR_DATA_KEY, sidebarData);
-
-            // Re-render the sidebar
-            renderSidebar();
-            // Reapply event listeners for sidebar toggle after re-render
-            reapplySidebarToggleListeners();
-
-            // Close the modal
-            modal.style.display = 'none';
-            hideAddBookmarkSection(); // Hide Add Bookmark when closing modal
-        }
-    };
-}
-
-  // Function to add a new bookmark
-  function addNewBookmark(folderIndex) {
-    const folder = sidebarData.folders[folderIndex];
-    const bookmarkName = prompt('Enter bookmark name:');
-    if (bookmarkName) {
-      const bookmarkURL = prompt('Enter bookmark URL:');
-      if (bookmarkURL) {
-        const newBookmark = {
-          name: bookmarkName,
-          url: bookmarkURL
-        };
-        folder.bookmarks.push(newBookmark);
+        // Save updated folder data to localStorage
         saveToLocalStorage(SIDEBAR_DATA_KEY, sidebarData);
+
+        // Re-render the sidebar
         renderSidebar();
         // Reapply event listeners for sidebar toggle after re-render
         reapplySidebarToggleListeners();
+
+        // Close the modal
+        modal.style.display = 'none';
+        hideAddBookmarkSection(); // Hide Add Bookmark when closing modal
       }
-    }
+    };
   }
+
 
   // Function to edit a bookmark
   function editBookmark(folderIndex, bookmarkIndex) {
@@ -674,59 +683,59 @@ function deleteFolder(folderIndex, sidebarData, SIDEBAR_DATA_KEY) {
 
   function deleteBookmark(folderIndex, bookmarkIndex) {
     console.log('deleteBookmark called'); // Check if function is called
-  
+
     const folder = sidebarData.folders[folderIndex];
     if (!folder || !folder.bookmarks || !folder.bookmarks.length) {
       console.error('Invalid folder or no bookmarks found');
       return;
     }
-  
+
     const bookmark = folder.bookmarks[bookmarkIndex];
     console.log('Bookmark to delete:', bookmark); // Log the bookmark details
-  
+
     if (confirm('Are you sure you want to delete this bookmark?')) {
       // Splice the bookmark from the list
       folder.bookmarks.splice(bookmarkIndex, 1);
-  
+
       // Save the updated data to localStorage
       saveToLocalStorage(SIDEBAR_DATA_KEY, sidebarData);
-  
+
       // Re-render the sidebar
       console.log("Rendering sidebar after bookmark deletion");
       renderSidebar();
-  
+
       // Uncheck the checkbox in the tabs container
       const tabsContainer = document.querySelector('.tabs-container'); // Ensure the class is correct
       if (tabsContainer) {
         console.log("Tabs container found. Attempting to uncheck checkboxes.");
         const checkboxes = tabsContainer.querySelectorAll('.tab-checkbox');
         let bookmarkFound = false;
-  
+
         checkboxes.forEach((checkbox) => {
           console.log(`Checking checkbox with value: ${checkbox.value}`);
           if (checkbox.value === bookmark.url) {
             console.log(`Match found. Unchecking checkbox for bookmark URL: ${bookmark.url}`);
-  
+
             // Uncheck the checkbox
             checkbox.checked = false;
-  
+
             // Remove "selected" class from the tab item
             const tabItem = checkbox.closest('.tab-item');
             if (tabItem) {
               tabItem.classList.remove('selected');
             }
-  
+
             bookmarkFound = true;
           }
         });
-  
+
         if (!bookmarkFound) {
           console.warn(`Bookmark URL not found in tabs container: ${bookmark.url}`);
         }
       } else {
         console.error('Tabs container not found in DOM.');
       }
-  
+
       // Reapply sidebar toggle functionality
       reapplySidebarToggleListeners();
     }
@@ -900,29 +909,29 @@ function renderTabsInContainer(tabs, container, existingBookmarks, updateBookmar
       if (this.checked) {
         tabItem.classList.add('selected');
 
-            // Check if the bookmark already exists before adding
-    const exists = existingBookmarks.some(bookmark => bookmark.url === tab.url);
+        // Check if the bookmark already exists before adding
+        const exists = existingBookmarks.some(bookmark => bookmark.url === tab.url);
 
-    if (!exists) {
-      const cleanedTitle = tab.title
-        .replace(' - Google Sheets', '')
-        .replace(' - Google Docs', '')
-        .replace(' - Google Slides', '');
-      existingBookmarks.push({ name: cleanedTitle, url: tab.url });
-    }
-  } else {
-    tabItem.classList.remove('selected');
-    
-    // Remove this tab from the bookmarks list
-    const indexToRemove = existingBookmarks.findIndex(bookmark => bookmark.url === tab.url);
-    if (indexToRemove !== -1) {
-      existingBookmarks.splice(indexToRemove, 1);
-    }
-  }
+        if (!exists) {
+          const cleanedTitle = tab.title
+            .replace(' - Google Sheets', '')
+            .replace(' - Google Docs', '')
+            .replace(' - Google Slides', '');
+          existingBookmarks.push({ name: cleanedTitle, url: tab.url });
+        }
+      } else {
+        tabItem.classList.remove('selected');
 
-  // Update the bookmark list in real-time
-  updateBookmarkList(existingBookmarks);
-});
+        // Remove this tab from the bookmarks list
+        const indexToRemove = existingBookmarks.findIndex(bookmark => bookmark.url === tab.url);
+        if (indexToRemove !== -1) {
+          existingBookmarks.splice(indexToRemove, 1);
+        }
+      }
+
+      // Update the bookmark list in real-time
+      updateBookmarkList(existingBookmarks);
+    });
 
     // Add favicon
     const favicon = document.createElement('img');
