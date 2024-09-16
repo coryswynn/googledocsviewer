@@ -254,45 +254,11 @@ function initializeSidebar(sidebar) {
         const bookmarkMenu = document.createElement('div');
         bookmarkMenu.className = 'bookmark-menu';
 
-        // Edit bookmark button
-        const editBookmarkBtn = document.createElement('button');
-        editBookmarkBtn.className = 'edit-bookmark-btn';
-        editBookmarkBtn.textContent = 'Edit';
-        editBookmarkBtn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          editBookmark(folderIndex, bookmarkIndex);
-        });
-
-        // Delete bookmark button
-        const deleteBookmarkBtn = document.createElement('button');
-        deleteBookmarkBtn.className = 'delete-bookmark-btn';
-        deleteBookmarkBtn.textContent = 'Delete';
-        deleteBookmarkBtn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          deleteBookmark(folderIndex, bookmarkIndex);
-        });
-
-        // bookmarkMenu.appendChild(editBookmarkBtn);
-        // bookmarkMenu.appendChild(deleteBookmarkBtn);
-
         bookmarkLi.appendChild(bookmarkLink);
         bookmarkLi.appendChild(bookmarkMenu);
 
         subMenu.appendChild(bookmarkLi);
       });
-
-      // // Add option to add new bookmark
-      // const addBookmarkLi = document.createElement('li');
-      // const addBookmarkLink = document.createElement('a');
-      // addBookmarkLink.href = '#';
-      // addBookmarkLink.textContent = 'Add Bookmark';
-      // addBookmarkLink.addEventListener('click', (e) => {
-      //   e.preventDefault();
-      //   addNewBookmark(folderIndex);
-      // });
-
-      // addBookmarkLi.appendChild(addBookmarkLink);
-      // subMenu.appendChild(addBookmarkLi);
 
       folderLi.appendChild(folderDiv);
       folderLi.appendChild(subMenu);
@@ -933,24 +899,30 @@ function renderTabsInContainer(tabs, container, existingBookmarks, updateBookmar
     checkbox.addEventListener('change', function () {
       if (this.checked) {
         tabItem.classList.add('selected');
-        // Add this tab to the bookmarks list
-        const cleanedTitle = tab.title
-          .replace(' - Google Sheets', '')
-          .replace(' - Google Docs', '')
-          .replace(' - Google Slides', '');
-        existingBookmarks.push({ name: cleanedTitle, url: tab.url });
-      } else {
-        tabItem.classList.remove('selected');
-        // Remove this tab from the bookmarks list
-        const indexToRemove = existingBookmarks.findIndex(bookmark => bookmark.url === tab.url);
-        if (indexToRemove !== -1) {
-          existingBookmarks.splice(indexToRemove, 1);
-        }
-      }
 
-      // Update the bookmark list in real-time
-      updateBookmarkList(existingBookmarks);
-    });
+            // Check if the bookmark already exists before adding
+    const exists = existingBookmarks.some(bookmark => bookmark.url === tab.url);
+
+    if (!exists) {
+      const cleanedTitle = tab.title
+        .replace(' - Google Sheets', '')
+        .replace(' - Google Docs', '')
+        .replace(' - Google Slides', '');
+      existingBookmarks.push({ name: cleanedTitle, url: tab.url });
+    }
+  } else {
+    tabItem.classList.remove('selected');
+    
+    // Remove this tab from the bookmarks list
+    const indexToRemove = existingBookmarks.findIndex(bookmark => bookmark.url === tab.url);
+    if (indexToRemove !== -1) {
+      existingBookmarks.splice(indexToRemove, 1);
+    }
+  }
+
+  // Update the bookmark list in real-time
+  updateBookmarkList(existingBookmarks);
+});
 
     // Add favicon
     const favicon = document.createElement('img');
