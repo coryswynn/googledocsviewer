@@ -100,7 +100,7 @@ function initializeSidebar(sidebar) {
   const toggleFramesOrientationLink = document.createElement('a');
   toggleFramesOrientationLink.href = '#';
   const toggleFramesIcon = document.createElement('i');
-  toggleFramesIcon.className = 'bx bx-transfer'; // Choose an appropriate icon
+  toggleFramesIcon.className = 'bx bx-transfer bx-rotate-90'; // Choose an appropriate icon
   const toggleFramesSpan = document.createElement('span');
   toggleFramesSpan.className = 'link_name';
   toggleFramesSpan.textContent = 'Toggle Frames';
@@ -114,6 +114,15 @@ function initializeSidebar(sidebar) {
     e.preventDefault();
     // Implement the logic to toggle frames orientation
     // Assuming there is a function to handle this
+    // Ensure isFramesVertical is initialized if it doesn't exist yet
+    if (typeof sidebarData.isFramesVertical === 'undefined') {
+      sidebarData.isFramesVertical = false; // Default to false if not set
+    }
+    if (sidebarData.isFramesVertical == false) {
+      toggleFramesIcon.className = 'bx bx-transfer bx-rotate-90'; // Choose an appropriate icon
+    } else {
+      toggleFramesIcon.className = 'bx bx-transfer'; // Choose an appropriate icon
+    }
     toggleFramesOrientation(); // You need to implement this function
     sidebarData.isFramesVertical = !sidebarData.isFramesVertical;
     saveToLocalStorage(SIDEBAR_DATA_KEY, sidebarData);

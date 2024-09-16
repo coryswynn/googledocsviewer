@@ -456,6 +456,10 @@ iframe {
     width: 100% !important;
 }
 
+.tab-title:hover {
+    text-decoration: none !important;
+}
+
 /* Styles for the 'Save' and 'Delete' buttons */
 .save-button,
 .delete-button {
