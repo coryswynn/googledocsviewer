@@ -493,6 +493,23 @@ function initializeSidebar(sidebar) {
         }
     });
 
+    // Function to delete a folder
+function deleteFolder(folderIndex, sidebarData, SIDEBAR_DATA_KEY) {
+  if (confirm('Are you sure you want to delete this folder?')) {
+    // Remove the folder from the sidebarData
+    sidebarData.folders.splice(folderIndex, 1);
+
+    // Save the updated sidebar data to localStorage
+    saveToLocalStorage(SIDEBAR_DATA_KEY, sidebarData);
+
+    // Re-render the sidebar to reflect the changes
+    renderSidebar();
+
+    // Reapply event listeners for sidebar toggle after re-render
+    reapplySidebarToggleListeners();
+  }
+}
+
     // Function to update the bookmark list
     function updateBookmarkList(bookmarks) {
         bookmarkList.innerHTML = ''; // Clear the existing list
@@ -569,7 +586,7 @@ function initializeSidebar(sidebar) {
 
     // Attach event listener to delete folder
     deleteFolderBtn.addEventListener('click', function () {
-        deleteFolder(folderIndex);
+      deleteFolder(folderIndex, sidebarData, SIDEBAR_DATA_KEY)
         modal.style.display = 'none';
     });
 
@@ -864,7 +881,11 @@ function renderTabsInContainer(tabs, container, existingBookmarks, updateBookmar
       if (this.checked) {
         tabItem.classList.add('selected');
         // Add this tab to the bookmarks list
-        existingBookmarks.push({ name: tab.title, url: tab.url });
+        const cleanedTitle = tab.title
+          .replace(' - Google Sheets', '')
+          .replace(' - Google Docs', '')
+          .replace(' - Google Slides', '');
+        existingBookmarks.push({ name: cleanedTitle, url: tab.url });
       } else {
         tabItem.classList.remove('selected');
         // Remove this tab from the bookmarks list
