@@ -355,7 +355,7 @@ iframe {
 }
 
 .tabs-container {
-    max-height: 50%;
+    max-height: 400px;
     /* Limit height to enforce a manageable size */
     overflow-y: auto;
     /* Allows scrolling within the container */
@@ -416,7 +416,7 @@ iframe {
     margin-top: 20px;
     margin-bottom: 10px;
     color: #333;
-    font-size: 18px;
+    font-size: 14px;
     /* Larger font size for section title */
 }
 
@@ -429,7 +429,7 @@ iframe {
     /* Border to distinguish the section */
     border-radius: 5px;
     /* Rounded corners for modern look */
-    max-height: 200px;
+    max-height: 400px;
     /* Fixed height with overflow control */
     overflow-y: auto;
     /* Enable vertical scrolling for overflow content */
@@ -692,3 +692,9 @@ body.dark-mode {
     box-shadow: 0 4px 8px rgba(255, 255, 255, 0.1); /* Light shadow for depth */
 }
 
+.dark-mode .close-button:hover,
+.close-button:focus {
+    color: white;
+    text-decoration: none;
+    cursor: pointer;
+}

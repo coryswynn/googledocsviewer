@@ -243,7 +243,7 @@ function initializeSidebar(sidebar) {
         const bookmarkLink = document.createElement('a');
         bookmarkLink.href = '#';
 
-        bookmarkLink.textContent = bookmark.name.length > 23 ? `${bookmark.name.slice(0, 23)}...` : bookmark.name;
+        bookmarkLink.textContent = bookmark.name.length > 20 ? `${bookmark.name.slice(0, 20)}...` : bookmark.name;
         bookmarkLink.addEventListener('click', (e) => {
           e.preventDefault();
           addNewFrame(bookmark.url);
