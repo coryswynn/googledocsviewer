@@ -133,7 +133,7 @@ function removeIframeDarkMode(iframe) {
 }
 
 // Toggle dark mode for all iframes
-function toggleIframeDarkMode() {
+export function toggleIframeDarkMode() {
   const iframes = document.querySelectorAll('iframe');
   iframes.forEach(iframe => {
       const isDarkMode = document.body.classList.contains('dark-mode');

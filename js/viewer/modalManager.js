@@ -10,7 +10,7 @@ import {
   createDivider
 } from './iframeManager.js';
 import { createToolbar } from './toolbarActions.js';
-import { getActiveContainerFrame } from './init.js';
+import { getActiveContainerFrame, toggleIframeDarkMode } from './init.js';
 
 const isChromeExtension = typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.id;
 
@@ -381,6 +381,7 @@ export function addNewFrame(url) {
 
   updateBrowserURL(); // If you have a function to update the browser's address bar
   // console.log('BrowserUpdated')
+  toggleIframeDarkMode();
 }
 
 function appendTabs(tabs, container, type) {
