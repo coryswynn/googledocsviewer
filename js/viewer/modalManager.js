@@ -43,10 +43,18 @@ export function displayModal(modal, activeContainerFrame) {
   // Assuming the sidebar element is identifiable by the class name 'sidebar'
   const sidebar = document.querySelector('.sidebar');
   const isSidebarClosed = sidebar.classList.contains('close');
+  const isSidebarHidden = sidebar.classList.contains('hidden');
 
-  // Determine the sidebar's width based on its open or closed state
-  // Using 300px for open and 78px for closed as indicated in your CSS
-  const sidebarWidth = isSidebarClosed ? 78 : 300;
+  // Determine the sidebar's width based on its open, closed, or hidden state
+  let sidebarWidth = 0; 
+
+  if (isSidebarHidden) {
+    sidebarWidth = 0; // Default width for hidden sidebar
+  } else if (isSidebarClosed) {
+    sidebarWidth = 78; // Width for closed sidebar
+  } else {
+    sidebarWidth = 300; // Width for open sidebar
+  }
 
   const rect = activeContainerFrame.getBoundingClientRect();
   modal.style.position = 'absolute';
@@ -240,10 +248,18 @@ export function adjustModalPosition(modal, activeContainerFrame) {
   // Assuming the sidebar element is identifiable by the class name 'sidebar'
   const sidebar = document.querySelector('.sidebar');
   const isSidebarClosed = sidebar.classList.contains('close');
+  const isSidebarHidden = sidebar.classList.contains('hidden');
 
-  // Determine the sidebar's width based on its open or closed state
-  // Using 300x for open and 78px for closed as indicated in your CSS
-  const sidebarWidth = isSidebarClosed ? 78 : 300;
+  // Determine the sidebar's width based on its open, closed, or hidden state
+  let sidebarWidth = 0; 
+
+  if (isSidebarHidden) {
+    sidebarWidth = 0; // Default width for hidden sidebar
+  } else if (isSidebarClosed) {
+    sidebarWidth = 78; // Width for closed sidebar
+  } else {
+    sidebarWidth = 300; // Width for open sidebar
+  }
 
   // console.log('Starting adjustment of modal');
   const rect = activeContainerFrame.getBoundingClientRect();

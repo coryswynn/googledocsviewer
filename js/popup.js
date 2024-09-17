@@ -1,6 +1,7 @@
 //popup.js
 
 import { loadFromLocalStorage, removeFromLocalStorage, existsInLocalStorage } from './storageUtils.js';
+import { adjustModalPosition } from './viewer/modalManager.js';
 
 document.getElementById('docForm').addEventListener('submit', function (e) {
     e.preventDefault(); // Prevent the default form submission
@@ -126,6 +127,7 @@ document.addEventListener('DOMContentLoaded', function () {
         } else {
             document.body.classList.remove('dark-mode');
             logoImage.src = 'https://i.imgur.com/yUm3oGG.png'; // Light mode logo
+            adjustModalPosition(modal, getActiveContainerFrame());
         }
     });
 

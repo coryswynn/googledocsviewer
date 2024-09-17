@@ -243,6 +243,12 @@ export function updateIframeProportions(iframeContainer, totalWidth, initialProp
             const containerFrame = entry.target;
             const frameWidth = entry.contentRect.width;
 
+                  // Adjust modal position based on the resized iframe
+      if (modal.style.display === 'block') {
+        adjustModalPosition(modal, containerFrame);
+      }
+
+
             // Define width thresholds for button visibility
             const thresholds = {
                 urlTitle: 500, // Width at which the URL title disappears or becomes shorter
