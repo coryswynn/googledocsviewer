@@ -69,11 +69,12 @@ export function setActiveContainerFrame(frame) {
 // Function to apply dark mode based on local storage or message from popup.js
 function applyDarkMode() {
   chrome.storage.local.get(['darkModeEnabled'], function (result) {
-      const darkModeEnabled = result.darkModeEnabled || false;
+      const darkModeEnabled = (result.darkModeEnabled !== undefined && result.darkModeEnabled !== null) ? result.darkModeEnabled : false;
       const bodyElement = document.body;
 
       console.log("Dark Mode Enabled:", darkModeEnabled); // Debugging log
 
+      // Only add dark-mode class if it was previously enabled
       if (darkModeEnabled) {
           console.log("Adding dark-mode class");
           bodyElement.classList.add('dark-mode');

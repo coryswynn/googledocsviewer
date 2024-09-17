@@ -450,17 +450,20 @@ function initializeSidebar(sidebar) {
               .filter(Boolean)
           };
 
-          // Save the selected tabs to 'savedTabs'
-          // let savedTabs = loadFromLocalStorage('savedTabs') || [];
+            // Save the selected tabs to 'savedTabs'
+            let savedTabs = loadFromLocalStorage('savedTabs') || [];
 
-          // selectedTabs.forEach(url => {
-          //   // Only add the tab to savedTabs if it’s not already there
-          //   if (!savedTabs.some(tab => tab.url === url)) {
-          //     const matchingTab = tabs.find(tab => tab.url === url);
-          //     const tabTitle = matchingTab ? matchingTab.title : getSavedTabTitle(url) || 'Title Unavailable';
-          //     savedTabs.push({ name: tabTitle, url });
-          //   }
-          // });
+            selectedTabs.forEach(url => {
+                // Only add the tab to savedTabs if it’s not already there
+                if (!savedTabs.some(tab => tab.url === url)) {
+                    const matchingTab = tabs.find(tab => tab.url === url);
+                    const tabTitle = matchingTab ? matchingTab.title : getSavedTabTitle(url) || 'Title Unavailable';
+                    savedTabs.push({ name: tabTitle, url });
+                }
+            });
+
+            // Save updated savedTabs back to localStorage
+            saveToLocalStorage('savedTabs', savedTabs);
 
           // Push new folder to sidebarData and save to localStorage
           sidebarData.folders.push(newFolder);
