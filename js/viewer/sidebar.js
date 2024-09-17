@@ -68,6 +68,15 @@ function initializeSidebar(sidebar) {
     sidebar.classList.add('close');
   }
 
+  // Function to adjust layout based on sidebar visibility
+  function adjustLayoutForSidebar() {
+    if (sidebar.classList.contains('hidden')) {
+      document.body.classList.add('sidebar-hidden');
+    } else {
+      document.body.classList.remove('sidebar-hidden');
+    }
+  }
+
   // Create the logo and toggle buttons
   const logoDetails = document.createElement('div');
   logoDetails.className = 'logo-details';
@@ -308,15 +317,6 @@ function initializeSidebar(sidebar) {
 
     adjustLayoutForSidebar();
 
-    // Function to adjust layout based on sidebar visibility
-    function adjustLayoutForSidebar() {
-      if (sidebar.classList.contains('hidden')) {
-        document.body.classList.add('sidebar-hidden');
-      } else {
-        document.body.classList.remove('sidebar-hidden');
-      }
-    }
-
     // Modify the toggle sidebar button event listener to adjust layout
     toggleSidebarBtn.addEventListener('click', () => {
       sidebar.classList.toggle('close');
@@ -450,20 +450,20 @@ function initializeSidebar(sidebar) {
               .filter(Boolean)
           };
 
-            // Save the selected tabs to 'savedTabs'
-            let savedTabs = loadFromLocalStorage('savedTabs') || [];
+          // Save the selected tabs to 'savedTabs'
+          let savedTabs = loadFromLocalStorage('savedTabs') || [];
 
-            selectedTabs.forEach(url => {
-                // Only add the tab to savedTabs if it’s not already there
-                if (!savedTabs.some(tab => tab.url === url)) {
-                    const matchingTab = tabs.find(tab => tab.url === url);
-                    const tabTitle = matchingTab ? matchingTab.title : getSavedTabTitle(url) || 'Title Unavailable';
-                    savedTabs.push({ name: tabTitle, url });
-                }
-            });
+          selectedTabs.forEach(url => {
+            // Only add the tab to savedTabs if it’s not already there
+            if (!savedTabs.some(tab => tab.url === url)) {
+              const matchingTab = tabs.find(tab => tab.url === url);
+              const tabTitle = matchingTab ? matchingTab.title : getSavedTabTitle(url) || 'Title Unavailable';
+              savedTabs.push({ name: tabTitle, url });
+            }
+          });
 
-            // Save updated savedTabs back to localStorage
-            saveToLocalStorage('savedTabs', savedTabs);
+          // Save updated savedTabs back to localStorage
+          saveToLocalStorage('savedTabs', savedTabs);
 
           // Push new folder to sidebarData and save to localStorage
           sidebarData.folders.push(newFolder);

@@ -47,6 +47,11 @@ document.addEventListener('DOMContentLoaded', function () {
   initializeDragAndDrop(iframeContainer, updateContainerFramesDataId, updateIframeProportions); // Initialize drag and drop functionality for iframe containers.
   setupWindowResizeListener(iframeContainer, updateIframeProportions, adjustModalPosition, modal);
 
+    // Apply dark mode and then toggle iframe dark mode
+    applyDarkMode(() => {
+      toggleIframeDarkMode(); // Ensure iframe dark mode is applied only after body dark mode is set
+    });
+  
   // Check if the sidebar is enabled
   const sidebarEnabled = localStorage.getItem('sidebarEnabled') === 'true';
     console.log('sidebar status:' + sidebarEnabled)
@@ -67,7 +72,7 @@ export function setActiveContainerFrame(frame) {
 // In init.js
 
 // Function to apply dark mode based on local storage or message from popup.js
-function applyDarkMode() {
+function applyDarkMode(callback) {
   // Set an explicit default state first (light mode)
   const bodyElement = document.body;
   bodyElement.classList.remove('dark-mode'); // Remove dark-mode by default
@@ -84,6 +89,11 @@ function applyDarkMode() {
       bodyElement.classList.add('dark-mode');
     } else {
       console.log("Dark mode not enabled");
+    }
+
+    // Call the callback function (like toggleIframeDarkMode) after applying dark mode
+    if (callback && typeof callback === 'function') {
+      callback();
     }
   });
 }
