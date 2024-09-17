@@ -245,7 +245,7 @@ export function updateIframeProportions(iframeContainer, totalWidth, initialProp
 
                   // Adjust modal position based on the resized iframe
       if (modal.style.display === 'block') {
-        adjustModalPosition(modal, containerFrame);
+        adjustModalPosition(modal, getActiveContainerFrame());
       }
 
 
