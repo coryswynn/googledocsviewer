@@ -1,5 +1,7 @@
 //popup.js
 
+import { saveToLocalStorage, loadFromLocalStorage, removeFromLocalStorage, existsInLocalStorage } from './storageUtils.js';
+
 document.getElementById('docForm').addEventListener('submit', function (e) {
     e.preventDefault(); // Prevent the default form submission
 
@@ -21,116 +23,134 @@ document.getElementById('docForm').addEventListener('submit', function (e) {
     });
 });
 
-// This should be outside and directly executed when the DOM is fully loaded
-document.addEventListener('DOMContentLoaded', function () {
-    // Initialize the sidebar toggle
-    const sidebarToggle = document.getElementById('sidebar-toggle-checkbox');
-    const darkModeToggle = document.getElementById('darkmode-toggle-checkbox'); // Get dark mode toggle checkbox
+// Function to add tabs to the DOM
+function addTabsToDOM(tabs, tabList) {
+    const savedTabs = loadFromLocalStorage('savedTabs') || []; // Load saved tabs from local storage
+    let validTabsFound = false;
 
-    // Load the sidebarEnabled and darkModeEnabled values from local storage
-    chrome.storage.local.get(['sidebarEnabled', 'darkModeEnabled'], function (result) {
-        sidebarToggle.checked = result.sidebarEnabled || false;
-        darkModeToggle.checked = result.darkModeEnabled || false;
+    tabs.forEach(function (tab, index) {
+        if (/https:\/\/docs\.google\.com\/(document|spreadsheets|presentation)/.test(tab.url)) {
+            const tabItem = document.createElement('label');
+            tabItem.className = 'tab-item';
 
-        // Apply dark mode if previously enabled
-        if (darkModeToggle.checked) {
-            document.body.classList.add('dark-mode');
+            // Checkbox for tab selection
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.id = `tab-${index}`;
+            checkbox.value = tab.id || index; // Use tab ID for open tabs, index for saved tabs
+            checkbox.className = 'checkbox';
+
+            // Favicon
+            const favicon = document.createElement('img');
+            favicon.src = 'https://s2.googleusercontent.com/s2/favicons?domain_url=' + tab.url;
+            favicon.className = 'favicon';
+            favicon.alt = 'Favicon';
+
+            // Tab title
+            let labelText = tab.title.replace(/( - Google (Sheets|Docs|Slides))/, ''); // Clean up title
+            const titleNode = document.createTextNode(labelText);
+
+            // Append elements to tabItem
+            tabItem.appendChild(checkbox);
+            tabItem.appendChild(favicon);
+            tabItem.appendChild(titleNode);
+
+            // Check if the tab is saved and add green checkmark if true
+            const isSaved = savedTabs.some(savedTab => savedTab.url === tab.url);
+            if (isSaved) {
+                const space = document.createTextNode(' '); // Add a space
+                const checkmark = document.createElement('i');
+                checkmark.className = 'bx bxs-check-circle';
+                checkmark.style.color = '#2e8c0b';
+                tabItem.appendChild(space); // Add space after the title
+                tabItem.appendChild(checkmark); // Add the checkmark after the title
+            }
+
+            // Append tabItem to the tabList
+            tabList.appendChild(tabItem);
+            validTabsFound = true;
         }
     });
 
-    // Add event listener to update local storage when sidebar is toggled
-    sidebarToggle.addEventListener('change', function () {
-        chrome.storage.local.set({ 'sidebarEnabled': sidebarToggle.checked }, function () {
-            console.log('sidebarEnabled set to ' + sidebarToggle.checked);
+    // Handle the case where no valid tabs are found
+    if (!validTabsFound) {
+        document.querySelector('button[type="submit"]').style.display = 'none';
+        const noTabsMessage = document.createElement('p');
+        noTabsMessage.id = 'no-tabs-message';
+        noTabsMessage.textContent = 'Please open or save a Google Docs, Sheets, or Slides tab to use this feature.';
+        document.body.appendChild(noTabsMessage);
+    }
+}
+
+// DOMContentLoaded listener
+document.addEventListener('DOMContentLoaded', function () {
+    const tabList = document.getElementById('tab-list'); // Element where tabs will be listed
+    const sidebarToggle = document.getElementById('sidebar-toggle-checkbox');
+    const darkModeToggle = document.getElementById('darkmode-toggle-checkbox'); // Dark mode toggle
+
+    // Load dark mode and sidebar state
+    const sidebarEnabled = loadFromLocalStorage('sidebarEnabled');
+    const darkModeEnabled = loadFromLocalStorage('darkModeEnabled');
+    const savedTabs = loadFromLocalStorage('savedTabs') || [];
+
+    sidebarToggle.checked = sidebarEnabled || false;
+    darkModeToggle.checked = darkModeEnabled || false;
+
+    // Apply dark mode if previously enabled
+    if (darkModeToggle.checked) {
+        document.body.classList.add('dark-mode');
+    }
+
+    // Query open tabs and combine with saved tabs
+    chrome.tabs.query({}, function (openTabs) {
+        // Convert savedTabs to match open tabs structure (if needed)
+        const formattedSavedTabs = savedTabs.map((tab, index) => {
+            return {
+                id: `saved-${index}`, // Generate an ID for the saved tab
+                url: tab.url,
+                title: tab.title || 'Untitled Document'
+            };
         });
+
+        // Combine open tabs and saved tabs, filtering out duplicates by URL
+        const combinedTabs = [...openTabs, ...formattedSavedTabs].reduce((acc, current) => {
+            if (!acc.find(tab => tab.url === current.url)) {
+                acc.push(current);
+            }
+            return acc;
+        }, []);
+
+        // Sort tabs alphabetically
+        combinedTabs.sort((a, b) => a.title.localeCompare(b.title));
+
+        // Add the combined tabs to the DOM
+        addTabsToDOM(combinedTabs, tabList);
     });
 
-    // Add event listener to toggle dark mode and update local storage
-    // Add event listener to toggle dark mode and update local storage
+    // Sidebar toggle listener
+    sidebarToggle.addEventListener('change', function () {
+        saveToLocalStorage('sidebarEnabled', sidebarToggle.checked);
+    });
+
+    // Dark mode toggle listener
     darkModeToggle.addEventListener('change', function () {
         const isDarkMode = darkModeToggle.checked;
         const logoImage = document.getElementById('logo-img');
 
-        // Toggle the dark mode styles for the popup
         if (isDarkMode) {
-            document.body.classList.add('dark-mode'); // Apply dark mode
-            logoImage.src = 'https://i.imgur.com/m4Ge84P.png'; // Change to dark mode logo
+            document.body.classList.add('dark-mode');
+            logoImage.src = 'https://i.imgur.com/m4Ge84P.png'; // Dark mode logo
         } else {
-            document.body.classList.remove('dark-mode'); // Remove dark mode
-            logoImage.src = 'https://i.imgur.com/yUm3oGG.png'; // Remove dark mode logo
+            document.body.classList.remove('dark-mode');
+            logoImage.src = 'https://i.imgur.com/yUm3oGG.png'; // Light mode logo
         }
 
-        // Save the dark mode state in local storage
-        chrome.storage.local.set({ 'darkModeEnabled': isDarkMode }, function () {
-            console.log('darkModeEnabled set to ' + isDarkMode);
+        saveToLocalStorage('darkModeEnabled', isDarkMode);
 
-            // Send a message to the viewer page to toggle dark mode
-            chrome.runtime.sendMessage({
-                action: "toggleDarkMode",
-                enabled: isDarkMode
-            });
+        // Notify the viewer page about the dark mode toggle
+        chrome.runtime.sendMessage({
+            action: "toggleDarkMode",
+            enabled: isDarkMode
         });
-    });
-
-    // Query the current window tabs
-    chrome.tabs.query({}, function (tabs) {
-        const tabList = document.getElementById('tab-list'); // Ensure this element exists in your HTML
-
-        // Filter for Google Docs, Slides, Sheets, remove duplicates, and sort tabs
-        const filteredAndSortedTabs = tabs
-            .filter(tab => /https:\/\/docs\.google\.com\/(document|spreadsheets|presentation)/.test(tab.url))
-            .reduce((acc, current) => {
-                const x = acc.find(item => item.title === current.title);
-                if (!x) {
-                    return acc.concat([current]);
-                } else {
-                    return acc;
-                }
-            }, [])
-            .sort((a, b) => a.title.localeCompare(b.title));
-
-        let validTabsFound = false; // Flag to track if valid tabs are found
-
-        // For each tab, create a new div element to display the tab's title
-        filteredAndSortedTabs.forEach(function (tab, index) {
-            // Check if the tab's URL matches Google Docs, Sheets, or Slides
-            if (/https:\/\/docs\.google\.com\/(document|spreadsheets|presentation)/.test(tab.url)) {
-                const tabItem = document.createElement('label');
-                tabItem.className = 'tab-item';
-
-                // Add checkboxes and tie checkboxes to tabs
-                const checkbox = document.createElement('input');
-                checkbox.type = 'checkbox';
-                checkbox.id = `tab-${index}`;
-                checkbox.value = tab.id; // Use tab ID as value for easy identification
-                checkbox.className = 'checkbox';
-
-                // Create an image element for the favicon
-                const favicon = document.createElement('img');
-                favicon.src = 'https://s2.googleusercontent.com/s2/favicons?domain_url=' + tab.url;
-                favicon.className = 'favicon';
-                favicon.alt = 'Favicon';
-
-                // Extract the title from the tab's URL and remove the unwanted suffixes
-                let labelText = tab.title.replace(/( - Google (Sheets|Docs|Slides))/, ''); // Remove "- Google Sheets," "- Google Docs," or "- Google Slides"
-
-                // Combine checkbox and tab label
-                labelText = document.createTextNode(labelText);
-                tabItem.appendChild(checkbox);
-                tabItem.appendChild(favicon);
-                tabItem.appendChild(labelText);
-
-                tabList.appendChild(tabItem); // Append the tab item to the list
-                validTabsFound = true;
-            }
-        });
-
-        if (!validTabsFound) {
-            document.querySelector('button[type="submit"]').style.display = 'none';
-            const noTabsMessage = document.createElement('p');
-            noTabsMessage.id = 'no-tabs-message';
-            noTabsMessage.textContent = 'Please open a Google Docs, Sheets, or Slides tab to use this feature.';
-            document.body.appendChild(noTabsMessage);
-        }
     });
 });
