@@ -1,6 +1,6 @@
 //popup.js
 
-import { saveToLocalStorage, loadFromLocalStorage, removeFromLocalStorage, existsInLocalStorage } from './storageUtils.js';
+import { loadFromLocalStorage, removeFromLocalStorage, existsInLocalStorage } from './storageUtils.js';
 
 document.getElementById('docForm').addEventListener('submit', function (e) {
     e.preventDefault(); // Prevent the default form submission
@@ -100,65 +100,72 @@ document.addEventListener('DOMContentLoaded', function () {
     const darkModeToggle = document.getElementById('darkmode-toggle-checkbox'); // Dark mode toggle
     const logoImage = document.getElementById('logo-img');
 
-    // Load dark mode and sidebar state
-    const sidebarEnabled = loadFromLocalStorage('sidebarEnabled');
-    let darkModeEnabled = loadFromLocalStorage('darkModeEnabled'); // This can be true, false, or null
+    // Load sidebar state
+    chrome.storage.local.get('sidebarEnabled', function(result) {
+        const sidebarEnabled = result.sidebarEnabled;
+        sidebarToggle.checked = !!sidebarEnabled; // Ensure a boolean value
+    });
 
-    sidebarToggle.checked = !!sidebarEnabled; // Ensure a boolean value
+    // Load and apply dark mode state
+    chrome.storage.local.get('darkModeEnabled', function(result) {
+        let darkModeEnabled = result.darkModeEnabled;
 
-    // If darkModeEnabled is not set (null or undefined), set it to false and store it
-    if (darkModeEnabled === null || darkModeEnabled === undefined) {
-        darkModeEnabled = false;
-        chrome.storage.local.set({ 'darkModeEnabled': darkModeEnabled });
-    }
-    // Apply dark mode based on the stored state
-    darkModeToggle.checked = darkModeEnabled;
+        // If darkModeEnabled is not set, initialize it to false
+        if (darkModeEnabled === undefined) {
+            darkModeEnabled = false;
+            chrome.storage.local.set({ 'darkModeEnabled': darkModeEnabled });
+        }
 
-    console.log('Dark mode enabled:', darkModeEnabled);
+        console.log('Dark mode enabled:', darkModeEnabled);
 
-    // Apply dark mode if previously enabled
-    if (darkModeEnabled) {
-        document.body.classList.add('dark-mode');
-        logoImage.src = 'https://i.imgur.com/m4Ge84P.png'; // Dark mode logo
-    } else {
-        document.body.classList.remove('dark-mode');
-        logoImage.src = 'https://i.imgur.com/yUm3oGG.png'; // Light mode logo
-    }
+        // Apply dark mode if previously enabled
+        darkModeToggle.checked = darkModeEnabled;
+        if (darkModeEnabled) {
+            document.body.classList.add('dark-mode');
+            logoImage.src = 'https://i.imgur.com/m4Ge84P.png'; // Dark mode logo
+        } else {
+            document.body.classList.remove('dark-mode');
+            logoImage.src = 'https://i.imgur.com/yUm3oGG.png'; // Light mode logo
+        }
+    });
 
     // Query open tabs and combine with saved tabs
     chrome.tabs.query({}, function (openTabs) {
-        const savedTabs = loadFromLocalStorage('savedTabs') || [];
+        chrome.storage.local.get('savedTabs', function(result) {
+            const savedTabs = result.savedTabs || [];
 
-        // Convert savedTabs to match open tabs structure (if needed)
-        const formattedSavedTabs = savedTabs.map((tab, index) => {
-            return {
-                id: `${index}`, // Generate an ID for the saved tab
-                url: tab.url,
-                title: tab.title || 'Untitled Document'
-            };
+            // Convert savedTabs to match open tabs structure (if needed)
+            const formattedSavedTabs = savedTabs.map((tab, index) => {
+                return {
+                    id: `${index}`, // Generate an ID for the saved tab
+                    url: tab.url,
+                    title: tab.title || 'Untitled Document'
+                };
+            });
+
+            // Combine open tabs and saved tabs, filtering out duplicates by URL
+            const combinedTabs = [...openTabs, ...formattedSavedTabs].reduce((acc, current) => {
+                if (!acc.find(tab => tab.url === current.url)) {
+                    acc.push(current);
+                }
+                return acc;
+            }, []);
+
+            // Sort tabs alphabetically
+            combinedTabs.sort((a, b) => a.title.localeCompare(b.title));
+
+            // Add the combined tabs to the DOM
+            addTabsToDOM(combinedTabs, tabList);
         });
-
-        // Combine open tabs and saved tabs, filtering out duplicates by URL
-        const combinedTabs = [...openTabs, ...formattedSavedTabs].reduce((acc, current) => {
-            if (!acc.find(tab => tab.url === current.url)) {
-                acc.push(current);
-            }
-            return acc;
-        }, []);
-
-        // Sort tabs alphabetically
-        combinedTabs.sort((a, b) => a.title.localeCompare(b.title));
-
-        // Add the combined tabs to the DOM
-        addTabsToDOM(combinedTabs, tabList);
     });
 
-    // Add event listener to update local storage when toggled
+    // Add event listener to update Chrome storage when sidebar toggled
     sidebarToggle.addEventListener('change', function () {
         chrome.storage.local.set({ 'sidebarEnabled': sidebarToggle.checked }, function () {
             console.log('sidebarEnabled set to ' + sidebarToggle.checked);
         });
     });
+
     // Dark mode toggle listener
     darkModeToggle.addEventListener('change', function () {
         const isDarkMode = darkModeToggle.checked;
@@ -181,6 +188,5 @@ document.addEventListener('DOMContentLoaded', function () {
             action: "toggleDarkMode",
             enabled: isDarkMode
         });
-
     });
 });

@@ -68,20 +68,23 @@ export function setActiveContainerFrame(frame) {
 
 // Function to apply dark mode based on local storage or message from popup.js
 function applyDarkMode() {
+  // Set an explicit default state first (light mode)
+  const bodyElement = document.body;
+  bodyElement.classList.remove('dark-mode'); // Remove dark-mode by default
+
+  // Then fetch the darkModeEnabled value from chrome storage
   chrome.storage.local.get(['darkModeEnabled'], function (result) {
-      const darkModeEnabled = (result.darkModeEnabled !== undefined && result.darkModeEnabled !== null) ? result.darkModeEnabled : false;
-      const bodyElement = document.body;
+    const darkModeEnabled = (result.darkModeEnabled !== undefined && result.darkModeEnabled !== null) ? result.darkModeEnabled : false;
 
-      console.log("Dark Mode Enabled:", darkModeEnabled); // Debugging log
+    console.log("Dark Mode Enabled from storage:", darkModeEnabled); // Debugging log
 
-      // Only add dark-mode class if it was previously enabled
-      if (darkModeEnabled) {
-          console.log("Adding dark-mode class");
-          bodyElement.classList.add('dark-mode');
-      } else {
-          console.log("Removing dark-mode class");
-          bodyElement.classList.remove('dark-mode');
-      }
+    // Apply dark-mode class only if darkModeEnabled is true
+    if (darkModeEnabled) {
+      console.log("Adding dark-mode class");
+      bodyElement.classList.add('dark-mode');
+    } else {
+      console.log("Dark mode not enabled");
+    }
   });
 }
 
@@ -99,8 +102,36 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
 
       if (request.enabled) {
           bodyElement.classList.add('dark-mode');
+          toggleIframeDarkMode(); // Also toggle iframe dark mode
       } else {
           bodyElement.classList.remove('dark-mode');
+          toggleIframeDarkMode(); // Also toggle iframe dark mode
       }
   }
 });
+
+// Add dark mode effect to the iframe
+function applyIframeDarkMode(iframe) {
+  iframe.style.filter = 'invert(1) hue-rotate(180deg)';
+  iframe.style.mixBlendMode = 'difference';  // This blends with the background in a different way
+}
+
+// Remove dark mode effect from the iframe
+function removeIframeDarkMode(iframe) {
+  iframe.style.filter = '';  // Reset filter to its default state
+  iframe.style.mixBlendMode = '';  // Reset mix-blend-mode to its default state
+}
+
+// Toggle dark mode for all iframes
+function toggleIframeDarkMode() {
+  const iframes = document.querySelectorAll('iframe');
+  iframes.forEach(iframe => {
+      const isDarkMode = document.body.classList.contains('dark-mode');
+      if (isDarkMode) {
+          applyIframeDarkMode(iframe);
+      } else {
+          iframe.style.filter = ''; // Reset to default
+          removeIframeDarkMode(iframe);
+      }
+  });
+}

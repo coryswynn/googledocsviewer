@@ -160,8 +160,12 @@ function populateOpenTabsOrMessage(combinedTabsContainer, activeContainerFrame) 
 function appendTabsToModal(tabs, combinedTabsContainer, activeContainerFrame, type = 'Open Tab') {
   let validTabsFound = false;
 
-  // Sort tabs alphabetically by title, after trimming whitespace and converting to lowercase
-  tabs.sort((a, b) => a.title.trim().toLowerCase().localeCompare(b.title.trim().toLowerCase()));
+  // Sort tabs alphabetically by title, handling undefined titles safely
+  tabs.sort((a, b) => {
+    const titleA = (a.title || '').toString().trim().toLowerCase(); // Ensure title is a string and not undefined
+    const titleB = (b.title || '').toString().trim().toLowerCase(); // Ensure title is a string and not undefined
+    return titleA.localeCompare(titleB);
+  });
 
   // Retrieve saved tabs to prevent duplication
   const savedTabs = getSavedTabs();
@@ -188,8 +192,9 @@ function appendTabsToModal(tabs, combinedTabsContainer, activeContainerFrame, ty
     tabItem.appendChild(favicon);
 
     // Title
+    const cleanTitle = (tab.title || 'Untitled').toString().trim().replace(/( - Google (Sheets|Docs|Slides))/, ''); // Ensure title is valid
     const titleSpan = document.createElement('span');
-    titleSpan.textContent = tab.title.trim().replace(/( - Google (Sheets|Docs|Slides))/, ''); // Clean up the title
+    titleSpan.textContent = cleanTitle; 
     titleSpan.className = 'tab-title';
     tabItem.appendChild(titleSpan);
 
@@ -197,8 +202,8 @@ function appendTabsToModal(tabs, combinedTabsContainer, activeContainerFrame, ty
     const plusButton = createPlusButton(activeContainerFrame, tab.url);
     tabItem.appendChild(plusButton);
 
-    // Save button (check if already saved when created)
-    const saveButton = createSaveButton(tab.url, tab.title);
+    // Save button
+    const saveButton = createSaveButton(tab.url, cleanTitle);
     tabItem.appendChild(saveButton);
 
     // Event listener for clicking a tabItem
@@ -210,7 +215,7 @@ function appendTabsToModal(tabs, combinedTabsContainer, activeContainerFrame, ty
       const titleElement = activeContainerFrame.querySelector('.url-text');
       if (titleElement) {
         const savedTitle = getSavedTabTitle(tab.url);
-        titleElement.textContent = savedTitle || tab.title.replace(/( - Google (Sheets|Docs|Slides))/g, '');
+        titleElement.textContent = savedTitle || cleanTitle;
       }
       closeModal(modal);
     });
