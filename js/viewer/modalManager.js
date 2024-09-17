@@ -57,7 +57,6 @@ export function displayModal(modal, activeContainerFrame) {
   modal.style.display = 'block';
 
   populateModalWithContent(modal, activeContainerFrame);
-  updateSavedTabsDisplay(); // Ensure the saved tabs are up-to-date
 }
 
 export function getSavedTabs() {
@@ -70,95 +69,12 @@ export function getSavedTabTitle(url) {
   return foundTab ? foundTab.title : null;
 }
 
-function updateSavedTabsDisplay() {
-  const savedTabsContainer = document.querySelector('.saved-tabs-container');
-  savedTabsContainer.innerHTML = ''; // Clear existing saved tabs
-
-  const savedTabs = getSavedTabs();
-  if (savedTabs.length > 0) {
-    savedTabs.forEach(tab => {
-      const tabItem = document.createElement('div');
-      tabItem.className = 'modal-url-option'; // Same class as other tab items for consistent styling
-
-      // Implement click functionality for switching or adding a new frame
-      tabItem.onclick = () => {
-        // Find the first iframe container (you can customize this based on your logic)
-        const iframeContainers = document.querySelectorAll('.url-container');
-        const activeContainerFrame = getActiveContainerFrame(); // Ensure this function returns the active frame
-
-        if (iframeContainers.length > 0) {
-        } else {
-          console.error('No iframe containers found.');
-          return;
-        }
-
-        const iframe = activeContainerFrame.querySelector('iframe');
-        if (iframe) {
-          iframe.src = tab.url; // Update the iframe source to the selected URL
-        }
-
-        // Update the URL in the browser
-        updateBrowserURL();
-
-        // Update the title in the toolbar associated with the active container frame
-        const titleElement = activeContainerFrame.querySelector('.url-text');
-        if (titleElement) {
-          // First, check if a saved title is available for the tab's URL
-          const savedTitle = getSavedTabTitle(tab.url);
-
-          if (savedTitle) {
-            // If a saved title exists, use it
-            titleElement.textContent = savedTitle;
-          } else {
-            // If no saved title exists, fall back to the tab's title
-            titleElement.textContent = tab.title.replace(/( - Google (Sheets|Docs|Slides))/g, ''); // Clean up the title
-          }
-        }
-
-        // Hide the modal after selection
-        closeModal(document.querySelector('.modal'));
-      };
-
-      // Favicon
-      const favicon = document.createElement('img');
-      favicon.src = 'https://s2.googleusercontent.com/s2/favicons?domain_url=' + tab.url;
-      favicon.className = 'favicon'; // Ensure this matches the class used for other tab items
-      favicon.alt = 'Favicon';
-      tabItem.appendChild(favicon);
-
-      // Title
-      const titleSpan = document.createElement('span');
-      titleSpan.textContent = tab.title;
-      titleSpan.className = 'tab-title'; // Ensure this matches the class used for other tab items
-      tabItem.appendChild(titleSpan);
-
-      // Delete Button
-      const deleteButton = document.createElement('button');
-      deleteButton.innerHTML = '<i class="bx bx-trash"></i>'; // Using Boxicons for the delete icon
-      deleteButton.className = 'delete-button'; // Optionally, match this with your other action buttons
-      deleteButton.onclick = (event) => {
-        event.stopPropagation(); // Prevent click from bubbling to the tab item's click event
-        deleteSavedTab(tab.url);
-        updateSavedTabsDisplay(); // Refresh the display after deletion
-      };
-      tabItem.appendChild(deleteButton);
-
-      savedTabsContainer.appendChild(tabItem);
-    });
-  } else {
-    savedTabsContainer.textContent = 'No saved tabs.';
-  }
-}
-
-
-
 function saveTab(url, title) {
   const savedTabs = getSavedTabs();
   const tab = { url, title }; // Create an object representing the tab
   if (!savedTabs.some(savedTab => savedTab.url === url)) {
     savedTabs.push(tab);
     localStorage.setItem(savedTabsKey, JSON.stringify(savedTabs));
-    updateSavedTabsDisplay(); // Refresh the display of saved tabs
   } else {
     alert("Tab is already saved.");
   }
@@ -173,80 +89,45 @@ function deleteSavedTab(url) {
 // Function to populate modal with content, such as iframe titles
 function populateModalWithContent(modal, activeContainerFrame) {
   const modalBody = modal.querySelector('.modal-body');
-  modalBody.innerHTML = ''; // Clear previous dynamic content
+  modalBody.innerHTML = ''; // Clear previous content
 
-  // Create container for open tabs (if using Chrome extension) or static message
-  const tabsContainer = document.createElement('div');
-  tabsContainer.className = 'tabs-container';
-  modalBody.appendChild(tabsContainer);
+  // Create combined container for both open and saved tabs
+  const combinedTabsContainer = document.createElement('div');
+  combinedTabsContainer.className = 'combined-tabs-container';
+  modalBody.appendChild(combinedTabsContainer);
 
-  // Populate container with open tabs or static message
-  populateOpenTabsOrMessage(tabsContainer, activeContainerFrame);
+  // // Title for the tabs section
+  // const tabsTitle = document.createElement('h3');
+  // tabsTitle.textContent = 'Open & Saved Tabs';
+  // combinedTabsContainer.appendChild(tabsTitle);
 
-  // Section for saved tabs
-  const savedTabsSection = document.createElement('div');
-  savedTabsSection.className = 'saved-tabs-section';
-  modalBody.appendChild(savedTabsSection);
+  // Populate open tabs
+  populateOpenTabsOrMessage(combinedTabsContainer, activeContainerFrame);
 
-  // Title for the saved tabs section
-  const savedTabsTitle = document.createElement('h3');
-  savedTabsTitle.textContent = 'Saved Tabs';
-  savedTabsSection.appendChild(savedTabsTitle);
-
-  // Container for saved tabs
-  const savedTabsContainer = document.createElement('div');
-  savedTabsContainer.className = 'saved-tabs-container';
-  savedTabsSection.appendChild(savedTabsContainer);
-
-  // Fetch and display saved tabs
+  // Populate saved tabs without duplicating already shown open tabs
   const savedTabs = getSavedTabs();
-  if (savedTabs.length > 0) {
-    savedTabs.forEach(tab => {
-      const tabItem = document.createElement('div');
-      tabItem.className = 'modal-url-option saved-tab';
-
-      // Create a span for the tab title
-      const titleSpan = document.createElement('span');
-      // Ensure tab.title exists, otherwise use a fallback title
-      titleSpan.textContent = (tab.title || 'Untitled Tab').replace(/( - Google (Sheets|Docs|Slides))/g, ''); titleSpan.className = 'tab-title'; // Add class for styling
-      tabItem.appendChild(titleSpan);
-
-      // Create and append the delete button
-      const deleteButton = document.createElement('button');
-      deleteButton.textContent = 'Delete';
-      deleteButton.className = 'delete-button'; // Optionally, add class for styling
-      deleteButton.onclick = () => {
-        deleteSavedTab(tab.url);
-        tabItem.remove(); // Remove this tab item from the modal
-      };
-      tabItem.appendChild(deleteButton);
-
-      savedTabsContainer.appendChild(tabItem);
-    });
-  } else {
-    savedTabsContainer.textContent = 'No saved tabs.';
-  }
+  appendTabsToModal(savedTabs, combinedTabsContainer, activeContainerFrame, 'Saved Tab');
 }
 
-function populateOpenTabsOrMessage(tabsContainer, activeContainerFrame) {
-  // The search input and tab querying logic previously inside populateModalWithContent
+function populateOpenTabsOrMessage(combinedTabsContainer, activeContainerFrame) {
   if (isChromeExtension) {
     const searchInput = document.createElement('input');
     searchInput.type = 'text';
     searchInput.placeholder = 'Search tabs...';
     searchInput.className = 'modal-search-input';
-    tabsContainer.appendChild(searchInput);
+    combinedTabsContainer.appendChild(searchInput);
 
     // Filter tabs based on search input
     searchInput.addEventListener('keyup', () => {
       const filterText = searchInput.value.toLowerCase();
-      const tabItems = tabsContainer.querySelectorAll('.modal-url-option');
+      const tabItems = combinedTabsContainer.querySelectorAll('.modal-url-option');
       tabItems.forEach(item => {
         const title = item.querySelector('.tab-title').textContent.toLowerCase();
         item.style.display = title.includes(filterText) ? '' : 'none';
       });
     });
 
+    // Query open tabs from the Chrome extension
     chrome.tabs.query({}, function (tabs) {
       const uniqueTabs = tabs.reduce((acc, current) => {
         const x = acc.find(item => item.title === current.title);
@@ -258,10 +139,10 @@ function populateOpenTabsOrMessage(tabsContainer, activeContainerFrame) {
       }, []);
 
       const sortedTabs = uniqueTabs.sort((a, b) => a.title.localeCompare(b.title));
-      appendTabsToModal(sortedTabs, tabsContainer, activeContainerFrame);
+      appendTabsToModal(sortedTabs, combinedTabsContainer, activeContainerFrame, 'Open Tab'); // Append open tabs
     });
   } else {
-    // Web environment fallback: Static message
+    // Fallback for web environment
     const extensionMessage = document.createElement('div');
     extensionMessage.className = 'extension-download-prompt';
     extensionMessage.innerHTML = `
@@ -271,81 +152,78 @@ function populateOpenTabsOrMessage(tabsContainer, activeContainerFrame) {
          rel="noopener noreferrer" 
          class="download-extension-btn">Add to Chrome</a>
     `;
-    tabsContainer.appendChild(extensionMessage);
+    combinedTabsContainer.appendChild(extensionMessage);
   }
 }
 
 
-function appendTabsToModal(tabs, tabsContainer, activeContainerFrame) {
+function appendTabsToModal(tabs, combinedTabsContainer, activeContainerFrame, type = 'Open Tab') {
   let validTabsFound = false;
 
-  // Use 'tabs' instead of 'sortedTabs'
+  // Sort tabs alphabetically by title, after trimming whitespace and converting to lowercase
+  tabs.sort((a, b) => a.title.trim().toLowerCase().localeCompare(b.title.trim().toLowerCase()));
+
+  // Retrieve saved tabs to prevent duplication
+  const savedTabs = getSavedTabs();
+
   tabs.forEach(function (tab) {
-    // Check if the tab's URL matches Google Docs, Sheets, or Slides
-    if (/https:\/\/docs\.google\.com\/(document|spreadsheets|presentation)/.test(tab.url)) {
-      validTabsFound = true;
-      const tabItem = document.createElement('div');
-      tabItem.className = 'modal-url-option'; // Use your existing class for styling
-
-      // Create an image element for the favicon
-      const favicon = document.createElement('img');
-      favicon.src = 'https://s2.googleusercontent.com/s2/favicons?domain_url=' + tab.url;
-      favicon.className = 'favicon'; // Use this class for additional styling (size, margin, etc.)
-      favicon.alt = 'Favicon'; // Alternative text for accessibility
-
-      // Create a span element for the tab's title
-      const titleSpan = document.createElement('span');
-      titleSpan.textContent = tab.title.replace(/( - Google (Sheets|Docs|Slides))/, ''); // Remove "- Google Sheets," "- Google Docs," or "- Google Slides" from the title
-      titleSpan.className = 'tab-title'; // Use this class for styling
-
-      // Create a button to open new tabs
-      const plusButton = createPlusButton(activeContainerFrame, tab.url); // Corrected to use 'activeContainerFrame'
-
-      const saveButton = createSaveButton(tab.url, tab.title.replace(/( - Google (Sheets|Docs|Slides))/g, ''));
-
-      // Append the favicon, title span, and plus button to the tabItem
-      tabItem.appendChild(favicon);
-      tabItem.appendChild(titleSpan);
-      tabItem.appendChild(plusButton);
-      tabItem.appendChild(saveButton);
-
-      // Event listener for clicking a tabItem
-      tabItem.addEventListener('click', () => {
-        const iframe = activeContainerFrame.querySelector('iframe');
-        if (iframe) {
-          iframe.src = tab.url; // Update the iframe source to the selected URL
-        }
-
-        // Update the URL
-        updateBrowserURL();
-
-        // Update the title in the toolbar associated with the active container frame
-        const titleElement = activeContainerFrame.querySelector('.url-text');
-        if (titleElement) {
-          // First, check if a saved title is available for the tab's URL
-          const savedTitle = getSavedTabTitle(tab.url);
-
-          if (savedTitle) {
-            // If a saved title exists, use it
-            console.log(`Using saved title for URL ${tab.url}: ${savedTitle}`);
-            titleElement.textContent = savedTitle;
-          } else {
-            // If no saved title exists, fall back to the tab's title
-            console.log(`No saved title found for URL ${tab.url}. Using the fetched title.`);
-            titleElement.textContent = tab.title.replace(/( - Google (Sheets|Docs|Slides))/g, ''); // Clean up the fetched title
-          }
-        }
-
-        // Hide the modal after selection
-        closeModal(modal);
-      });
-
-      tabsContainer.appendChild(tabItem); // Append to the modal content
+    // Check if the tab's URL matches Google Docs, Sheets, or Slides for open tabs
+    if (type === 'Open Tab' && !/https:\/\/docs\.google\.com\/(document|spreadsheets|presentation)/.test(tab.url)) {
+      return; // Skip if it's not a valid open tab
     }
+
+    // If this is an open tab, ensure it's not in the saved tabs
+    if (type === 'Open Tab' && savedTabs.some(savedTab => savedTab.url === tab.url)) {
+      return; // Skip if this tab is already saved
+    }
+
+    validTabsFound = true;
+    const tabItem = document.createElement('div');
+    tabItem.className = 'modal-url-option'; // Use your existing class for styling
+
+    // Favicon
+    const favicon = document.createElement('img');
+    favicon.src = 'https://s2.googleusercontent.com/s2/favicons?domain_url=' + tab.url;
+    favicon.className = 'favicon';
+    tabItem.appendChild(favicon);
+
+    // Title
+    const titleSpan = document.createElement('span');
+    titleSpan.textContent = tab.title.trim().replace(/( - Google (Sheets|Docs|Slides))/, ''); // Clean up the title
+    titleSpan.className = 'tab-title';
+    tabItem.appendChild(titleSpan);
+
+    // Add-frame button
+    const plusButton = createPlusButton(activeContainerFrame, tab.url);
+    tabItem.appendChild(plusButton);
+
+    // Save button (check if already saved when created)
+    const saveButton = createSaveButton(tab.url, tab.title);
+    tabItem.appendChild(saveButton);
+
+    // Event listener for clicking a tabItem
+    tabItem.addEventListener('click', () => {
+      const iframe = activeContainerFrame.querySelector('iframe');
+      if (iframe) iframe.src = tab.url; // Update the iframe source to the selected URL
+      updateBrowserURL();
+
+      const titleElement = activeContainerFrame.querySelector('.url-text');
+      if (titleElement) {
+        const savedTitle = getSavedTabTitle(tab.url);
+        titleElement.textContent = savedTitle || tab.title.replace(/( - Google (Sheets|Docs|Slides))/g, '');
+      }
+      closeModal(modal);
+    });
+
+    combinedTabsContainer.appendChild(tabItem); // Append to the modal content
   });
 
-  if (!validTabsFound) {
-    tabsContainer.textContent = 'No Google Docs, Sheets, or Slides tabs found.';
+  if (!validTabsFound && type === 'Open Tab') {
+    combinedTabsContainer.textContent = 'No Google Docs, Sheets, or Slides tabs found.';
+  } else if (!validTabsFound && type === 'Saved Tab') {
+    const noSavedTabsMessage = document.createElement('p');
+    noSavedTabsMessage.textContent = 'No saved tabs.';
+    combinedTabsContainer.appendChild(noSavedTabsMessage);
   }
 }
 
@@ -435,25 +313,35 @@ function createPlusButton(iframeContainer, url) {
   plusButton.className = 'add-frame-button';
   plusButton.innerHTML = '<i class="bx bx-add-to-queue"></i>'; // BoxIcons plus icon
   plusButton.onclick = (event) => {
-    // Assume `addNewFrame` is a function that handles adding a new frame
-    // console.log("adding new frame");
     event.stopPropagation(); // Prevent the click from bubbling up to parent elements
     addNewFrame(url);
-
   };
   return plusButton;
 }
 
+
 function createSaveButton(url, title) {
+  const savedTabs = getSavedTabs(); // Retrieve saved tabs from localStorage
+  const isSaved = savedTabs.some(tab => tab.url === url); // Check if the tab is already saved
+
   const saveButton = document.createElement('button');
   saveButton.className = 'save-button';
-  saveButton.innerHTML = '<i class="bx bx-save"></i>'; // BoxIcons plus icon
+  
+  // If the tab is saved, show the check-circle icon, otherwise show the save icon
+  saveButton.innerHTML = isSaved ? '<i class="bx bxs-check-circle"></i>' : '<i class="bx bx-save"></i>'; 
+
   saveButton.onclick = (event) => {
     event.stopPropagation(); // Prevent the click from bubbling up to parent elements
-    saveTab(url, title); // Pass an object with url and title to match `saveTab` function's parameter
-    updateSavedTabsDisplay(); // Refresh the saved tabs display
 
+    if (saveButton.innerHTML.includes('bx-save')) {
+      saveTab(url, title); // Save the tab
+      saveButton.innerHTML = '<i class="bx bxs-check-circle"></i>'; // Change to check icon after saving
+    } else {
+      deleteSavedTab(url); // Remove the tab
+      saveButton.innerHTML = '<i class="bx bx-save"></i>'; // Change back to save icon after removing
+    }
   };
+
   return saveButton;
 }
 
@@ -488,4 +376,49 @@ export function addNewFrame(url) {
 
   updateBrowserURL(); // If you have a function to update the browser's address bar
   // console.log('BrowserUpdated')
+}
+
+function appendTabs(tabs, container, type) {
+  if (tabs.length > 0) {
+    tabs.forEach(tab => {
+      const tabItem = document.createElement('div');
+      tabItem.className = 'modal-url-option'; // Same class as other tab items for consistent styling
+
+      // Favicon
+      const favicon = document.createElement('img');
+      favicon.src = 'https://s2.googleusercontent.com/s2/favicons?domain_url=' + tab.url;
+      favicon.className = 'favicon';
+      tabItem.appendChild(favicon);
+
+      // Title
+      const titleSpan = document.createElement('span');
+      titleSpan.textContent = tab.title.replace(/( - Google (Sheets|Docs|Slides))/g, ''); // Clean up the title
+      titleSpan.className = 'tab-title';
+      tabItem.appendChild(titleSpan);
+
+      // Create open button or frame switch for open tabs
+      if (type === 'Open Tab') {
+        tabItem.onclick = () => {
+          const activeContainerFrame = getActiveContainerFrame();
+          if (!activeContainerFrame) return;
+
+          const iframe = activeContainerFrame.querySelector('iframe');
+          if (iframe) iframe.src = tab.url;
+          updateBrowserURL();
+          
+          const titleElement = activeContainerFrame.querySelector('.url-text');
+          if (titleElement) titleElement.textContent = tab.title.replace(/( - Google (Sheets|Docs|Slides))/g, '');
+          
+          closeModal(document.querySelector('.modal'));
+        };
+      }
+
+      // Append the tab to the container
+      container.appendChild(tabItem);
+    });
+  } else {
+    const noTabsMessage = document.createElement('p');
+    noTabsMessage.textContent = `No ${type} found.`;
+    container.appendChild(noTabsMessage);
+  }
 }

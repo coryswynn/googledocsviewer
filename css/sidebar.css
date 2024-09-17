@@ -678,7 +678,12 @@ body.sidebar-hidden .home-section {
 /* DARK MODE */
 
 /* Search Input Dark Mode */
-.dark-mode .styled-input, .dark-mode .tab-search-bar, .dark-mode .tab-search-bar:hover, .dark-mode .tab-search-bar:focus, .dark-mode .tab-item {
+.dark-mode .styled-input, 
+.dark-mode .tab-search-bar, 
+.dark-mode .tab-search-bar:hover, 
+.dark-mode .tab-search-bar:focus, 
+.dark-mode .tab-selections,
+.dark-mode .tab-item {
   background-color: #333;
   color: #ffffff;
   border: 1px solid #555;
@@ -696,4 +701,34 @@ body.sidebar-hidden .home-section {
 .dark-mode .icon-option:hover {
   background-color: #4f4f4f;
   border-radius: 5px;
+}
+
+/* Dark mode styles */
+body.dark-mode {
+  background-color: black;
+  color: white;
+}
+
+/* Dark mode scrollbars */
+body.dark-mode ::-webkit-scrollbar {
+  width: 12px;
+}
+
+body.dark-mode ::-webkit-scrollbar-track {
+  background: #1a1a1a;
+}
+
+body.dark-mode ::-webkit-scrollbar-thumb {
+  background-color: #555;
+  border-radius: 10px;
+  border: 2px solid #1a1a1a;
+}
+
+body.dark-mode ::-webkit-scrollbar-thumb:hover {
+  background-color: #888;
+}
+
+body.dark-mode {
+  scrollbar-width: thin;
+  scrollbar-color: #555 #1a1a1a;
 }

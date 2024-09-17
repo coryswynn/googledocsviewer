@@ -301,26 +301,6 @@ iframe {
     /* Align the favicon vertically in the middle */
 }
 
-.add-frame-button {
-    margin-left: auto;
-    /* Ensures alignment to the far right */
-    border: transparent;
-    background: transparent;
-    /* Keeps the button background transparent */
-    cursor: pointer;
-    /* Indicates clickable area */
-    border-radius: 5px;
-    /* More pronounced rounded corners for a modern look */
-    display: flex;
-    /* Ensures proper alignment of icons/text inside the button */
-    align-items: center;
-    /* Centers items vertically */
-    justify-content: center;
-    /* Centers items horizontally */
-    transition: all 0.3s;
-
-}
-
 /* Enhanced hover effect for the plus button */
 .add-frame-button:hover {
     transform: scale(1.3);
@@ -354,7 +334,7 @@ iframe {
     /* Light background */
 }
 
-.tabs-container {
+.tabs-container, .combined-tabs-container {
     max-height: 400px;
     /* Limit height to enforce a manageable size */
     overflow-y: auto;
@@ -462,7 +442,8 @@ iframe {
 
 /* Styles for the 'Save' and 'Delete' buttons */
 .save-button,
-.delete-button {
+.delete-button, 
+.add-frame-button {
     margin-left: 10px;
     padding: 5px 10px;
     background: transparent;
@@ -576,6 +557,7 @@ body.dark-mode .save-button:hover,
 body.dark-mode .delete-button:hover {
     background-color: #333;
     border-color: #555;
+    background: #333;
 }
 
 /* Extension download prompt in dark mode */
@@ -618,7 +600,7 @@ body.dark-mode {
     background-color: rgba(0, 0, 0, 0.8); /* Darker background for the modal */
 }
 
-.dark-mode .modal-content .tabs-container{
+.dark-mode .modal-content .tabs-container, .dark-mode .combined-tabs-container{
     background-color: #1e1e1e;
     color: #e0e0e0;
     border: 1px solid #333;
