@@ -104,10 +104,10 @@ function populateModalWithContent(modal, activeContainerFrame) {
   combinedTabsContainer.className = 'combined-tabs-container';
   modalBody.appendChild(combinedTabsContainer);
 
-  // // Title for the tabs section
-  // const tabsTitle = document.createElement('h3');
-  // tabsTitle.textContent = 'Open & Saved Tabs';
-  // combinedTabsContainer.appendChild(tabsTitle);
+  // Title for the tabs section
+  const tabsTitle = document.createElement('h3');
+  tabsTitle.textContent = 'Open & Saved Tabs';
+  combinedTabsContainer.appendChild(tabsTitle);
 
   // Populate open tabs
   populateOpenTabsOrMessage(combinedTabsContainer, activeContainerFrame);
@@ -177,6 +177,10 @@ function appendTabsToModal(tabs, combinedTabsContainer, activeContainerFrame, ty
 
   // Retrieve saved tabs to prevent duplication
   const savedTabs = getSavedTabs();
+
+  if (savedTabs.length > 0) {
+    validTabsFound = true;
+  }
 
   tabs.forEach(function (tab) {
     // Check if the tab's URL matches Google Docs, Sheets, or Slides for open tabs

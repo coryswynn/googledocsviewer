@@ -332,7 +332,7 @@ function initializeSidebar(sidebar) {
     toggleSidebarBtn.addEventListener('click', () => {
       sidebar.classList.toggle('close');
       sidebarData.isSidebarOpen = !sidebar.classList.contains('close');
-      saveToStorage(SIDEBAR_DATA_KEY, sidebarData);
+      saveToLocalStorage(SIDEBAR_DATA_KEY, sidebarData);
       adjustLayoutForSidebar(); // Adjust layout after toggling
     });
   }
