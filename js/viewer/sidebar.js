@@ -468,8 +468,9 @@ function initializeSidebar(sidebar) {
             // Only add the tab to savedTabs if it’s not already there
             if (!savedTabs.some(tab => tab.url === url)) {
               const matchingTab = tabs.find(tab => tab.url === url);
-              const tabTitle = matchingTab ? matchingTab.title : getSavedTabTitle(url) || 'Title Unavailable';
-              savedTabs.push({ name: tabTitle, url });
+              let tabTitle = matchingTab ? matchingTab.title : getSavedTabTitle(url) || 'Title Unavailable';
+              tabTitle = tabTitle.replace(/ - Google (Sheets|Docs|Slides)/, '');
+              savedTabs.push({ title: tabTitle, url });
             }
           });
 
@@ -692,21 +693,61 @@ function initializeSidebar(sidebar) {
 
       const newFolderName = folderNameInput.value.trim();
       if (newFolderName) {
-        // Update the existing folder's name, icon, and bookmarks
-        folder.name = newFolderName;
-        folder.icon = selectedIcon;
+        // Get selected tabs
+        const selectedTabs = Array.from(document.querySelectorAll('.tab-checkbox:checked')).map(
+          (checkbox) => checkbox.value
+        );
 
-        // Save updated folder data to localStorage
-        saveToLocalStorage(SIDEBAR_DATA_KEY, sidebarData);
+        // Use chrome.tabs.query to get tab information for open tabs
+        chrome.tabs.query({}, function (tabs) {
+          const updatedBookmarks = selectedTabs.map((url) => {
+            const matchingTab = tabs.find(tab => tab.url === url);
 
-        // Re-render the sidebar
-        renderSidebar();
-        // Reapply event listeners for sidebar toggle after re-render
-        reapplySidebarToggleListeners();
+            // If no matching tab is found, skip creating a bookmark for it
+            if (!matchingTab) return null;
 
-        // Close the modal
-        modal.style.display = 'none';
-        hideAddBookmarkSection(); // Hide Add Bookmark when closing modal
+            // Use the tab's title if found, otherwise fallback to saved title or 'Title Unavailable'
+            let tabTitle = matchingTab ? matchingTab.title : getSavedTabTitle(url) || 'Title Unavailable';
+
+            // Clean up the title by removing " - Google Sheets", " - Google Docs", and " - Google Slides"
+            tabTitle = tabTitle.replace(/ - Google (Sheets|Docs|Slides)/, '');
+
+            return { name: tabTitle, url };
+          }).filter(Boolean); // Filter out null values (i.e., when no matching tab was found)
+
+          // Save the selected tabs to 'savedTabs'
+          let savedTabs = loadFromLocalStorage('savedTabs') || [];
+
+          selectedTabs.forEach(url => {
+            // Only add the tab to savedTabs if it’s not already there
+            if (!savedTabs.some(tab => tab.url === url)) {
+              const matchingTab = tabs.find(tab => tab.url === url);
+              let tabTitle = matchingTab ? matchingTab.title : getSavedTabTitle(url) || 'Title Unavailable';
+              tabTitle = tabTitle.replace(/ - Google (Sheets|Docs|Slides)/, '');
+              savedTabs.push({ title: tabTitle, url });
+            }
+          });
+
+          // Save updated savedTabs back to localStorage
+          saveToLocalStorage('savedTabs', savedTabs);
+
+          // Update the existing folder's name, icon, and bookmarks
+          folder.name = newFolderName;
+          folder.icon = selectedIcon;
+          folder.bookmarks = updatedBookmarks;
+
+          // Save updated folder data to localStorage
+          saveToLocalStorage(SIDEBAR_DATA_KEY, sidebarData);
+
+          // Re-render the sidebar
+          renderSidebar();
+          // Reapply event listeners for sidebar toggle after re-render
+          reapplySidebarToggleListeners();
+
+          // Close the modal
+          modal.style.display = 'none';
+          hideAddBookmarkSection(); // Hide Add Bookmark when closing modal
+        });
       }
     };
   }

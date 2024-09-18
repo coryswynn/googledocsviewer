@@ -104,10 +104,10 @@ function populateModalWithContent(modal, activeContainerFrame) {
   combinedTabsContainer.className = 'combined-tabs-container';
   modalBody.appendChild(combinedTabsContainer);
 
-  // Title for the tabs section
-  const tabsTitle = document.createElement('h3');
-  tabsTitle.textContent = 'Open & Saved Tabs';
-  combinedTabsContainer.appendChild(tabsTitle);
+  // // Title for the tabs section
+  // const tabsTitle = document.createElement('h3');
+  // tabsTitle.textContent = 'Open & Saved Tabs';
+  // combinedTabsContainer.appendChild(tabsTitle);
 
   // Populate open tabs
   populateOpenTabsOrMessage(combinedTabsContainer, activeContainerFrame);
