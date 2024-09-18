@@ -114,6 +114,10 @@ function initializeSidebar(sidebar) {
   toggleFramesSpan.className = 'link_name';
   toggleFramesSpan.textContent = 'Toggle Frames';
 
+  // Add title attribute to show tooltip
+  toggleFramesOrientationLink.title = 'Toggle vertical and horizontal frames'; // Tooltip for Toggle Frames
+
+
   toggleFramesOrientationLink.appendChild(toggleFramesIcon);
   toggleFramesOrientationLink.appendChild(toggleFramesSpan);
   toggleFramesOrientationLi.appendChild(toggleFramesOrientationLink);
@@ -149,6 +153,10 @@ function initializeSidebar(sidebar) {
   shareButtonSpan.className = 'link_name';
   shareButtonSpan.textContent = 'Share Workspace';
 
+  // Add title attribute to show tooltip
+  shareButtonLink.title = 'Share current workspace'; // Tooltip for Share Workspace
+
+
   shareButtonLink.appendChild(shareButtonIcon);
   shareButtonLink.appendChild(shareButtonSpan);
   shareButtonLi.appendChild(shareButtonLink);
@@ -179,6 +187,9 @@ function initializeSidebar(sidebar) {
   const addFolderSpan = document.createElement('span');
   addFolderSpan.className = 'link_name';
   addFolderSpan.textContent = 'Add Folder';
+
+  // Add title attribute to show tooltip
+  addFolderLink.title = 'Add new folder'; // Tooltip for Add Folder
 
   addFolderLink.appendChild(addFolderIcon);
   addFolderLink.appendChild(addFolderSpan);
@@ -998,15 +1009,15 @@ function renderTabsInContainer(tabs, container, existingBookmarks, updateBookmar
     tabItem.appendChild(favicon);
     tabItem.appendChild(titleSpan);
 
-        // Add click event on tab-item to toggle checkbox
-        tabItem.addEventListener('click', function (event) {
-          // If the event target is not the checkbox itself, toggle the checkbox
-          if (event.target !== checkbox) {
-            checkbox.checked = !checkbox.checked; // Toggle checkbox state
-            // Trigger change event manually since it is programmatically changed
-            checkbox.dispatchEvent(new Event('change'));
-          }
-        });
+    // Add click event on tab-item to toggle checkbox
+    tabItem.addEventListener('click', function (event) {
+      // If the event target is not the checkbox itself, toggle the checkbox
+      if (event.target !== checkbox) {
+        checkbox.checked = !checkbox.checked; // Toggle checkbox state
+        // Trigger change event manually since it is programmatically changed
+        checkbox.dispatchEvent(new Event('change'));
+      }
+    });
 
     return tabItem;
   });

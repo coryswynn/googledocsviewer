@@ -373,7 +373,7 @@ input[type="checkbox"]:checked + .slider:before {
 /* Styling for the completely new Donate button */
 .donate-new-button {
     background-color: #e6e6e6; /* Black background */
-    color: #a0a0a0; /* White text */
+    color: #7c7c7c; /* White text */
     padding: 5px 15px; /* Adjust padding for spacing */
     border-radius: 5px; /* Rounded corners */
     text-align: center; /* Center the text */
