@@ -792,6 +792,7 @@ function initializeSidebar(sidebar) {
 
   const profileImg = document.createElement('img');
   profileImg.src = 'https://i.imgur.com/zF3mJaB.png';
+  profileImg.className = 'profile_img';
   profileImg.alt = 'profileImg';
 
   profileContent.appendChild(profileImg);
@@ -805,6 +806,17 @@ function initializeSidebar(sidebar) {
 
   const job = document.createElement('div');
   job.className = 'job';
+  job.innerHTML = '<i class="bx bx-donate-heart"></i> Buy Me a Coffee';
+  
+  // Logo click event listener
+  profileImg.addEventListener('click', () => {
+    window.open('https://buymeacoffee.com/corywynn', '_blank');
+  });
+
+  // Profile name and "Buy Me a Coffee" click event listener
+  nameJobDiv.addEventListener('click', () => {
+    window.open('https://buymeacoffee.com/corywynn', '_blank');
+  });
 
   nameJobDiv.appendChild(profileName);
   nameJobDiv.appendChild(job);

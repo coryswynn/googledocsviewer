@@ -166,11 +166,13 @@ button:hover {
 .sidebar-toggle {
     text-align: center;
     margin-top: 10px;
+    margin-right: 10px;
+    margin-left: 4px;
 }
 
 .sidebar-toggle label {
     font-size: 12px;
-    margin-right: 8px;
+    margin-right: 3px;
 }
 
 .sidebar-toggle input[type="checkbox"] {
@@ -189,7 +191,7 @@ button:hover {
     align-items: center;
     cursor: pointer;
     font-family: 'Poppins', sans-serif;
-    font-size: 14px;
+    font-size: 12px;
     color: #333;
 }
 
@@ -233,16 +235,16 @@ button:hover {
     display: flex;
     justify-content: space-between; /* Evenly space them out */
     align-items: center;
+    margin-left: 6px;
+    margin-right: 4px;
     margin-top: 10px;
-    margin-left: 10px;
     width: 100%; /* Full width to ensure good spacing */
 }
 
 .sidebar-toggle, .darkmode-toggle {
-    display: flex;
     align-items: center;
     flex: 1;
-    margin-top:10px;
+    margin-top:5px;
 }
 
 /* Same styles for the individual toggles as before */
@@ -302,6 +304,11 @@ body.dark-mode .launch-splitview-button {
     color: #ffffff;
 }
 
+body.dark-mode .launch-splitview-button:hover {
+    background-color: #737373;
+    color: #ffffff;
+}
+
 body.dark-mode .tab-item {
     background-color: #333;
     color: #e0e0e0;
@@ -353,40 +360,59 @@ input[type="checkbox"]:checked + .slider:before {
     transform: translateX(20px);
 }
 
+/* Positioning and styling for the Donate button */
 
-/*
-body.dark-mode {
-    background-color: #121212;
-    color: #e0e0e0;
+/* Adjust the bottom container for toggles and donate button */
+.bottom-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: calc(100% - 10px);
 }
 
-body.dark-mode .header,
-body.dark-mode .docForm,
-body.dark-mode .sidebar-toggle {
-    background-color: #1e1e1e;
-    border-color: #333;
+/* Styling for the completely new Donate button */
+.donate-new-button {
+    background-color: #e6e6e6; /* Black background */
+    color: #a0a0a0; /* White text */
+    padding: 5px 15px; /* Adjust padding for spacing */
+    border-radius: 5px; /* Rounded corners */
+    text-align: center; /* Center the text */
+    font-weight: 600;
+    font-size: 12px;
+    text-decoration: none; /* Remove underline */
+    display: inline-block; /* Make it behave like a button */
+    font-family: 'Poppins', sans-serif;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease; /* Smooth transition */
 }
 
-body.dark-mode input,
-body.dark-mode button {
-    background-color: #333;
-    color: #fff;
+.donate-new-button:hover {
+    background-color: #f0cb46; /* Slightly lighter black on hover */
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2); /* Add shadow effect */
+    color: rgb(0, 0, 0);
 }
 
-body.dark-mode .tab-item {
-    background-color: #333;
-    color: #e0e0e0;
+/* Dark Mode for the new Donate button */
+body.dark-mode .donate-new-button {
+    background-color: #333333; /* Dark background */
+    color: #e0e0e0; /* Light gray text */
 }
 
-body.dark-mode .launch-splitview-button {
-    background-color: #444;
-    color: #e0e0e0;
+body.dark-mode .donate-new-button:hover {
+    background-color: #4CAF50; /* Slightly lighter green on hover */
+    color: #ffffff; /* White text on hover */
 }
 
-body.dark-mode .slider {
-    background-color: #444;
+/* Horizontal line below Launch SplitView button */
+.launch-splitview-hr {
+    border: none;
+    height: 1px;
+    background: #ccc;
+    margin: 10px 0;
+    width: 100%;
+    margin-top: 25px;
 }
 
-body.dark-mode .slider:before {
-    background-color: #bbb;
+/* Dark Mode for the horizontal line */
+body.dark-mode .launch-splitview-hr {
+    background: #555; /* Darker line in dark mode */
 }

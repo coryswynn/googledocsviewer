@@ -257,7 +257,12 @@
   font-size: 18px;
   font-weight: 500;
   white-space: nowrap;
-  margin: 0 40px 0 0
+  margin: 0 40px 0 0;
+  cursor: pointer;
+}
+
+.sidebar .profile_img {
+  cursor: pointer;
 }
 
 .sidebar.close .profile-details i,
@@ -268,6 +273,7 @@
 
 .sidebar .profile-details .job {
   font-size: 12px;
+  color: rgb(241, 228, 43);
 }
 
 .home-section {
