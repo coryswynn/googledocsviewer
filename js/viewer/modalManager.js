@@ -14,6 +14,8 @@ import { getActiveContainerFrame, toggleIframeDarkMode } from './init.js';
 
 const isChromeExtension = typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.id;
 
+let currentTabUrl = '';  // Global variable to store the current tab URL
+
 // Utilize localStorage to manage saved tabs
 const savedTabsKey = 'savedTabs'; // Key used in localStorage
 
@@ -46,7 +48,7 @@ export function displayModal(modal, activeContainerFrame) {
   const isSidebarHidden = sidebar.classList.contains('hidden');
 
   // Determine the sidebar's width based on its open, closed, or hidden state
-  let sidebarWidth = 0; 
+  let sidebarWidth = 0;
 
   if (isSidebarHidden) {
     sidebarWidth = 0; // Default width for hidden sidebar
@@ -206,7 +208,7 @@ function appendTabsToModal(tabs, combinedTabsContainer, activeContainerFrame, ty
     // Title
     const cleanTitle = (tab.title || 'Untitled').toString().trim().replace(/( - Google (Sheets|Docs|Slides))/, ''); // Ensure title is valid
     const titleSpan = document.createElement('span');
-    titleSpan.textContent = cleanTitle; 
+    titleSpan.textContent = cleanTitle;
     titleSpan.className = 'tab-title';
     tabItem.appendChild(titleSpan);
 
@@ -222,6 +224,7 @@ function appendTabsToModal(tabs, combinedTabsContainer, activeContainerFrame, ty
     tabItem.addEventListener('click', () => {
       const iframe = activeContainerFrame.querySelector('iframe');
       if (iframe) iframe.src = tab.url; // Update the iframe source to the selected URL
+      currentTabUrl = tab.url;
       updateBrowserURL();
 
       const titleElement = activeContainerFrame.querySelector('.url-text');
@@ -255,7 +258,7 @@ export function adjustModalPosition(modal, activeContainerFrame) {
   const isSidebarHidden = sidebar.classList.contains('hidden');
 
   // Determine the sidebar's width based on its open, closed, or hidden state
-  let sidebarWidth = 0; 
+  let sidebarWidth = 0;
 
   if (isSidebarHidden) {
     sidebarWidth = 0; // Default width for hidden sidebar
@@ -302,11 +305,42 @@ export function updateBrowserURL() {
     newURL = '?urls=' + encodeAndJoinFrameURLs();
   }
 
+  console.log('UPDATING THE BROWSER URL');
   const state = { page: newURL };
   const title = ''; // Optional: You can set a title for the new state
   const url = newURL; // The new URL you want to show in the browser
 
   history.pushState(state, title, url);
+  const activeContainerFrame = getActiveContainerFrame(); // Assuming this gets the active frame
+  if (!activeContainerFrame) return;
+
+  // Update the duplicate button functionality with the new URL
+  const duplicateButton = activeContainerFrame.querySelector('.duplicate-frame-button');
+  if (duplicateButton) {
+    duplicateButton.onclick = function() {
+      duplicateButton.title = 'Duplicate URL';
+      addNewFrame(currentTabUrl);
+    };
+  }
+
+  // Update the copy button functionality with the new URL
+  const copyButton = activeContainerFrame.querySelector('.copy-url-button');
+  if (copyButton) {
+    copyButton.onclick = function() {
+      copyButton.title = 'Copy URL';
+      navigator.clipboard.writeText(currentTabUrl).then(() => {
+        alert('URL copied to clipboard!');
+      });
+    };
+  }
+
+  // Update the pop-out button functionality with the new URL
+  const popOutButton = activeContainerFrame.querySelector('.pop-out-button');
+  if (popOutButton) {
+    popOutButton.onclick = function() {
+      window.open(currentTabUrl, '_blank');
+    };
+  }
 }
 
 export function encodeAndJoinFrameURLs() {
@@ -351,9 +385,9 @@ function createSaveButton(url, title) {
 
   const saveButton = document.createElement('button');
   saveButton.className = 'save-button';
-  
+
   // If the tab is saved, show the check-circle icon, otherwise show the save icon
-  saveButton.innerHTML = isSaved ? '<i class="bx bxs-check-circle"></i>' : '<i class="bx bx-save"></i>'; 
+  saveButton.innerHTML = isSaved ? '<i class="bx bxs-check-circle"></i>' : '<i class="bx bx-save"></i>';
 
   saveButton.onclick = (event) => {
     event.stopPropagation(); // Prevent the click from bubbling up to parent elements
@@ -430,11 +464,12 @@ function appendTabs(tabs, container, type) {
 
           const iframe = activeContainerFrame.querySelector('iframe');
           if (iframe) iframe.src = tab.url;
+          currentTabUrl = tab.url;
           updateBrowserURL();
           
           const titleElement = activeContainerFrame.querySelector('.url-text');
           if (titleElement) titleElement.textContent = tab.title.replace(/( - Google (Sheets|Docs|Slides))/g, '');
-          
+
           closeModal(document.querySelector('.modal'));
         };
       }
