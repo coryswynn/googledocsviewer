@@ -807,7 +807,7 @@ function initializeSidebar(sidebar) {
   const job = document.createElement('div');
   job.className = 'job';
   job.innerHTML = '<i class="bx bx-donate-heart"></i> Buy Me a Coffee';
-  
+
   // Logo click event listener
   profileImg.addEventListener('click', () => {
     window.open('https://buymeacoffee.com/corywynn', '_blank');
@@ -997,6 +997,16 @@ function renderTabsInContainer(tabs, container, existingBookmarks, updateBookmar
     tabItem.appendChild(checkbox);
     tabItem.appendChild(favicon);
     tabItem.appendChild(titleSpan);
+
+        // Add click event on tab-item to toggle checkbox
+        tabItem.addEventListener('click', function (event) {
+          // If the event target is not the checkbox itself, toggle the checkbox
+          if (event.target !== checkbox) {
+            checkbox.checked = !checkbox.checked; // Toggle checkbox state
+            // Trigger change event manually since it is programmatically changed
+            checkbox.dispatchEvent(new Event('change'));
+          }
+        });
 
     return tabItem;
   });
