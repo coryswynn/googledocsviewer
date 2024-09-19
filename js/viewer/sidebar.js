@@ -700,17 +700,19 @@ function initializeSidebar(sidebar) {
 
         // Use chrome.tabs.query to get tab information for open tabs
         chrome.tabs.query({}, function (tabs) {
-          const updatedBookmarks = selectedTabs.map((url) => {
+          const newBookmarks = selectedTabs.map((url) => {
             const matchingTab = tabs.find(tab => tab.url === url);
 
             // If no matching tab is found, skip creating a bookmark for it
             if (!matchingTab) return null;
 
             // Use the tab's title if found, otherwise fallback to saved title or 'Title Unavailable'
-            let tabTitle = matchingTab ? matchingTab.title : getSavedTabTitle(url) || 'Title Unavailable';
+            let tabTitle = matchingTab ? getSavedTabTitle(url) : matchingTab.title  || 'Title Unavailable';
 
             // Clean up the title by removing " - Google Sheets", " - Google Docs", and " - Google Slides"
-            tabTitle = tabTitle.replace(/ - Google (Sheets|Docs|Slides)/, '');
+            if (tabTitle) {
+              tabTitle = tabTitle.replace(/ - Google (Sheets|Docs|Slides)/, '');
+            }
 
             return { name: tabTitle, url };
           }).filter(Boolean); // Filter out null values (i.e., when no matching tab was found)
@@ -728,13 +730,15 @@ function initializeSidebar(sidebar) {
             }
           });
 
+          let newBookmarkList = [...new Map([...newBookmarks, ...updatedBookmarks].map(b => [b.url, b])).values()];
+          
           // Save updated savedTabs back to localStorage
           saveToLocalStorage('savedTabs', savedTabs);
 
           // Update the existing folder's name, icon, and bookmarks
           folder.name = newFolderName;
           folder.icon = selectedIcon;
-          folder.bookmarks = updatedBookmarks;
+          folder.bookmarks = newBookmarkList;
 
           // Save updated folder data to localStorage
           saveToLocalStorage(SIDEBAR_DATA_KEY, sidebarData);
