@@ -385,14 +385,14 @@ body.sidebar-hidden .home-section {
   /* Match the arrow icon size */
   cursor: pointer;
   transition: color 0.8s ease;
-  width: 12px; /* Adjust to create a smaller clickable area */
+  width: 5px; /* Adjust to create a smaller clickable area */
 
 }
 
 /* Adjust the arrow icon */
 .arrow:hover {
   color: white !important;
-  width: 12px;
+  width: 5px;
 }
 
 /* Adjust the gear icon */
@@ -402,7 +402,7 @@ body.sidebar-hidden .home-section {
   font-size: 14px !important;
   cursor: pointer;
   padding-right: 20%;
-  color: #4b3f3f !important;
+  color: #898989 !important;
   transition: all 0.8s ease;
 }
 
@@ -416,8 +416,9 @@ body.sidebar-hidden .home-section {
 
 .sidebar .nav-links li .arrow {
   position: absolute;
-  right: 0;
+  right: 20px;
   width: 5px; /* Adjust to create a smaller clickable area */
+  min-width: 30px;
 }
 
 .sidebar .nav-links li .edit-gear-icon {
@@ -426,11 +427,11 @@ body.sidebar-hidden .home-section {
   padding-left: 5px;
   /* Space between the gear icon and the arrow */
   font-size: 16px;
-  color: #4b3f3f !important;
+  color: #808080 !important;
   cursor: pointer;
-  width: 12px; /* Adjust to create a smaller clickable area */
-  margin-right: 5px; /* Space between the gear icon and the arrow */
-
+  width: 5px; /* Adjust to create a smaller clickable area */
+  margin-right: 3px; /* Space between the gear icon and the arrow */
+  min-width: 30px;
 
 }
 .sidebar .nav-links li .edit-gear-icon:hover {
