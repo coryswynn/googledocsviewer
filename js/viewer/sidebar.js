@@ -862,7 +862,7 @@ function initializeSidebar(sidebar) {
 
   const job = document.createElement('div');
   job.className = 'job';
-  job.innerHTML = '<i class="bx bx-donate-heart"></i> Buy Me a Coffee';
+  // job.innerHTML = '<i class="bx bx-donate-heart"></i> Buy Me a Coffee';
 
   // Logo click event listener
   profileImg.addEventListener('click', () => {
@@ -954,7 +954,7 @@ function populateTabsForSelection(tabsContainer, existingBookmarks = [], updateB
   if (typeof chrome !== 'undefined' && chrome.tabs) {
     chrome.tabs.query({}, function (tabs) {
       // Filter Google Docs/Sheets/Slides tabs
-      const openTabs = tabs.filter((tab) => /https:\/\/docs\.google\.com/.test(tab.url));
+      const openTabs = tabs.filter((tab) => /https:\/\/docs\.google\.com\/(document|spreadsheets|presentation)/.test(tab.url));
       allTabs = allTabs.concat(openTabs);
 
       // Fetch saved tabs from localStorage
@@ -962,7 +962,8 @@ function populateTabsForSelection(tabsContainer, existingBookmarks = [], updateB
       allTabs = allTabs.concat(savedTabs);
 
       // Deduplicate tabs by URL
-      const uniqueTabs = deduplicateTabsByURL(allTabs);
+      let uniqueTabs = deduplicateTabsByURL(allTabs);
+      uniqueTabs = uniqueTabs.sort((a, b) => a.title.localeCompare(b.title));
 
       // Render the deduplicated tabs in the container
       renderTabsInContainer(uniqueTabs, tabsContainer, existingBookmarks, updateBookmarkList);
@@ -972,7 +973,8 @@ function populateTabsForSelection(tabsContainer, existingBookmarks = [], updateB
     const savedTabs = getSavedTabs();
 
     // Deduplicate saved tabs
-    const uniqueSavedTabs = deduplicateTabsByURL(savedTabs);
+    let uniqueSavedTabs = deduplicateTabsByURL(savedTabs);
+    uniqueSavedTabs = uniqueSavedTabs.sort((a, b) => a.title.localeCompare(b.title));
 
     // Render the saved tabs in the container
     renderTabsInContainer(uniqueSavedTabs, tabsContainer, existingBookmarks, updateBookmarkList);
