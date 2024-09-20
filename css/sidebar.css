@@ -463,11 +463,15 @@ body.sidebar-hidden .home-section {
 
 /* ADD NEW FOLDER MODAL */
 
-/* Icon Selection Board */
+/* Constrain the icon board inside the modal */
 .icon-board {
   display: flex;
   justify-content: space-between;
+  flex-wrap: nowrap;
   margin-top: 10px;
+  max-width: 100%; /* Ensure icons stay within bounds */
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .icon-option {
