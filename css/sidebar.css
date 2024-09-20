@@ -307,6 +307,10 @@
   cursor: pointer;
 }
 
+.sidebar.close .bx-menu {
+  cursor: pointer;
+}
+
 .home-section .home-content .text {
   font-size: 26px;
   font-weight: 600;

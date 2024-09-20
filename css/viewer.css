@@ -78,6 +78,7 @@ iframe {
     /* Keep the URL in one line */
     font-size: 12px;
     /* Standard font size for readability */
+    cursor: pointer;
 
 }
 

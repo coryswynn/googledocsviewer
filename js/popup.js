@@ -103,8 +103,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Load sidebar state
     chrome.storage.local.get('sidebarEnabled', function(result) {
-        const sidebarEnabled = result.sidebarEnabled;
-        sidebarToggle.checked = !!sidebarEnabled; // Ensure a boolean value
+        let sidebarEnabled = result.sidebarEnabled;
+
+        // If sidebarEnabled is not set, initialize it to true by default
+        if (sidebarEnabled === undefined) {
+            sidebarEnabled = true; // or false, depending on your default preference
+            chrome.storage.local.set({ 'sidebarEnabled': sidebarEnabled });
+        }
+
+        sidebarToggle.checked = !!sidebarEnabled; // Ensure a boolean value and sync toggle
     });
 
     // Load and apply dark mode state
