@@ -15,7 +15,7 @@
   height: 100%;
   width: 300px;
   background: #11101d;
-  z-index: 100;
+  z-index: 1;
   transition: all 0.5s ease;
   /* Prevent content from overflowing the sidebar */
 }
@@ -51,7 +51,7 @@
 .sidebar.close .logo-details .logo_name {
   transition-delay: 0s;
   opacity: 0;
-  pointer-events: none;
+  /* pointer-events: none; */
 }
 
 .sidebar .nav-links {
@@ -173,7 +173,7 @@
   border-radius: 0 6px 6px 0;
   opacity: 0;
   display: block;
-  pointer-events: none;
+  pointer-events: auto;
   transition: 0s;
   z-index: 200;
 }
@@ -185,7 +185,7 @@
   opacity: 1;
   pointer-events: auto;
   transition: all 0.4s ease;
-  z-index: 200;
+  z-index: 1;
 }
 
 .sidebar .nav-links li .sub-menu .link_name {
@@ -203,7 +203,6 @@
   pointer-events: auto;
   padding: 3px 20px 6px 16px;
   opacity: 0;
-  pointer-events: none;
   transition-delay: 0s;
 }
 
@@ -332,7 +331,7 @@
   .home-section {
     left: 78px;
     width: calc(100% - 78px);
-    z-index: 100;
+    z-index: 1;
   }
 }
 
@@ -351,17 +350,6 @@ body.sidebar-hidden .home-section {
 
 /* Ensure proper transition effects */
 .sidebar {
-  transition: all 0.5s ease;
-}
-
-/* Ensure this rule comes after the existing .home-section styles */
-.home-section {
-  position: relative;
-  background: #E4E9F7;
-  height: 100vh;
-  left: 300px;
-  /* Width of the sidebar when open */
-  width: calc(100% - 300px);
   transition: all 0.5s ease;
 }
 
@@ -423,6 +411,7 @@ body.sidebar-hidden .home-section {
   right: 20px;
   width: 5px; /* Adjust to create a smaller clickable area */
   min-width: 30px;
+  pointer-events: auto;
 }
 
 .sidebar .nav-links li .edit-gear-icon {
@@ -539,6 +528,9 @@ body.sidebar-hidden .home-section {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  pointer-events: auto;
+  overflow: auto;
+  max-width: 100%;
 }
 
 #editFolderModal .bx-trash {
@@ -556,6 +548,32 @@ body.sidebar-hidden .home-section {
   text-decoration: none;
   cursor: pointer;
 }
+
+#editFolderModal .drag-handle-bar {
+  margin-left: 0px;
+  display: flex;
+}
+
+#editFolderModal .bx-move-vertical {
+  font-size: 19px;
+  cursor: pointer;
+  top: 0px;
+  color: #aaa;
+  margin-left: -10px;
+  padding-right: 5px;
+}
+
+#editFolderModal .bx-move-vertical:hover,
+#editFolderModal .bx-move-vertical:focus {
+  color: rgb(60, 80, 231);
+  text-decoration: none;
+  cursor: grab;
+}
+
+#editFolderModal .bx-move-vertical:active {
+  cursor: grabbing;
+}
+
 
 .tabs-container {
   max-height: 200px;
@@ -644,17 +662,21 @@ body.sidebar-hidden .home-section {
 
 /* Bookmark List */
 .bookmark-list {
+  position: relative;
   padding: 0;
   list-style-type: none;
   margin-bottom: 20px;
+  z-index: 999;
 }
 
 .bookmark-list li {
-  display: flex;
   justify-content: space-between;
+  position: relative;
   align-items: center;
   padding: 10px;
   border-bottom: 1px solid #ddd;
+  width: 100%; /* Make sure the list item takes up the full width */
+  z-index: 1002;
 }
 
 .bookmark-list li img.bookmark-favicon {
@@ -747,3 +769,79 @@ body.dark-mode {
   scrollbar-width: thin;
   scrollbar-color: #555 #1a1a1a;
 }
+
+/* General style for dragged elements */
+.dragging {
+  transform: scale(0.98);
+  transition: transform 0.2s ease;
+}
+
+/* Style for folder items when being dragged over */
+.folder-item.drag-over,
+.bookmark-item.drag-over,
+li.drag-over {
+  background-color: rgba(0, 120, 215, 0.2); /* Light blue background during drag-over */
+  border: 2px dashed #4A90E2; /* A modern blue highlight */
+  border-radius: 8px;
+  transition: border 0.2s ease, background-color 0.2s ease;
+}
+
+/* Drop target style for li items in edit modal */
+li.drag-over {
+  border: 2px dashed #4A90E2;
+}
+
+/* Sleek style for bookmarks during drag over */
+.bookmark-item.drag-over {
+  border: 2px dashed #4A90E2;
+  border-radius: 6px;
+}
+
+/* Dragging styles for bookmarks */
+.bookmark-item.dragging {
+  transform: scale(0.98);
+  transition: transform 0.2s ease;
+}
+
+/* Transitions for smoothness */
+li,
+.folder-item,
+.bookmark-item {
+  transition: background-color 0.2s ease, border 0.2s ease;
+}
+
+/* Add hover state to indicate draggable items */
+.folder-item:hover,
+.bookmark-item:hover{
+  cursor: grab;
+}
+
+.bookmark-item .bookmark-actions {
+    pointer-events: all; /* Re-enable pointer events for interactive elements */
+}
+
+.bookmark-info {
+  display: flex;
+  flex-grow: 1;
+  align-items: center; /* Vertically align the content */
+  justify-content: flex-start; /* Align items to the left */
+  width: 100%; /* Ensure it expands to the full width */
+}
+
+.bookmark-info img.bookmark-favicon {
+  margin-right: 10px; /* Add some space between the favicon and the bookmark name */
+  pointer-events: none;
+}
+
+.bookmark-info span {
+  flex-grow: 1; /* Allow the text to grow and fill the remaining space */
+  white-space: nowrap; /* Prevent text from wrapping */
+  text-overflow: ellipsis; /* Add ellipsis for overflow text */
+}
+
+li {
+  flex-grow: 1; /* Allow list items to expand if needed */
+  width: 100%; /* Ensure the list item takes the full width */
+  z-index:999;
+}
+
