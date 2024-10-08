@@ -316,6 +316,18 @@ function initializeSidebar(sidebar) {
 
         let targetIndex = Array.from(navLinks.querySelectorAll('.folder-item')).indexOf(target);  // Get the target folder index
 
+
+        // Don't allow dropping on the same folder
+        if (draggedIndex === targetIndex) {
+          const target = e.target.closest('.folder-item');
+          e.target.classList.remove('dragging');
+          e.target.classList.remove('drag-over');
+          draggedBookmark = null;
+          draggedFolder = null;
+          draggedFromFolderIndex = null;
+          return;
+        }
+
         // Bookmark moving logic (move bookmark between folders)
         if (draggedBookmark !== null && folderIndex !== draggedFromFolderIndex) {
           const targetFolderIndex = folderIndex; // The folder we are dropping into
@@ -337,8 +349,6 @@ function initializeSidebar(sidebar) {
           targetIndex = null;
         }
 
-        // Don't allow dropping on the same folder
-        if (draggedIndex === targetIndex) return;
 
         // Folder reordering logic (move folder)
         if (draggedIndex !== targetIndex) {
@@ -387,6 +397,7 @@ function initializeSidebar(sidebar) {
 
       folderLi.addEventListener('dragend', (e) => {
         e.target.classList.remove('dragging');
+        e.target.classList.remove('drag-over');  // Remove drag-over class if drag ends
         draggedBookmark = null;
         draggedFolder = null;
         draggedFromFolderIndex = null;
