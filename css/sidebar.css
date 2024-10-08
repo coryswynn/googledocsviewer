@@ -46,6 +46,7 @@
   font-weight: 600;
   transition: 0.3s ease;
   transition-delay: 0.1s;
+  overflow: hidden;
 }
 
 .sidebar.close .logo-details .logo_name {

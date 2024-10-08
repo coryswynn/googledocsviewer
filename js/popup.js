@@ -54,9 +54,23 @@ function addTabsToDOM(tabs, tabList) {
 
             // Favicon
             const favicon = document.createElement('img');
-            favicon.src = 'https://s2.googleusercontent.com/s2/favicons?domain_url=' + tab.url;
             favicon.className = 'favicon';
             favicon.alt = 'Favicon';
+
+            // Check the URL to determine the appropriate favicon
+            if (/https:\/\/docs\.google\.com\/document\//.test(tab.url)) {
+                // Google Docs favicon
+                favicon.src = 'https://ssl.gstatic.com/docs/doclist/images/icon_11_document_favicon.ico';
+            } else if (/https:\/\/docs\.google\.com\/spreadsheets\//.test(tab.url)) {
+                // Google Sheets favicon
+                favicon.src = 'https://ssl.gstatic.com/docs/doclist/images/icon_11_spreadsheet_favicon.ico';
+            } else if (/https:\/\/docs\.google\.com\/presentation\//.test(tab.url)) {
+                // Google Slides favicon
+                favicon.src = 'https://ssl.gstatic.com/docs/doclist/images/icon_11_presentation_favicon.ico';
+            } else {
+                // Default favicon if the URL doesn't match Docs, Sheets, or Slides
+                favicon.src = 'https://ssl.gstatic.com/docs/doclist/images/icon_11_generic_favicon.ico'; // Generic Google Docs favicon
+            }
 
             // Tab title
             let labelText = tab.title.replace(/( - Google (Sheets|Docs|Slides))/, ''); // Clean up title
@@ -102,7 +116,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const logoImage = document.getElementById('logo-img');
 
     // Load sidebar state
-    chrome.storage.local.get('sidebarEnabled', function(result) {
+    chrome.storage.local.get('sidebarEnabled', function (result) {
         let sidebarEnabled = result.sidebarEnabled;
 
         // If sidebarEnabled is not set, initialize it to true by default
@@ -115,7 +129,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // Load and apply dark mode state
-    chrome.storage.local.get('darkModeEnabled', function(result) {
+    chrome.storage.local.get('darkModeEnabled', function (result) {
         let darkModeEnabled = result.darkModeEnabled;
 
         // If darkModeEnabled is not set, initialize it to false
@@ -140,7 +154,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Query open tabs and combine with saved tabs
     chrome.tabs.query({}, function (openTabs) {
-        chrome.storage.local.get('savedTabs', function(result) {
+        chrome.storage.local.get('savedTabs', function (result) {
             const savedTabs = result.savedTabs || [];
 
             // Convert savedTabs to match open tabs structure (if needed)

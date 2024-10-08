@@ -24,18 +24,31 @@ document.addEventListener("DOMContentLoaded", function () {
   sidebar.className = 'sidebar';
   sidebar.id = 'sidebar';
 
+  // Logo name
+  const logoName = document.createElement('span');
+  logoName.className = 'logo_name';
+  logoName.textContent = 'Workspace';
+
   // Append the sidebar to the DOM immediately
   document.body.insertBefore(sidebar, document.body.firstChild);
 
+  // Load sidebarEnabled state from chrome.storage.local
   // Check if sidebar is enabled
   chrome.storage.local.get(['sidebarEnabled'], function (result) {
     const sidebarEnabled = result.sidebarEnabled !== false; // Default to true if not set
     if (sidebarEnabled) {
       // Proceed to create and display the sidebar
       initializeSidebar(sidebar);
+      adjustLayoutForSidebar();
+
+      // Show the sidebar
+      sidebar.classList.remove('hidden');
+      logoName.classList.remove('hidden');
+      document.body.classList.remove('sidebar-hidden'); // Adjust layout
     } else {
       // Hide the sidebar
       sidebar.classList.add('hidden');
+      logoName.classList.add('hidden');
       document.body.classList.add('sidebar-hidden'); // Adjust layout
     }
   });
@@ -46,6 +59,7 @@ document.addEventListener("DOMContentLoaded", function () {
       const sidebarEnabled = changes.sidebarEnabled.newValue;
       if (sidebarEnabled) {
         sidebar.classList.remove('hidden');
+        logoName.classList.remove('hidden');
         document.body.classList.remove('sidebar-hidden'); // Adjust layout
 
         // If the sidebar wasn't initialized before, initialize it now
@@ -54,6 +68,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
       } else {
         sidebar.classList.add('hidden');
+        logoName.classList.add('hidden');
         document.body.classList.add('sidebar-hidden'); // Adjust layout
       }
     }
@@ -62,6 +77,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
 // Function to adjust layout based on sidebar visibility
 function adjustLayoutForSidebar() {
+  // Logo name
+  const logoName = document.createElement('span');
+  logoName.className = 'logo_name';
+  logoName.textContent = 'Workspace';
+
   if (sidebar.classList.contains('hidden')) {
     document.body.classList.add('sidebar-hidden');
   } else {
@@ -88,6 +108,7 @@ function initializeSidebar(sidebar) {
   // Toggle sidebar button
   const toggleSidebarBtn = document.createElement('i');
   toggleSidebarBtn.className = 'bx bx-menu';
+  toggleSidebarBtn.id = 'sidebarToggleButton'; // Add an ID for easy access later
   toggleSidebarBtn.addEventListener('click', () => {
     sidebar.classList.toggle('close');
     sidebarData.isSidebarOpen = !sidebar.classList.contains('close');
@@ -215,7 +236,11 @@ function initializeSidebar(sidebar) {
 
   // Function to render the folders and bookmarks
   function renderSidebar() {
-    // Clear existing folders
+
+    // Find the navLinks element to clear only the folder items, not the entire sidebar
+    const navLinks = document.querySelector('.nav-links');
+
+    // Clear existing folders (but keep the logo and toggle button)
     const existingFolders = navLinks.querySelectorAll('.folder-item');
     existingFolders.forEach(folder => folder.remove());
 
@@ -258,13 +283,16 @@ function initializeSidebar(sidebar) {
       folderDiv.appendChild(folderLink);
 
       // Add event listener for dragging folder
-      folderDiv.addEventListener('dragstart', (e) => {
+      // Ensure dragstart event captures the correct folderIndex
+      folderLi.addEventListener('dragstart', ((index) => (e) => {
         e.target.classList.add('dragging');
-        draggedFolder = folderIndex;  // You can use data attributes to dynamically track
-        e.dataTransfer.setData('text/plain', folderIndex);  // Store the index being dragged
-      });
+        console.log('Drag start:', index);  // Log folder index at drag start
+        draggedFolder = index;  // Correctly capture folderIndex
+        e.dataTransfer.setData('text/plain', index.toString());  // Store the index being dragged
+      })(folderIndex));  // Use closure to capture folderIndex correctly
 
-      folderDiv.addEventListener('dragover', (e) => {
+
+      folderLi.addEventListener('dragover', (e) => {
         e.preventDefault();  // Required to allow dropping
         const target = e.target.closest('.folder-item');
         if (target) {
@@ -272,7 +300,7 @@ function initializeSidebar(sidebar) {
         }
       });
 
-      folderDiv.addEventListener('drop', (e) => {
+      folderLi.addEventListener('drop', (e) => {
         e.preventDefault();
         e.stopPropagation();  // Prevent the event from bubbling up
 
@@ -280,6 +308,12 @@ function initializeSidebar(sidebar) {
         if (!target) return;
 
         let draggedIndex = parseInt(e.dataTransfer.getData('text/plain'), 10);  // Get the dragged folder index
+        console.log('Data from drag event:', draggedIndex);  // Log what you got from the drag event
+
+        if (isNaN(draggedIndex)) {
+          console.error('Invalid index received in drop event');
+        }
+
         let targetIndex = Array.from(navLinks.querySelectorAll('.folder-item')).indexOf(target);  // Get the target folder index
 
         // Bookmark moving logic (move bookmark between folders)
@@ -301,15 +335,16 @@ function initializeSidebar(sidebar) {
           draggedFolder = null;
           draggedIndex = null;
           targetIndex = null;
-
-          return; // Exit early as we are handling bookmark moving here
         }
+
+        // Don't allow dropping on the same folder
+        if (draggedIndex === targetIndex) return;
 
         // Folder reordering logic (move folder)
         if (draggedIndex !== targetIndex) {
           const targetRect = target.getBoundingClientRect();
           const dropPosition = e.clientY - targetRect.top;
-          const midpoint = targetRect.height / 2;
+          const midpoint = targetRect.height;
 
           let insertIndex = targetIndex;
           if (dropPosition > midpoint) {
@@ -319,7 +354,7 @@ function initializeSidebar(sidebar) {
           // Reorder folders if draggedIndex and insertIndex differ
           if (draggedIndex !== insertIndex && insertIndex <= sidebarData.folders.length) {
             // Store the current sidebar state (collapsed or not)
-            const isSidebarCollapsed = sidebar.classList.contains('close');
+            sidebarData.isSidebarOpen = sidebar.classList.contains('close');
 
             const [draggedFolderData] = sidebarData.folders.splice(draggedIndex, 1);  // Remove the dragged folder
             sidebarData.folders.splice(insertIndex, 0, draggedFolderData);  // Insert at the new position
@@ -329,16 +364,9 @@ function initializeSidebar(sidebar) {
             renderSidebar();  // Re-render after reordering
             reapplySidebarToggleListeners();
 
-            // Restore the sidebar's collapsed state if necessary
-            if (isSidebarCollapsed) {
-              sidebar.classList.add('close');
-            } else {
-              sidebar.classList.remove('close');
-            }
-
             console.log('Dragged folder:', draggedIndex);
             console.log('Target folder:', targetIndex);
-            console.log('Sidebar collapsed state:', isSidebarCollapsed);
+            console.log('Sidebar collapsed state:', sidebarData.isSidebarOpen);
 
             // Clear drag variables
             draggedBookmark = null;
@@ -350,14 +378,14 @@ function initializeSidebar(sidebar) {
         }
       });
 
-      folderDiv.addEventListener('dragleave', (e) => {
+      folderLi.addEventListener('dragleave', (e) => {
         const target = e.target.closest('.folder-item');
         if (target) {
           target.classList.remove('drag-over');
         }
       });
 
-      folderDiv.addEventListener('dragend', (e) => {
+      folderLi.addEventListener('dragend', (e) => {
         e.target.classList.remove('dragging');
         draggedBookmark = null;
         draggedFolder = null;
@@ -526,6 +554,12 @@ function initializeSidebar(sidebar) {
       sidebarData.isSidebarOpen = !sidebar.classList.contains('close');
       saveToLocalStorage(SIDEBAR_DATA_KEY, sidebarData);
       adjustLayoutForSidebar(); // Adjust layout after toggling
+
+      // Hide the logo name when sidebar is collapsed
+      if (sidebar.classList.contains('close')) {
+      } else {
+        logoName.classList.remove('hidden');
+      }
     });
   }
 
@@ -753,12 +787,29 @@ function initializeSidebar(sidebar) {
       bookmarks.forEach((bookmark, modalBookmarkIndex) => {
         let currentIndex = modalBookmarkIndex;
         const li = document.createElement('li');
+
+        // Determine the favicon based on the bookmark URL
+        let faviconSrc;
+        if (/https:\/\/docs\.google\.com\/document\//.test(bookmark.url)) {
+          // Google Docs favicon
+          faviconSrc = 'https://ssl.gstatic.com/docs/doclist/images/icon_11_document_favicon.ico';
+        } else if (/https:\/\/docs\.google\.com\/spreadsheets\//.test(bookmark.url)) {
+          // Google Sheets favicon
+          faviconSrc = 'https://ssl.gstatic.com/docs/doclist/images/icon_11_spreadsheet_favicon.ico';
+        } else if (/https:\/\/docs\.google\.com\/presentation\//.test(bookmark.url)) {
+          // Google Slides favicon
+          faviconSrc = 'https://ssl.gstatic.com/docs/doclist/images/icon_11_presentation_favicon.ico';
+        } else {
+          // Fallback to general favicon service
+          faviconSrc = `https://s2.googleusercontent.com/s2/favicons?domain_url=${bookmark.url}`;
+        }
+
         li.innerHTML = `
                 <div class="drag-handle-bar">
                   <i class="bx bx-move-vertical" data-bookmark-index="${currentIndex} title="Drag"></i
                 </div>
                 <div class ="bookmark-info">
-                  <img src="https://s2.googleusercontent.com/s2/favicons?domain_url=${bookmark.url}" class="bookmark-favicon">
+                  <img src="${faviconSrc}" class="bookmark-favicon">
                   <span>${bookmark.name}</span>
                 </div>
                 <div class="bookmark-actions">
@@ -830,6 +881,7 @@ function initializeSidebar(sidebar) {
 
               updateBookmarkList(bookmarks); // Re-render the bookmark list
               renderSidebar(); // Re-render after reordering
+              reapplySidebarToggleListeners();
             }
             draggedBookmark = null; // Reset the dragged bookmark
           }, 100); // Delay by 10ms
@@ -1356,8 +1408,22 @@ function renderTabsInContainer(tabs, container, existingBookmarks, updateBookmar
     // Add favicon
     const favicon = document.createElement('img');
     favicon.className = 'tab-favicon';
-    favicon.src = `https://s2.googleusercontent.com/s2/favicons?domain_url=${tab.url}`;
     favicon.alt = 'Tab Favicon';
+
+    // Check the URL to determine the appropriate favicon
+    if (/https:\/\/docs\.google\.com\/document\//.test(tab.url)) {
+      // Google Docs favicon
+      favicon.src = 'https://ssl.gstatic.com/docs/doclist/images/icon_11_document_favicon.ico';
+    } else if (/https:\/\/docs\.google\.com\/spreadsheets\//.test(tab.url)) {
+      // Google Sheets favicon
+      favicon.src = 'https://ssl.gstatic.com/docs/doclist/images/icon_11_spreadsheet_favicon.ico';
+    } else if (/https:\/\/docs\.google\.com\/presentation\//.test(tab.url)) {
+      // Google Slides favicon
+      favicon.src = 'https://ssl.gstatic.com/docs/doclist/images/icon_11_presentation_favicon.ico';
+    } else {
+      // Fallback to default Google favicon for other URLs
+      favicon.src = `https://s2.googleusercontent.com/s2/favicons?domain_url=${tab.url}`;
+    }
 
     // Add title
     const titleSpan = document.createElement('span');
@@ -1407,9 +1473,9 @@ function getSavedTabs() {
 }
 
 function reapplySidebarToggleListeners() {
-  const toggleSidebarBtn = document.querySelector('.bx-menu');
+  const toggleSidebarBtn = document.getElementById('sidebarToggleButton');
 
-  if (toggleSidebarBtn && !toggleSidebarBtn.dataset.listenerAdded) { // Check if listener was already added
+  if (toggleSidebarBtn) { // Check if listener was already added
     toggleSidebarBtn.addEventListener('click', () => {
       const sidebar = document.querySelector('.sidebar');
       sidebar.classList.toggle('close');
