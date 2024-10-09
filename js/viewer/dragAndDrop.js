@@ -1,5 +1,3 @@
-// dragAndDrop.js
-
 import { updateContainerFramesDataId, updateDividers } from './iframeManager.js';
 import { updateBrowserURL } from './modalManager.js';
 

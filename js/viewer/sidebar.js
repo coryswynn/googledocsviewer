@@ -1,3 +1,5 @@
+'use strict'
+
 // sidebar.js
 
 // Import necessary functionality for integrating with the rest of the application
@@ -6,6 +8,14 @@ import { getActiveContainerFrame } from './init.js';
 import { saveToLocalStorage, loadFromLocalStorage } from '../storageUtils.js'; // Import storage utils
 import { updateDividers, updateIframeProportions } from './iframeManager.js';
 
+const SIDEBAR_DATA_KEY = 'sidebarData';
+
+// Load existing data or initialize default data
+let sidebarData = loadFromLocalStorage(SIDEBAR_DATA_KEY) || {
+  folders: [],
+  isSidebarOpen: false,
+  isFramesVertical: false
+};
 
 // Ensure the script runs after the DOM is fully loaded
 document.addEventListener("DOMContentLoaded", function () {
@@ -14,18 +24,31 @@ document.addEventListener("DOMContentLoaded", function () {
   sidebar.className = 'sidebar';
   sidebar.id = 'sidebar';
 
+  // Logo name
+  const logoName = document.createElement('span');
+  logoName.className = 'logo_name';
+  logoName.textContent = 'Workspace';
+
   // Append the sidebar to the DOM immediately
   document.body.insertBefore(sidebar, document.body.firstChild);
 
+  // Load sidebarEnabled state from chrome.storage.local
   // Check if sidebar is enabled
   chrome.storage.local.get(['sidebarEnabled'], function (result) {
     const sidebarEnabled = result.sidebarEnabled !== false; // Default to true if not set
     if (sidebarEnabled) {
       // Proceed to create and display the sidebar
       initializeSidebar(sidebar);
+      adjustLayoutForSidebar();
+
+      // Show the sidebar
+      sidebar.classList.remove('hidden');
+      logoName.classList.remove('hidden');
+      document.body.classList.remove('sidebar-hidden'); // Adjust layout
     } else {
       // Hide the sidebar
       sidebar.classList.add('hidden');
+      logoName.classList.add('hidden');
       document.body.classList.add('sidebar-hidden'); // Adjust layout
     }
   });
@@ -36,6 +59,7 @@ document.addEventListener("DOMContentLoaded", function () {
       const sidebarEnabled = changes.sidebarEnabled.newValue;
       if (sidebarEnabled) {
         sidebar.classList.remove('hidden');
+        logoName.classList.remove('hidden');
         document.body.classList.remove('sidebar-hidden'); // Adjust layout
 
         // If the sidebar wasn't initialized before, initialize it now
@@ -44,37 +68,37 @@ document.addEventListener("DOMContentLoaded", function () {
         }
       } else {
         sidebar.classList.add('hidden');
+        logoName.classList.add('hidden');
         document.body.classList.add('sidebar-hidden'); // Adjust layout
       }
     }
   });
 });
 
+// Function to adjust layout based on sidebar visibility
+function adjustLayoutForSidebar() {
+  // Logo name
+  const logoName = document.createElement('span');
+  logoName.className = 'logo_name';
+  logoName.textContent = 'Workspace';
+
+  if (sidebar.classList.contains('hidden')) {
+    document.body.classList.add('sidebar-hidden');
+  } else {
+    document.body.classList.remove('sidebar-hidden');
+  }
+}
 
 // Function to initialize the sidebar
 function initializeSidebar(sidebar) {
   // Define a key for localStorage
-  const SIDEBAR_DATA_KEY = 'sidebarData';
 
-  // Load existing data or initialize default data
-  let sidebarData = loadFromLocalStorage(SIDEBAR_DATA_KEY) || {
-    folders: [],
-    isSidebarOpen: false,
-    isFramesVertical: false
-  };
+  // Clean up any null or undefined folders
+  sidebarData.folders = sidebarData.folders.filter(folder => folder !== null && folder !== undefined);
 
   // Check if sidebar should be open or closed
   if (!sidebarData.isSidebarOpen) {
     sidebar.classList.add('close');
-  }
-
-  // Function to adjust layout based on sidebar visibility
-  function adjustLayoutForSidebar() {
-    if (sidebar.classList.contains('hidden')) {
-      document.body.classList.add('sidebar-hidden');
-    } else {
-      document.body.classList.remove('sidebar-hidden');
-    }
   }
 
   // Create the logo and toggle buttons
@@ -84,6 +108,7 @@ function initializeSidebar(sidebar) {
   // Toggle sidebar button
   const toggleSidebarBtn = document.createElement('i');
   toggleSidebarBtn.className = 'bx bx-menu';
+  toggleSidebarBtn.id = 'sidebarToggleButton'; // Add an ID for easy access later
   toggleSidebarBtn.addEventListener('click', () => {
     sidebar.classList.toggle('close');
     sidebarData.isSidebarOpen = !sidebar.classList.contains('close');
@@ -211,14 +236,30 @@ function initializeSidebar(sidebar) {
 
   // Function to render the folders and bookmarks
   function renderSidebar() {
-    // Clear existing folders
+
+    // Find the navLinks element to clear only the folder items, not the entire sidebar
+    const navLinks = document.querySelector('.nav-links');
+
+    // Clear existing folders (but keep the logo and toggle button)
     const existingFolders = navLinks.querySelectorAll('.folder-item');
     existingFolders.forEach(folder => folder.remove());
 
+    // Set up drag variables
+    let draggedBookmark = null;
+    let draggedFromFolderIndex = null;
+    let draggedFolder = null;
+
     // Render each folder
     sidebarData.folders.forEach((folder, folderIndex) => {
+      // Check if folder is null or undefined
+      if (!folder) {
+        console.warn(`Skipping folder at index ${folderIndex} because it is null or undefined.`);
+        return; // Skip this iteration
+      }
       const folderLi = document.createElement('li');
       folderLi.className = 'folder-item';
+      folderLi.draggable = true; // Make folder draggable
+      folderLi.setAttribute('data-folder-index', folderIndex); // Add folder index
 
       const folderDiv = document.createElement('div');
       folderDiv.className = 'iocn-link';
@@ -240,6 +281,129 @@ function initializeSidebar(sidebar) {
       folderLink.appendChild(folderNameSpan);
 
       folderDiv.appendChild(folderLink);
+
+      // Add event listener for dragging folder
+      // Ensure dragstart event captures the correct folderIndex
+      folderLi.addEventListener('dragstart', ((index) => (e) => {
+        e.target.classList.add('dragging');
+        console.log('Drag start:', index);  // Log folder index at drag start
+        draggedFolder = index;  // Correctly capture folderIndex
+        e.dataTransfer.setData('text/plain', index.toString());  // Store the index being dragged
+      })(folderIndex));  // Use closure to capture folderIndex correctly
+
+
+      folderLi.addEventListener('dragover', (e) => {
+        e.preventDefault();  // Required to allow dropping
+        const target = e.target.closest('.folder-item');
+        if (target) {
+          target.classList.add('drag-over');
+        }
+      });
+
+      folderLi.addEventListener('drop', (e) => {
+        e.preventDefault();
+        e.stopPropagation();  // Prevent the event from bubbling up
+
+        const target = e.target.closest('.folder-item');  // Get the folder item where the drop happens
+        if (!target) return;
+
+        let draggedIndex = parseInt(e.dataTransfer.getData('text/plain'), 10);  // Get the dragged folder index
+        console.log('Data from drag event:', draggedIndex);  // Log what you got from the drag event
+
+        if (isNaN(draggedIndex)) {
+          console.error('Invalid index received in drop event');
+        }
+
+        let targetIndex = Array.from(navLinks.querySelectorAll('.folder-item')).indexOf(target);  // Get the target folder index
+
+
+        // Don't allow dropping on the same folder or its own submenu
+        if (draggedIndex === targetIndex || (e.target.closest('.sub-menu') && draggedFolder === folderIndex)) {
+          const target = e.target.closest('.folder-item');
+          if (target) {
+            target.classList.remove('dragging');
+            target.classList.remove('drag-over');
+          }
+          draggedBookmark = null;
+          draggedFolder = null;
+          draggedFromFolderIndex = null;
+          return;
+        }
+
+        // Bookmark moving logic (move bookmark between folders)
+        if (draggedBookmark !== null && folderIndex !== draggedFromFolderIndex) {
+          const targetFolderIndex = folderIndex; // The folder we are dropping into
+
+          // Move the bookmark to the target folder
+          const movedBookmark = sidebarData.folders[draggedFromFolderIndex].bookmarks.splice(draggedBookmark, 1)[0];
+          sidebarData.folders[targetFolderIndex].bookmarks.push(movedBookmark); // Add bookmark to the target folder
+
+          // Save to localStorage and re-render sidebar
+          saveToLocalStorage(SIDEBAR_DATA_KEY, sidebarData);
+          renderSidebar();  // Re-render the sidebar after the move
+          reapplySidebarToggleListeners();
+
+          // Clear drag variables
+          draggedBookmark = null;
+          draggedFromFolderIndex = null;
+          draggedFolder = null;
+          draggedIndex = null;
+          targetIndex = null;
+        }
+
+
+        // Folder reordering logic (move folder)
+        if (draggedIndex !== targetIndex) {
+          const targetRect = target.getBoundingClientRect();
+          const dropPosition = e.clientY - targetRect.top;
+          const midpoint = targetRect.height;
+
+          let insertIndex = targetIndex;
+          if (dropPosition > midpoint) {
+            insertIndex = targetIndex + 1;  // If dropped below the midpoint, insert after the target
+          }
+
+          // Reorder folders if draggedIndex and insertIndex differ
+          if (draggedIndex !== insertIndex && insertIndex <= sidebarData.folders.length) {
+            // Store the current sidebar state (collapsed or not)
+            sidebarData.isSidebarOpen = sidebar.classList.contains('close');
+
+            const [draggedFolderData] = sidebarData.folders.splice(draggedIndex, 1);  // Remove the dragged folder
+            sidebarData.folders.splice(insertIndex, 0, draggedFolderData);  // Insert at the new position
+
+            // Save updated data and re-render the sidebar
+            saveToLocalStorage(SIDEBAR_DATA_KEY, sidebarData);
+            renderSidebar();  // Re-render after reordering
+            reapplySidebarToggleListeners();
+
+            console.log('Dragged folder:', draggedIndex);
+            console.log('Target folder:', targetIndex);
+            console.log('Sidebar collapsed state:', sidebarData.isSidebarOpen);
+
+            // Clear drag variables
+            draggedBookmark = null;
+            draggedFromFolderIndex = null;
+            draggedFolder = null;
+            draggedIndex = null;
+            targetIndex = null;
+          }
+        }
+      });
+
+      folderLi.addEventListener('dragleave', (e) => {
+        const target = e.target.closest('.folder-item');
+        if (target) {
+          target.classList.remove('drag-over');
+        }
+      });
+
+      folderLi.addEventListener('dragend', (e) => {
+        e.target.classList.remove('dragging');
+        e.target.classList.remove('drag-over');  // Remove drag-over class if drag ends
+        draggedBookmark = null;
+        draggedFolder = null;
+        draggedFromFolderIndex = null;
+      });
 
       // Create gear icon for editing folder
       const editIcon = document.createElement('i');
@@ -267,8 +431,10 @@ function initializeSidebar(sidebar) {
       subMenu.className = 'sub-menu';
 
       // Add bookmarks
-      folder.bookmarks.forEach((bookmark, bookmarkIndex) => {
+      folder.bookmarks.forEach((bookmark, folderBookmarkIndex) => {
+        console.log(folderBookmarkIndex); // Log the index of the current bookmark
         const bookmarkLi = document.createElement('li');
+        bookmarkLi.className = 'bookmark-item';
         const bookmarkLink = document.createElement('a');
         bookmarkLink.href = '#';
 
@@ -282,6 +448,73 @@ function initializeSidebar(sidebar) {
         // Bookmark context menu (edit, delete)
         const bookmarkMenu = document.createElement('div');
         bookmarkMenu.className = 'bookmark-menu';
+
+        // Add drag-and-drop functionality for bookmarks
+        bookmarkLi.addEventListener('dragstart', (e) => {
+          draggedBookmark = folderBookmarkIndex;
+          draggedFromFolderIndex = folderIndex; // Track the folder the bookmark is coming from
+          e.target.classList.add('dragging'); // Add 'dragging' class
+          e.dataTransfer.setData('text/plain', folderBookmarkIndex);  // Store the index being dragged
+          console.log('DRAGGED FROM: ', draggedFromFolderIndex, folderBookmarkIndex);
+        });
+
+        bookmarkLi.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          const target = e.target.closest('li'); // Ensure it's another bookmark (li)
+
+          if (target && draggedBookmark !== null && draggedBookmark !== folderBookmarkIndex && folderIndex === draggedFromFolderIndex) {
+            target.classList.add('drag-over'); // Add 'drag-over' class
+          }
+        });
+
+        bookmarkLi.addEventListener('drop', (e) => {
+          e.preventDefault();
+          e.stopPropagation();  // Prevents the event from bubbling up and triggering folder delete
+          const targetBookmark = e.target.closest('li'); // Target bookmark (li)
+          const targetFolder = e.target.closest('.folder-item'); // Target folder (folder-item)
+
+          // Reordering within the same folder
+          if (targetBookmark && draggedBookmark !== null && folderIndex === draggedFromFolderIndex) {
+            targetBookmark.classList.remove('drag-over'); // Remove 'drag-over' class
+            if (draggedBookmark !== folderBookmarkIndex) {
+              // Swap the bookmark positions within the same folder
+              const movedBookmark = folder.bookmarks.splice(draggedBookmark, 1)[0]; // Remove dragged bookmark
+              folder.bookmarks.splice(folderBookmarkIndex, 0, movedBookmark); // Insert at new position
+              saveToLocalStorage(SIDEBAR_DATA_KEY, sidebarData);
+              renderSidebar(); // Re-render sidebar
+              reapplySidebarToggleListeners();
+            }
+          }
+
+          // Moving bookmark to another folder
+          if (targetFolder && draggedBookmark !== null && folderIndex !== draggedFromFolderIndex) {
+            const targetFolderIndex = targetFolder.getAttribute('data-folder-index');
+
+            // Check that the targetFolderIndex exists in sidebarData
+            if (targetFolderIndex !== null && sidebarData.folders[targetFolderIndex]) {
+              // Move the bookmark to the target folder
+              const movedBookmark = sidebarData.folders[draggedFromFolderIndex].bookmarks.splice(draggedBookmark, 1)[0];
+              sidebarData.folders[targetFolderIndex].bookmarks.push(movedBookmark); // Add bookmark to the target folder
+              saveToLocalStorage(SIDEBAR_DATA_KEY, sidebarData);
+              renderSidebar(); // Re-render sidebar after the move
+              reapplySidebarToggleListeners();
+            }
+          }
+        });
+
+        bookmarkLi.addEventListener('dragleave', (e) => {
+          const target = e.target.closest('li');
+          if (target) {
+            target.classList.remove('drag-over'); // Remove 'drag-over' class when leaving
+          }
+        });
+
+        bookmarkLi.addEventListener('dragend', (e) => {
+          e.target.classList.remove('dragging'); // Remove 'dragging' class when drag ends
+          draggedBookmark = null;
+          draggedFolder = null;
+          draggedFromFolderIndex = null;
+        });
 
         bookmarkLi.appendChild(bookmarkLink);
         bookmarkLi.appendChild(bookmarkMenu);
@@ -334,6 +567,12 @@ function initializeSidebar(sidebar) {
       sidebarData.isSidebarOpen = !sidebar.classList.contains('close');
       saveToLocalStorage(SIDEBAR_DATA_KEY, sidebarData);
       adjustLayoutForSidebar(); // Adjust layout after toggling
+
+      // Hide the logo name when sidebar is collapsed
+      if (sidebar.classList.contains('close')) {
+      } else {
+        logoName.classList.remove('hidden');
+      }
     });
   }
 
@@ -510,6 +749,8 @@ function initializeSidebar(sidebar) {
     const searchBarContainer = document.getElementById('searchBarContainer');
     const tabSearchInput = document.getElementById('tabSearchEdit');
 
+    let draggedBookmark = null; // To track which bookmark is being dragged
+
     // Check if folderNameInput exists
     if (!folderNameInput) {
       console.error("Error: folderNameInput not found in the DOM.");
@@ -552,34 +793,144 @@ function initializeSidebar(sidebar) {
 
     // Function to update the bookmark list
     function updateBookmarkList(bookmarks) {
+      let savedTabs = loadFromLocalStorage('savedTabs') || [];
       bookmarkList.innerHTML = ''; // Clear the existing list
+      bookmarkList.draggable = false;
 
-      bookmarks.forEach((bookmark, bookmarkIndex) => {
+      bookmarks.forEach((bookmark, modalBookmarkIndex) => {
+        let currentIndex = modalBookmarkIndex;
         const li = document.createElement('li');
+
+        // Determine the favicon based on the bookmark URL
+        let faviconSrc;
+        if (/https:\/\/docs\.google\.com\/document\//.test(bookmark.url)) {
+          // Google Docs favicon
+          faviconSrc = 'https://ssl.gstatic.com/docs/doclist/images/icon_11_document_favicon.ico';
+        } else if (/https:\/\/docs\.google\.com\/spreadsheets\//.test(bookmark.url)) {
+          // Google Sheets favicon
+          faviconSrc = 'https://ssl.gstatic.com/docs/doclist/images/icon_11_spreadsheet_favicon.ico';
+        } else if (/https:\/\/docs\.google\.com\/presentation\//.test(bookmark.url)) {
+          // Google Slides favicon
+          faviconSrc = 'https://ssl.gstatic.com/docs/doclist/images/icon_11_presentation_favicon.ico';
+        } else {
+          // Fallback to general favicon service
+          faviconSrc = `https://s2.googleusercontent.com/s2/favicons?domain_url=${bookmark.url}`;
+        }
+
         li.innerHTML = `
-                <img src="https://s2.googleusercontent.com/s2/favicons?domain_url=${bookmark.url}" class="bookmark-favicon">
-                <span>${bookmark.name}</span>
+                <div class="drag-handle-bar">
+                  <i class="bx bx-move-vertical" data-bookmark-index="${currentIndex} title="Drag"></i
+                </div>
+                <div class ="bookmark-info">
+                  <img src="${faviconSrc}" class="bookmark-favicon">
+                  <span>${bookmark.name}</span>
+                </div>
                 <div class="bookmark-actions">
-                    <i class="bx bx-pencil" data-bookmark-index="${bookmarkIndex}" title="Edit"></i>
-                    <i class="bx bx-trash-alt" data-bookmark-index="${bookmarkIndex}" title="Delete"></i>
+                    <i class="bx bx-pencil" data-bookmark-index="${currentIndex}" title="Edit"></i>
+                    <i class="bx bx-trash-alt" data-bookmark-index="${currentIndex}" title="Delete"></i>
                 </div>
             `;
 
+        // Add drag-and-drop functionality for bookmarks in the modal
+        li.draggable = true; // Make bookmark draggable
+
+        li.querySelectorAll('*').forEach(child => {
+          child.draggable = false;
+        });
+
+        li.addEventListener('dragstart', ((index) => (e) => {
+          draggedBookmark = index;
+          li.classList.add('dragging'); // Add a visual cue to the dragged element
+
+          // Disable pointer events on .home-section during drag
+          document.querySelector('.home-section').style.pointerEvents = 'none';
+
+          console.log('Drag Start', draggedBookmark);
+        })(modalBookmarkIndex));
+
+        li.addEventListener('dragover', ((index) => (e) => {
+          e.preventDefault(); // Prevent default to allow drop
+          e.stopPropagation(); // Stop event from bubbling up
+          console.log('EVENT LISTENER ADDED');
+          const target = e.target.closest('li');
+          if (target) {
+            target.classList.add('drag-over'); // Add 'drag-over' class
+          }
+          e.dataTransfer.dropEffect = 'move'; // Indicate that a move operation is expected
+          console.log('Drag over', {
+            target: e.target,
+            currentTarget: e.currentTarget,
+            modalBookmarkIndex: currentIndex,
+            clientX: e.clientX,
+            clientY: e.clientY
+          });
+        })(currentIndex));
+
+        li.addEventListener('drop', (e) => {
+          e.preventDefault(); // Prevent default behavior
+          e.stopPropagation();
+          console.log("DROP IT LIKE ITS HOT")
+          // Add a small delay to allow events to propagate fully
+          setTimeout(() => {
+            const target = e.target.closest('li');
+            if (target) {
+              target.classList.remove('drag-over'); // Remove 'drag-over' class after drop
+            }
+            li.classList.remove('dragging'); // Remove the dragging class
+            let targetBookmarkIndex = Array.from(bookmarkList.children).indexOf(target);
+
+            if (draggedBookmark !== null && draggedBookmark !== targetBookmarkIndex) {
+              const temp = bookmarks[draggedBookmark]; // Store the dragged bookmark
+              const movedBookmark = bookmarks.splice(draggedBookmark, 1)[0]; // Remove the dragged bookmark
+              bookmarks.splice(targetBookmarkIndex, 0, movedBookmark); // Insert at new position
+              const sidebarTemp = folder.bookmarks[draggedBookmark];
+              folder.bookmarks.splice(draggedBookmark, 1);
+              folder.bookmarks.splice(currentIndex, 0, temp);
+              saveToLocalStorage('savedTabs', savedTabs);
+              saveToLocalStorage(SIDEBAR_DATA_KEY, sidebarData); // Save updated bookmarks
+
+              // Force reflow to ensure UI is updated before moving on
+              document.body.offsetHeight;
+
+              updateBookmarkList(bookmarks); // Re-render the bookmark list
+              renderSidebar(); // Re-render after reordering
+              reapplySidebarToggleListeners();
+            }
+            draggedBookmark = null; // Reset the dragged bookmark
+          }, 100); // Delay by 10ms
+        });
+
+        li.addEventListener('dragleave', (e) => {
+          const target = e.target.closest('li');
+          if (target) {
+            target.classList.remove('drag-over'); // Remove 'drag-over' class when leaving
+          }
+        });
+
+        li.addEventListener('dragend', (e) => {
+          // Re-enable pointer events on .home-section after drag
+          document.querySelector('.home-section').style.pointerEvents = 'auto';
+          e.target.classList.remove('dragging'); // Remove 'dragging' class when drag ends
+        });
+
         // Add event listeners for edit and delete
-        li.querySelector('.bx-pencil').addEventListener('click', () => {
+        li.querySelector('.bx-pencil').addEventListener('click', (e) => {
+          e.stopPropagation();
           const newName = prompt('Rename bookmark:', bookmark.name);
           if (newName) {
-            bookmarks[bookmarkIndex].name = newName;
+            bookmarks[modalBookmarkIndex].name = newName;
             saveToLocalStorage(SIDEBAR_DATA_KEY, sidebarData);
             li.querySelector('span').textContent = newName; // Update UI immediately
           }
         });
 
         const trashIcon = li.querySelector('.bx-trash-alt');
-        trashIcon.addEventListener('click', () => {
+        trashIcon.addEventListener('click', (e) => {
+          e.stopPropagation();
           if (confirm('Are you sure you want to delete this bookmark?')) {
-            bookmarks.splice(bookmarkIndex, 1); // Remove the bookmark
+            bookmarks.splice(modalBookmarkIndex, 1); // Remove the bookmark
             sidebarData.folders[folderIndex].bookmarks = bookmarks;
+            saveToLocalStorage('savedTabs', savedTabs);
             saveToLocalStorage(SIDEBAR_DATA_KEY, sidebarData);
             // Re-render the bookmark list
             updateBookmarkList(bookmarks);
@@ -707,7 +1058,7 @@ function initializeSidebar(sidebar) {
             if (!matchingTab) return null;
 
             // Use the tab's title if found, otherwise fallback to saved title or 'Title Unavailable'
-            let tabTitle = matchingTab ? getSavedTabTitle(url) : matchingTab.title  || 'Title Unavailable';
+            let tabTitle = matchingTab ? getSavedTabTitle(url) : matchingTab.title || 'Title Unavailable';
 
             // Clean up the title by removing " - Google Sheets", " - Google Docs", and " - Google Slides"
             if (tabTitle) {
@@ -720,6 +1071,47 @@ function initializeSidebar(sidebar) {
           // Save the selected tabs to 'savedTabs'
           let savedTabs = loadFromLocalStorage('savedTabs') || [];
 
+          // Step 1: Filter out bookmarks that were deselected
+          let updatedBookmarks = folder.bookmarks.filter(bookmark => selectedTabs.includes(bookmark.url));
+
+          // Step 2: Identify new bookmarks (those that aren't already in the updatedBookmarks list)
+          let addedBookmarks = selectedTabs
+            .filter(url => !updatedBookmarks.some(bookmark => bookmark.url === url))
+            .map(url => {
+              const matchingTab = tabs.find(tab => tab.url === url);
+              let tabTitle = matchingTab ? getSavedTabTitle(url) || matchingTab.title : 'Title Unavailable';
+
+              // Clean up Google-specific titles
+              tabTitle = tabTitle.replace(/ - Google (Sheets|Docs|Slides)/, '');
+
+              return { name: tabTitle, url };
+            });
+
+          // Step 3: Merge updatedBookmarks with addedBookmarks, while preserving order
+          // We preserve the original order of `updatedBookmarks` and append any new bookmarks
+          let newBookmarkList = [...updatedBookmarks, ...addedBookmarks];
+
+          // Step 4: Save the updated bookmarks to localStorage
+          saveToLocalStorage(SIDEBAR_DATA_KEY, sidebarData);
+
+          // Step 5: Save updated savedTabs back to localStorage
+          saveToLocalStorage('savedTabs', savedTabs);
+
+          // Step 6: Remove deselected tabs from savedTabs
+          savedTabs = savedTabs.filter(tab => selectedTabs.includes(tab.url));
+
+          // Step 7: Update renamed tab titles in 'savedTabs'
+          function updateSavedTabTitle(url, newTitle) {
+            let savedTabs = loadFromLocalStorage('savedTabs') || [];
+            const tabIndex = savedTabs.findIndex(tab => tab.url === url);
+            if (tabIndex !== -1) {
+              savedTabs[tabIndex].title = newTitle;
+              saveToLocalStorage('savedTabs', savedTabs);
+              console.log('UPDATING NAME TAB TITLE: ', savedTabs);
+              saveBookmarks(folderIndex); // Save and notify listeners
+            }
+          }
+
           selectedTabs.forEach(url => {
             // Only add the tab to savedTabs if it’s not already there
             if (!savedTabs.some(tab => tab.url === url)) {
@@ -730,15 +1122,20 @@ function initializeSidebar(sidebar) {
             }
           });
 
-          let newBookmarkList = [...new Map([...newBookmarks, ...updatedBookmarks].map(b => [b.url, b])).values()];
-          
-          // Save updated savedTabs back to localStorage
+          // Save updated savedTabs to localStorage
           saveToLocalStorage('savedTabs', savedTabs);
 
           // Update the existing folder's name, icon, and bookmarks
           folder.name = newFolderName;
           folder.icon = selectedIcon;
           folder.bookmarks = newBookmarkList;
+
+          // After updating the folder name and bookmarks
+          folder.bookmarks.forEach(bookmark => {
+            // Update 'savedTabs' with the new title for each bookmark
+            updateSavedTabTitle(bookmark.url, bookmark.name);
+            console.log('UPDATING BOOKMARK TITLE: ', bookmark.name);
+          });
 
           // Save updated folder data to localStorage
           saveToLocalStorage(SIDEBAR_DATA_KEY, sidebarData);
@@ -747,6 +1144,12 @@ function initializeSidebar(sidebar) {
           renderSidebar();
           // Reapply event listeners for sidebar toggle after re-render
           reapplySidebarToggleListeners();
+          // Update toolbar titles for all bookmarks in this folder
+          newBookmarkList.forEach(bookmark => {
+            console.log('Updating toolbar for bookmark:', bookmark.url); // Debugging line
+            // Update the toolbar titles
+            updateToolbarTitlesForBookmark(bookmark.url, bookmark.name);
+          });
 
           // Close the modal
           modal.style.display = 'none';
@@ -758,8 +1161,8 @@ function initializeSidebar(sidebar) {
 
 
   // Function to edit a bookmark
-  function editBookmark(folderIndex, bookmarkIndex) {
-    const bookmark = sidebarData.folders[folderIndex].bookmarks[bookmarkIndex];
+  function editBookmark(folderIndex, editBookmarkIndex) {
+    const bookmark = sidebarData.folders[folderIndex].bookmarks[editBookmarkIndex];
     const newBookmarkName = prompt('Enter new bookmark name:', bookmark.name);
     if (newBookmarkName) {
       const newBookmarkURL = prompt('Enter new bookmark URL:', bookmark.url);
@@ -774,7 +1177,7 @@ function initializeSidebar(sidebar) {
     }
   }
 
-  function deleteBookmark(folderIndex, bookmarkIndex) {
+  function deleteBookmark(folderIndex, deleteBookmarkIndex) {
     console.log('deleteBookmark called'); // Check if function is called
 
     const folder = sidebarData.folders[folderIndex];
@@ -783,12 +1186,12 @@ function initializeSidebar(sidebar) {
       return;
     }
 
-    const bookmark = folder.bookmarks[bookmarkIndex];
+    const bookmark = folder.bookmarks[deleteBookmarkIndex];
     console.log('Bookmark to delete:', bookmark); // Log the bookmark details
 
     if (confirm('Are you sure you want to delete this bookmark?')) {
       // Splice the bookmark from the list
-      folder.bookmarks.splice(bookmarkIndex, 1);
+      folder.bookmarks.splice(deleteBookmarkIndex, 1);
 
       // Save the updated data to localStorage
       saveToLocalStorage(SIDEBAR_DATA_KEY, sidebarData);
@@ -1043,8 +1446,22 @@ function renderTabsInContainer(tabs, container, existingBookmarks, updateBookmar
     // Add favicon
     const favicon = document.createElement('img');
     favicon.className = 'tab-favicon';
-    favicon.src = `https://s2.googleusercontent.com/s2/favicons?domain_url=${tab.url}`;
     favicon.alt = 'Tab Favicon';
+
+    // Check the URL to determine the appropriate favicon
+    if (/https:\/\/docs\.google\.com\/document\//.test(tab.url)) {
+      // Google Docs favicon
+      favicon.src = 'https://ssl.gstatic.com/docs/doclist/images/icon_11_document_favicon.ico';
+    } else if (/https:\/\/docs\.google\.com\/spreadsheets\//.test(tab.url)) {
+      // Google Sheets favicon
+      favicon.src = 'https://ssl.gstatic.com/docs/doclist/images/icon_11_spreadsheet_favicon.ico';
+    } else if (/https:\/\/docs\.google\.com\/presentation\//.test(tab.url)) {
+      // Google Slides favicon
+      favicon.src = 'https://ssl.gstatic.com/docs/doclist/images/icon_11_presentation_favicon.ico';
+    } else {
+      // Fallback to default Google favicon for other URLs
+      favicon.src = `https://s2.googleusercontent.com/s2/favicons?domain_url=${tab.url}`;
+    }
 
     // Add title
     const titleSpan = document.createElement('span');
@@ -1094,9 +1511,9 @@ function getSavedTabs() {
 }
 
 function reapplySidebarToggleListeners() {
-  const toggleSidebarBtn = document.querySelector('.bx-menu');
+  const toggleSidebarBtn = document.getElementById('sidebarToggleButton');
 
-  if (toggleSidebarBtn) {
+  if (toggleSidebarBtn) { // Check if listener was already added
     toggleSidebarBtn.addEventListener('click', () => {
       const sidebar = document.querySelector('.sidebar');
       sidebar.classList.toggle('close');
@@ -1104,5 +1521,30 @@ function reapplySidebarToggleListeners() {
       saveToLocalStorage(SIDEBAR_DATA_KEY, sidebarData);
       adjustLayoutForSidebar(sidebar);
     });
+    toggleSidebarBtn.dataset.listenerAdded = true; // Mark listener as added
   }
+}
+
+function updateToolbarTitlesForBookmark(url, newName) {
+  const containerFrames = document.querySelectorAll('.url-container');
+
+  containerFrames.forEach(containerFrame => {
+    console.log('Checking container frame with URL:', containerFrame.dataset.url); // Debugging line
+    const toolbarTitle = containerFrame.querySelector('.url-text');
+
+    if (toolbarTitle && containerFrame.dataset.url === url) {
+      console.log(`Updating toolbar title for URL: ${url} to new name: ${newName}`); // Debugging line
+      toolbarTitle.textContent = newName; // Update the title in the toolbar
+    }
+  });
+}
+
+// Function to save bookmarks and trigger update notification
+function saveBookmarks(folderIndex) {
+  saveToLocalStorage(SIDEBAR_DATA_KEY, sidebarData);
+
+  // Notify listeners (like popup.js) that bookmarks have been updated
+  chrome.storage.local.set({ bookmarksUpdated: true }, function () {
+    console.log('Bookmarks updated, notifying listeners.');
+  });
 }

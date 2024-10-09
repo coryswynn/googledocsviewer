@@ -25,95 +25,95 @@
                 <div class="modal-body"></div> <!-- Dedicated area for dynamic content -->
             </div>
         </div>
-        <!-- Add Folder Modal -->
-        <div id="addFolderModal" class="modal">
-            <div class="modal-content">
-                <span class="close-button" id="cleanCloseModal">&times;</span>
-                <h2>Add New Folder</h2>
-                <br>
-
-                <form id="addFolderForm">
-                    <label for="folderName">Folder Name:</label>
-                    <input type="text" id="folderName" name="folderName" class="styled-input" required />
-                    <br><br>
-                    <label for="folderIcon">Select an Icon:</label>
-                    <div id="iconSelection">
-                        <!-- Icon Selection Board -->
-                        <div class="icon-board">
-                            <i class="bx bx-folder icon-option" data-icon="bx bx-folder"></i>
-                            <i class="bx bx-star icon-option" data-icon="bx bx-star"></i>
-                            <i class="bx bx-heart icon-option" data-icon="bx bx-heart"></i>
-                            <i class="bx bx-book icon-option" data-icon="bx bx-book"></i>
-                            <i class="bx bx-cloud icon-option" data-icon="bx bx-cloud"></i>
-                            <i class="bx bx-camera icon-option" data-icon="bx bx-camera"></i>
-                            <i class="bx bx-music icon-option" data-icon="bx bx-music"></i>
-                            <i class="bx bx-globe icon-option" data-icon="bx bx-globe"></i>
-                        </div>
-                    </div>
-                    <br>
-                    <!-- Tab Selection Section -->
-                    <div class="tab-selection">
-                        <label>Select Tabs to Add to Folder:</label>
-                        <div><br></div>
-                        <!-- Search bar -->
-                        <input type="text" id="tabSearch" placeholder="Search tabs..." class="tab-search-bar">
-                        <div class="tabs-container"></div> <!-- For open tabs -->
-                    </div>
-                    <button type="submit" class="styled-submit-button">Add Folder</button>
-                </form>
-            </div>
-        </div>
-        <!-- Edit Folder Modal -->
-        <div id="editFolderModal" class="modal">
-            <div class="modal-content">
-                <span class="close-button" id="closeModal">&times;</span>
-                <h2>Edit Folder</h2>
-                <br>
-                <form id="editFolderForm">
-                    <!-- Folder Name Input -->
-                    <label for="folderNameInput">Folder Name:</label>
-                    <input type="text" id="folderNameInput" name="folderNameInput" class="styled-input" required />
-                    <br><br>
-
-                    <label for="folderIcon">Select an Icon:</label>
-                    <br>
-                    <div id="iconSelection">
-                        <!-- Icon Selection -->
-                        <div class="icon-board">
-                            <i class="bx bx-folder icon-option" data-icon="bx bx-folder"></i>
-                            <i class="bx bx-star icon-option" data-icon="bx bx-star"></i>
-                            <i class="bx bx-heart icon-option" data-icon="bx bx-heart"></i>
-                            <i class="bx bx-book icon-option" data-icon="bx bx-book"></i>
-                            <i class="bx bx-cloud icon-option" data-icon="bx bx-cloud"></i>
-                            <i class="bx bx-camera icon-option" data-icon="bx bx-camera"></i>
-                            <i class="bx bx-music icon-option" data-icon="bx bx-music"></i>
-                            <i class="bx bx-globe icon-option" data-icon="bx bx-globe"></i>
-                        </div>
-                    </div>
-                    <br>
-
-                    <!-- List of Current Bookmarks -->
-                    <label for="bookmarkList">Current Bookmarks:</label>
-                    <div id="bookmarkList" class="bookmark-list"></div>
-
-                    <!-- Add Bookmark (Clickable) -->
-                    <label id="addBookmarkToggle" class="clickable-label">Add Bookmark</label>
-
-                    <!-- Search Bar (Initially Hidden) -->
-                    <div id="searchBarContainer" class="hidden">
-                        <br>
-                        <input type="text" id="tabSearchEdit" placeholder="Search for tabs..." class="tab-search-bar">
-                    </div>
-
-                    <!-- List of Tabs to Select (Initially Hidden) -->
-                    <div id="tabSelectionContainer" class="tab-selections hidden"></div>
-
-                    <!-- Update Folder Button -->
-                    <button type="submit" class="styled-submit-button" form="editFolderForm">Update Folder</button>
-                </form>
-            </div>
-        </div>
     </section>
+    <!-- Add Folder Modal -->
+    <div id="addFolderModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" id="cleanCloseModal">&times;</span>
+            <h2>Add New Folder</h2>
+            <br>
+
+            <form id="addFolderForm">
+                <label for="folderName">Folder Name:</label>
+                <input type="text" id="folderName" name="folderName" class="styled-input" required />
+                <br><br>
+                <label for="folderIcon">Select an Icon:</label>
+                <div id="iconSelection">
+                    <!-- Icon Selection Board -->
+                    <div class="icon-board">
+                        <i class="bx bx-folder icon-option" data-icon="bx bx-folder"></i>
+                        <i class="bx bx-star icon-option" data-icon="bx bx-star"></i>
+                        <i class="bx bx-heart icon-option" data-icon="bx bx-heart"></i>
+                        <i class="bx bx-book icon-option" data-icon="bx bx-book"></i>
+                        <i class="bx bx-cloud icon-option" data-icon="bx bx-cloud"></i>
+                        <i class="bx bx-camera icon-option" data-icon="bx bx-camera"></i>
+                        <i class="bx bx-music icon-option" data-icon="bx bx-music"></i>
+                        <i class="bx bx-globe icon-option" data-icon="bx bx-globe"></i>
+                    </div>
+                </div>
+                <br>
+                <!-- Tab Selection Section -->
+                <div class="tab-selection">
+                    <label>Select Tabs to Add to Folder:</label>
+                    <div><br></div>
+                    <!-- Search bar -->
+                    <input type="text" id="tabSearch" placeholder="Search tabs..." class="tab-search-bar">
+                    <div class="tabs-container"></div> <!-- For open tabs -->
+                </div>
+                <button type="submit" class="styled-submit-button">Add Folder</button>
+            </form>
+        </div>
+    </div>
+    <!-- Edit Folder Modal -->
+    <div id="editFolderModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" id="closeModal">&times;</span>
+            <h2>Edit Folder</h2>
+            <br>
+            <form id="editFolderForm">
+                <!-- Folder Name Input -->
+                <label for="folderNameInput">Folder Name:</label>
+                <input type="text" id="folderNameInput" name="folderNameInput" class="styled-input" required />
+                <br><br>
+
+                <label for="folderIcon">Select an Icon:</label>
+                <br>
+                <div id="iconSelection">
+                    <!-- Icon Selection -->
+                    <div class="icon-board">
+                        <i class="bx bx-folder icon-option" data-icon="bx bx-folder"></i>
+                        <i class="bx bx-star icon-option" data-icon="bx bx-star"></i>
+                        <i class="bx bx-heart icon-option" data-icon="bx bx-heart"></i>
+                        <i class="bx bx-book icon-option" data-icon="bx bx-book"></i>
+                        <i class="bx bx-cloud icon-option" data-icon="bx bx-cloud"></i>
+                        <i class="bx bx-camera icon-option" data-icon="bx bx-camera"></i>
+                        <i class="bx bx-music icon-option" data-icon="bx bx-music"></i>
+                        <i class="bx bx-globe icon-option" data-icon="bx bx-globe"></i>
+                    </div>
+                </div>
+                <br>
+
+                <!-- List of Current Bookmarks -->
+                <label for="bookmarkList">Current Bookmarks:</label>
+                <div id="bookmarkList" class="bookmark-list"></div>
+
+                <!-- Add Bookmark (Clickable) -->
+                <label id="addBookmarkToggle" class="clickable-label">Add Bookmark</label>
+
+                <!-- Search Bar (Initially Hidden) -->
+                <div id="searchBarContainer" class="hidden">
+                    <br>
+                    <input type="text" id="tabSearchEdit" placeholder="Search for tabs..." class="tab-search-bar">
+                </div>
+
+                <!-- List of Tabs to Select (Initially Hidden) -->
+                <div id="tabSelectionContainer" class="tab-selections hidden"></div>
+
+                <!-- Update Folder Button -->
+                <button type="submit" class="styled-submit-button" form="editFolderForm">Update Folder</button>
+            </form>
+        </div>
+    </div>
     <script type="module" src="../js/viewer/init.js"></script>
 </body>
 
