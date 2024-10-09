@@ -470,36 +470,97 @@ function initializeSidebar(sidebar) {
         bookmarkLi.addEventListener('drop', (e) => {
           e.preventDefault();
           e.stopPropagation();  // Prevents the event from bubbling up and triggering folder delete
+          
           const targetBookmark = e.target.closest('li'); // Target bookmark (li)
           const targetFolder = e.target.closest('.folder-item'); // Target folder (folder-item)
-
-          // Reordering within the same folder
+          const targetFolderIndex = targetFolder ? parseInt(targetFolder.getAttribute('data-folder-index'), 10) : null;
+        
+          const draggedFolderIndex = parseInt(e.dataTransfer.getData('text/plain'), 10);  // The dragged folder index
+        
+          // Case 1: Reordering bookmarks within the same folder
           if (targetBookmark && draggedBookmark !== null && folderIndex === draggedFromFolderIndex) {
             targetBookmark.classList.remove('drag-over'); // Remove 'drag-over' class
+        
             if (draggedBookmark !== folderBookmarkIndex) {
               // Swap the bookmark positions within the same folder
               const movedBookmark = folder.bookmarks.splice(draggedBookmark, 1)[0]; // Remove dragged bookmark
               folder.bookmarks.splice(folderBookmarkIndex, 0, movedBookmark); // Insert at new position
+        
+              // Save the updated sidebarData and re-render
               saveToLocalStorage(SIDEBAR_DATA_KEY, sidebarData);
               renderSidebar(); // Re-render sidebar
               reapplySidebarToggleListeners();
             }
           }
-
-          // Moving bookmark to another folder
+        
+          // Case 2: Moving a bookmark to a different folder
           if (targetFolder && draggedBookmark !== null && folderIndex !== draggedFromFolderIndex) {
-            const targetFolderIndex = targetFolder.getAttribute('data-folder-index');
-
             // Check that the targetFolderIndex exists in sidebarData
             if (targetFolderIndex !== null && sidebarData.folders[targetFolderIndex]) {
               // Move the bookmark to the target folder
               const movedBookmark = sidebarData.folders[draggedFromFolderIndex].bookmarks.splice(draggedBookmark, 1)[0];
               sidebarData.folders[targetFolderIndex].bookmarks.push(movedBookmark); // Add bookmark to the target folder
+        
+              // Save the updated sidebarData and re-render
               saveToLocalStorage(SIDEBAR_DATA_KEY, sidebarData);
               renderSidebar(); // Re-render sidebar after the move
               reapplySidebarToggleListeners();
             }
+        
+            // Reset visual feedback for folder-item after bookmark is moved
+            if (targetFolder) {
+              targetFolder.classList.remove('drag-over', 'dragging');
+            }
+        
+            draggedBookmark = null;
+            draggedFromFolderIndex = null;
+            return; // Exit without attempting to reorder folders
           }
+        
+          // Case 3: Reordering folders when dragging a folder over another folder's bookmark
+          if (draggedFolderIndex !== null && targetFolder && folderIndex !== draggedFolderIndex) {
+            // Only reorder folders if the dragged folder is dropped onto a different folder's bookmark-item
+            if (targetFolderIndex !== null && draggedFolderIndex !== targetFolderIndex) {
+              const draggedFolderData = sidebarData.folders.splice(draggedFolderIndex, 1)[0];  // Remove dragged folder
+              sidebarData.folders.splice(targetFolderIndex, 0, draggedFolderData);  // Insert at the new position
+        
+              // Save the updated sidebarData and re-render
+              saveToLocalStorage(SIDEBAR_DATA_KEY, sidebarData);
+              renderSidebar();  // Re-render after reordering
+              reapplySidebarToggleListeners();
+            }
+        
+            // Reset visual feedback for folder-item after folder is reordered
+            if (targetFolder) {
+              targetFolder.classList.remove('drag-over', 'dragging');
+            }
+        
+            draggedFolderIndex = null;
+            draggedFromFolderIndex = null;
+            return; // Exit after reordering
+          }
+        
+          // Case 4: Check if the dragged folder is being dropped on its own bookmark-item (same folder)
+          if (draggedFolderIndex === folderIndex) {
+            // If dropped on its own bookmark-item, remove any visual feedback and reset
+            bookmarkLi.classList.remove('drag-over'); // Remove from bookmark-item
+            if (targetFolder) {
+              targetFolder.classList.remove('drag-over', 'dragging'); // Remove from folder-item
+            }
+            draggedFolderIndex = null;
+            draggedFromFolderIndex = null;
+            return;  // Exit without doing anything
+          }
+        
+          // Reset visual feedback for both bookmark-item and folder-item
+          bookmarkLi.classList.remove('drag-over');
+          if (targetFolder) {
+            targetFolder.classList.remove('drag-over', 'dragging'); // Ensure target folder item is also cleared
+          }
+        
+          draggedBookmark = null;
+          draggedFolderIndex = null;
+          draggedFromFolderIndex = null;
         });
 
         bookmarkLi.addEventListener('dragleave', (e) => {
