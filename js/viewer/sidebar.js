@@ -317,11 +317,13 @@ function initializeSidebar(sidebar) {
         let targetIndex = Array.from(navLinks.querySelectorAll('.folder-item')).indexOf(target);  // Get the target folder index
 
 
-        // Don't allow dropping on the same folder
-        if (draggedIndex === targetIndex) {
+        // Don't allow dropping on the same folder or its own submenu
+        if (draggedIndex === targetIndex || (e.target.closest('.sub-menu') && draggedFolder === folderIndex)) {
           const target = e.target.closest('.folder-item');
-          e.target.classList.remove('dragging');
-          e.target.classList.remove('drag-over');
+          if (target) {
+            target.classList.remove('dragging');
+            target.classList.remove('drag-over');
+          }
           draggedBookmark = null;
           draggedFolder = null;
           draggedFromFolderIndex = null;

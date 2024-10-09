@@ -773,7 +773,7 @@ body.dark-mode {
 
 /* General style for dragged elements */
 .dragging {
-  transform: scale(0.98);
+  transform: scale(0.99);
   transition: transform 0.2s ease;
 }
 
