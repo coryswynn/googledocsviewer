@@ -1108,6 +1108,15 @@ function initializeSidebar(sidebar) {
             }
           });
 
+          // Step 7: Rename bookmarks if they have been updated
+          newBookmarkList.forEach(bookmark => {
+            const existingBookmark = folder.bookmarks.find(b => b.url === bookmark.url);
+            if (existingBookmark && existingBookmark.name !== bookmark.name) {
+              // Call the renameBookmark function to update the bookmark title
+              renameBookmark(bookmark.url, bookmark.name);
+            }
+          });
+
           // Save updated savedTabs to localStorage
           saveToLocalStorage('savedTabs', savedTabs);
 
@@ -1123,6 +1132,12 @@ function initializeSidebar(sidebar) {
           renderSidebar();
           // Reapply event listeners for sidebar toggle after re-render
           reapplySidebarToggleListeners();
+          // Update toolbar titles for all bookmarks in this folder
+          newBookmarkList.forEach(bookmark => {
+            console.log('Updating toolbar for bookmark:', bookmark.url); // Debugging line
+            // Update the toolbar titles
+            updateToolbarTitlesForBookmark(bookmark.url, bookmark.name);
+          });
 
           // Close the modal
           modal.style.display = 'none';
@@ -1496,4 +1511,38 @@ function reapplySidebarToggleListeners() {
     });
     toggleSidebarBtn.dataset.listenerAdded = true; // Mark listener as added
   }
+}
+
+function updateToolbarTitlesForBookmark(url, newName) {
+  const containerFrames = document.querySelectorAll('.url-container');
+
+  containerFrames.forEach(containerFrame => {
+    console.log('Checking container frame with URL:', containerFrame.dataset.url); // Debugging line
+    const toolbarTitle = containerFrame.querySelector('.url-text');
+
+    if (toolbarTitle && containerFrame.dataset.url === url) {
+      console.log(`Updating toolbar title for URL: ${url} to new name: ${newName}`); // Debugging line
+      toolbarTitle.textContent = newName; // Update the title in the toolbar
+    }
+  });
+}
+
+function renameBookmark(url, newName) {
+  chrome.storage.local.get('savedTabs', function(result) {
+      let savedTabs = result.savedTabs || [];
+
+      // Find the bookmark to rename
+      savedTabs = savedTabs.map((tab) => {
+          if (tab.url === url) {
+              return { ...tab, title: newName }; // Update the title
+          }
+          return tab;
+      });
+
+      // Save the updated bookmarks
+      chrome.storage.local.set({ savedTabs: savedTabs }, function() {
+          console.log('Bookmark title updated in storage.');
+          updatePopupBookmarkTitle(url, newName); // Update the UI with the new title
+      });
+  });
 }

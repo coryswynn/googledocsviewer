@@ -22,6 +22,9 @@ export function createToolbar(containerFrame, url) {
     toolbar.className = 'url-toolbar';
     containerFrame.appendChild(toolbar);
 
+    // Store the URL in the container frame's dataset
+    containerFrame.dataset.url = url;
+
     // Add the draggable handle
     const dragHandle = createDragHandle();
     toolbar.appendChild(dragHandle);
@@ -90,8 +93,12 @@ function createUrlTitle(url, containerFrame) {
 
 
     // First, try to get the title from saved memory
+    const bookmark = getBookmarkByURL(url); // Add a helper to check if it's a bookmarked URL
     const savedTitle = getSavedTabTitle(url);
-    if (savedTitle) {
+    if (bookmark) {
+        // If it's a bookmark, use the bookmark's name
+        updateContainerFrameTitle(containerFrame, bookmark.name);
+    } else if (savedTitle) {
         updateContainerFrameTitle(containerFrame, savedTitle);
     } else if (isChromeExtension) {
         console.log('running as extension');
@@ -268,4 +275,16 @@ function createCloseButton(containerFrame) {
 
     };
     return closeButton;
+}
+
+// Helper function to get the bookmark by URL
+function getBookmarkByURL(url) {
+    const sidebarData = JSON.parse(localStorage.getItem('sidebarData')) || { folders: [] };
+    for (let folder of sidebarData.folders) {
+        const bookmark = folder.bookmarks.find(bookmark => bookmark.url === url);
+        if (bookmark) {
+            return bookmark;
+        }
+    }
+    return null;
 }

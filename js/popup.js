@@ -21,7 +21,7 @@ document.getElementById('docForm').addEventListener('submit', function (e) {
 
         // Add URLs of selected saved tabs
         savedTabs.forEach((tab, index) => {
-            const savedTabId = (index); // Generate a negative unique ID for saved tabs
+            const savedTabId = index; // Generate a negative unique ID for saved tabs
             if (selectedTabIds.includes(savedTabId)) {
                 selectedUrls.push(tab.url); // Add the saved tab URL if selected
             }
@@ -44,6 +44,7 @@ function addTabsToDOM(tabs, tabList) {
         if (/https:\/\/docs\.google\.com\/(document|spreadsheets|presentation)/.test(tab.url)) {
             const tabItem = document.createElement('label');
             tabItem.className = 'tab-item';
+            tabItem.setAttribute('data-url', tab.url); // Store the URL in a data attribute
 
             // Checkbox for tab selection
             const checkbox = document.createElement('input');
@@ -74,7 +75,15 @@ function addTabsToDOM(tabs, tabList) {
 
             // Tab title
             let labelText = tab.title.replace(/( - Google (Sheets|Docs|Slides))/, ''); // Clean up title
-            const titleNode = document.createTextNode(labelText);
+
+            // Check if the tab URL is saved in savedTabs and use the saved name if available
+            const savedTab = savedTabs.find(savedTab => savedTab.url === tab.url);
+            if (savedTab) {
+                labelText = savedTab.title || labelText; // Use saved title if it exists, otherwise fallback to the cleaned title
+            }
+
+            const titleNode = document.createElement('span');
+            titleNode.textContent = labelText; // Set the title (saved or default)
 
             // Append elements to tabItem
             tabItem.appendChild(checkbox);
@@ -182,11 +191,35 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
+    chrome.storage.local.get('savedTabs', function (result) {
+        const savedTabs = result.savedTabs || [];
+
+        // After you load the saved tabs:
+        savedTabs.forEach(tab => {
+            const { url, title } = tab;
+            console.log('UPDATED BOOKMARK NAME')
+            updatePopupBookmarkTitle(url, title); // Apply the saved title on popup load
+        });
+    });
+
     // Add event listener to update Chrome storage when sidebar toggled
     sidebarToggle.addEventListener('change', function () {
         chrome.storage.local.set({ 'sidebarEnabled': sidebarToggle.checked }, function () {
             console.log('sidebarEnabled set to ' + sidebarToggle.checked);
         });
+    });
+
+    // Listen for changes to the bookmarks in chrome.storage.local
+    chrome.storage.onChanged.addListener((changes, namespace) => {
+        if (namespace === 'local' && changes.savedTabs) {
+            const updatedTabs = changes.savedTabs.newValue;
+
+            // Iterate over the updated tabs to find which one has changed
+            updatedTabs.forEach(tab => {
+                const { url, title } = tab;
+                updatePopupBookmarkTitle(url, title); // Update the title in the popup
+            });
+        }
     });
 
     // Dark mode toggle listener
@@ -213,3 +246,19 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 });
+
+// Function to update the popup's bookmark title
+export function updatePopupBookmarkTitle(url, newName) {
+    const tabItems = document.querySelectorAll('.tab-item');
+
+    tabItems.forEach(tabItem => {
+        const tabUrl = tabItem.getAttribute('data-url');
+        const tabTitleNode = tabItem.querySelector('span'); // Select the span element containing the title
+
+        // If the URL matches, update the title
+        if (tabUrl === url && tabTitleNode) {
+            tabTitleNode.textContent = newName; // Update the tab title in the popup
+        }
+    });
+}
+
