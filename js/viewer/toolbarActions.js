@@ -278,7 +278,7 @@ function createCloseButton(containerFrame) {
 }
 
 // Helper function to get the bookmark by URL
-function getBookmarkByURL(url) {
+export function getBookmarkByURL(url) {
     const sidebarData = JSON.parse(localStorage.getItem('sidebarData')) || { folders: [] };
     for (let folder of sidebarData.folders) {
         const bookmark = folder.bookmarks.find(bookmark => bookmark.url === url);

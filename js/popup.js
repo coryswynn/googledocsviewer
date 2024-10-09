@@ -21,7 +21,7 @@ document.getElementById('docForm').addEventListener('submit', function (e) {
 
         // Add URLs of selected saved tabs
         savedTabs.forEach((tab, index) => {
-            const savedTabId = index; // Generate a negative unique ID for saved tabs
+            const savedTabId = -[index]; // Generate a negative unique ID for saved tabs
             if (selectedTabIds.includes(savedTabId)) {
                 selectedUrls.push(tab.url); // Add the saved tab URL if selected
             }
@@ -37,7 +37,7 @@ document.getElementById('docForm').addEventListener('submit', function (e) {
 
 // Function to add tabs to the DOM
 function addTabsToDOM(tabs, tabList) {
-    const savedTabs = loadFromLocalStorage('savedTabs') || []; // Load saved tabs from local storage
+    let savedTabs = loadFromLocalStorage('savedTabs') || []; // Load saved tabs from local storage
     let validTabsFound = false;
 
     tabs.forEach(function (tab, index) {
@@ -76,10 +76,10 @@ function addTabsToDOM(tabs, tabList) {
             // Tab title
             let labelText = tab.title.replace(/( - Google (Sheets|Docs|Slides))/, ''); // Clean up title
 
-            // Check if the tab URL is saved in savedTabs and use the saved name if available
-            const savedTab = savedTabs.find(savedTab => savedTab.url === tab.url);
-            if (savedTab) {
-                labelText = savedTab.title || labelText; // Use saved title if it exists, otherwise fallback to the cleaned title
+            // Check if the tab is already in savedTabs by URL
+            if (!savedTabs.some(savedTab => savedTab.url === tab.url)) {
+                const matchingTab = tabs.find(t => t.url === tab.url);
+                labelText = matchingTab ? matchingTab.title.replace(/( - Google (Sheets|Docs|Slides))/, '') : 'Title Unavailable';
             }
 
             const titleNode = document.createElement('span');
@@ -92,6 +92,9 @@ function addTabsToDOM(tabs, tabList) {
 
             // Check if the tab is saved and add green checkmark if true
             const isSaved = savedTabs.some(savedTab => savedTab.url === tab.url);
+            const savedTab = savedTabs.find(savedTab => savedTab.url === tab.url);
+            
+            console.log(savedTab);
             if (isSaved) {
                 const space = document.createTextNode(' '); // Add a space
                 const checkmark = document.createElement('i');
@@ -99,6 +102,9 @@ function addTabsToDOM(tabs, tabList) {
                 checkmark.style.color = '#2e8c0b';
                 tabItem.appendChild(space); // Add space after the title
                 tabItem.appendChild(checkmark); // Add the checkmark after the title
+
+                // Update the title with the saved title if available, otherwise use the labelText
+                titleNode.textContent = savedTab.title || labelText;
             }
 
             // Append tabItem to the tabList
@@ -250,15 +256,15 @@ document.addEventListener('DOMContentLoaded', function () {
 // Function to update the popup's bookmark title
 export function updatePopupBookmarkTitle(url, newName) {
     const tabItems = document.querySelectorAll('.tab-item');
+    console.log("TAB ITEMS BABY: ", tabItems);
 
     tabItems.forEach(tabItem => {
         const tabUrl = tabItem.getAttribute('data-url');
         const tabTitleNode = tabItem.querySelector('span'); // Select the span element containing the title
 
-        // If the URL matches, update the title
-        if (tabUrl === url && tabTitleNode) {
+        // Ensure that both tabUrl and tabTitleNode exist before proceeding
+        if (tabUrl && tabUrl === url && tabTitleNode) {
             tabTitleNode.textContent = newName; // Update the tab title in the popup
         }
     });
 }
-

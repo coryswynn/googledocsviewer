@@ -1098,6 +1098,18 @@ function initializeSidebar(sidebar) {
           // Step 6: Remove deselected tabs from savedTabs
           savedTabs = savedTabs.filter(tab => selectedTabs.includes(tab.url));
 
+          // Step 7: Update renamed tab titles in 'savedTabs'
+          function updateSavedTabTitle(url, newTitle) {
+            let savedTabs = loadFromLocalStorage('savedTabs') || [];
+            const tabIndex = savedTabs.findIndex(tab => tab.url === url);
+            if (tabIndex !== -1) {
+              savedTabs[tabIndex].title = newTitle;
+              saveToLocalStorage('savedTabs', savedTabs);
+              console.log('UPDATING NAME TAB TITLE: ', savedTabs);
+              saveBookmarks(folderIndex); // Save and notify listeners
+            }
+          }
+
           selectedTabs.forEach(url => {
             // Only add the tab to savedTabs if it’s not already there
             if (!savedTabs.some(tab => tab.url === url)) {
@@ -1108,15 +1120,6 @@ function initializeSidebar(sidebar) {
             }
           });
 
-          // Step 7: Rename bookmarks if they have been updated
-          newBookmarkList.forEach(bookmark => {
-            const existingBookmark = folder.bookmarks.find(b => b.url === bookmark.url);
-            if (existingBookmark && existingBookmark.name !== bookmark.name) {
-              // Call the renameBookmark function to update the bookmark title
-              renameBookmark(bookmark.url, bookmark.name);
-            }
-          });
-
           // Save updated savedTabs to localStorage
           saveToLocalStorage('savedTabs', savedTabs);
 
@@ -1124,6 +1127,13 @@ function initializeSidebar(sidebar) {
           folder.name = newFolderName;
           folder.icon = selectedIcon;
           folder.bookmarks = newBookmarkList;
+
+          // After updating the folder name and bookmarks
+          folder.bookmarks.forEach(bookmark => {
+            // Update 'savedTabs' with the new title for each bookmark
+            updateSavedTabTitle(bookmark.url, bookmark.name);
+            console.log('UPDATING BOOKMARK TITLE: ', bookmark.name);
+          });
 
           // Save updated folder data to localStorage
           saveToLocalStorage(SIDEBAR_DATA_KEY, sidebarData);
@@ -1527,22 +1537,12 @@ function updateToolbarTitlesForBookmark(url, newName) {
   });
 }
 
-function renameBookmark(url, newName) {
-  chrome.storage.local.get('savedTabs', function(result) {
-      let savedTabs = result.savedTabs || [];
+// Function to save bookmarks and trigger update notification
+function saveBookmarks(folderIndex) {
+  saveToLocalStorage(SIDEBAR_DATA_KEY, sidebarData);
 
-      // Find the bookmark to rename
-      savedTabs = savedTabs.map((tab) => {
-          if (tab.url === url) {
-              return { ...tab, title: newName }; // Update the title
-          }
-          return tab;
-      });
-
-      // Save the updated bookmarks
-      chrome.storage.local.set({ savedTabs: savedTabs }, function() {
-          console.log('Bookmark title updated in storage.');
-          updatePopupBookmarkTitle(url, newName); // Update the UI with the new title
-      });
+  // Notify listeners (like popup.js) that bookmarks have been updated
+  chrome.storage.local.set({ bookmarksUpdated: true }, function () {
+    console.log('Bookmarks updated, notifying listeners.');
   });
 }
