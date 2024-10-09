@@ -201,8 +201,24 @@ function appendTabsToModal(tabs, combinedTabsContainer, activeContainerFrame, ty
 
     // Favicon
     const favicon = document.createElement('img');
-    favicon.src = 'https://s2.googleusercontent.com/s2/favicons?domain_url=' + tab.url;
     favicon.className = 'favicon';
+    favicon.alt = 'Tab Favicon';
+
+    // Check the URL to determine the appropriate favicon
+    if (/https:\/\/docs\.google\.com\/document\//.test(tab.url)) {
+      // Google Docs favicon
+      favicon.src = 'https://ssl.gstatic.com/docs/doclist/images/icon_11_document_favicon.ico';
+    } else if (/https:\/\/docs\.google\.com\/spreadsheets\//.test(tab.url)) {
+      // Google Sheets favicon
+      favicon.src = 'https://ssl.gstatic.com/docs/doclist/images/icon_11_spreadsheet_favicon.ico';
+    } else if (/https:\/\/docs\.google\.com\/presentation\//.test(tab.url)) {
+      // Google Slides favicon
+      favicon.src = 'https://ssl.gstatic.com/docs/doclist/images/icon_11_presentation_favicon.ico';
+    } else {
+      // Fallback to default favicon service for other URLs
+      favicon.src = `https://s2.googleusercontent.com/s2/favicons?domain_url=${tab.url}`;
+    }
+
     tabItem.appendChild(favicon);
 
     // Title
@@ -317,7 +333,7 @@ export function updateBrowserURL() {
   // Update the duplicate button functionality with the new URL
   const duplicateButton = activeContainerFrame.querySelector('.duplicate-frame-button');
   if (duplicateButton) {
-    duplicateButton.onclick = function() {
+    duplicateButton.onclick = function () {
       duplicateButton.title = 'Duplicate URL';
       addNewFrame(currentTabUrl);
     };
@@ -326,7 +342,7 @@ export function updateBrowserURL() {
   // Update the copy button functionality with the new URL
   const copyButton = activeContainerFrame.querySelector('.copy-url-button');
   if (copyButton) {
-    copyButton.onclick = function() {
+    copyButton.onclick = function () {
       copyButton.title = 'Copy URL';
       navigator.clipboard.writeText(currentTabUrl).then(() => {
         alert('URL copied to clipboard!');
@@ -337,7 +353,7 @@ export function updateBrowserURL() {
   // Update the pop-out button functionality with the new URL
   const popOutButton = activeContainerFrame.querySelector('.pop-out-button');
   if (popOutButton) {
-    popOutButton.onclick = function() {
+    popOutButton.onclick = function () {
       window.open(currentTabUrl, '_blank');
     };
   }
@@ -466,7 +482,7 @@ function appendTabs(tabs, container, type) {
           if (iframe) iframe.src = tab.url;
           currentTabUrl = tab.url;
           updateBrowserURL();
-          
+
           const titleElement = activeContainerFrame.querySelector('.url-text');
           if (titleElement) titleElement.textContent = tab.title.replace(/( - Google (Sheets|Docs|Slides))/g, '');
 
