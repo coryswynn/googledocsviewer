@@ -221,12 +221,19 @@ function appendTabsToModal(tabs, combinedTabsContainer, activeContainerFrame, ty
 
     tabItem.appendChild(favicon);
 
-    // Title
-    const cleanTitle = (tab.title || 'Untitled').toString().trim().replace(/( - Google (Sheets|Docs|Slides))/, ''); // Ensure title is valid
+    // Check if the tab is saved and use the saved title if available
+    const savedTab = savedTabs.find(savedTab => savedTab.url === tab.url);
+    const cleanTitle = (savedTab ? savedTab.title : (tab.title || 'Untitled'))
+      .toString()
+      .trim()
+      .replace(/( - Google (Sheets|Docs|Slides))/, ''); // Clean the title
+
+    // Create a span for the title
     const titleSpan = document.createElement('span');
     titleSpan.textContent = cleanTitle;
     titleSpan.className = 'tab-title';
     tabItem.appendChild(titleSpan);
+
 
     // Add-frame button
     const plusButton = createPlusButton(activeContainerFrame, tab.url);
