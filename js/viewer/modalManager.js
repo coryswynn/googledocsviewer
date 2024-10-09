@@ -140,15 +140,19 @@ function populateOpenTabsOrMessage(combinedTabsContainer, activeContainerFrame) 
     // Query open tabs from the Chrome extension
     chrome.tabs.query({}, function (tabs) {
       const uniqueTabs = tabs.reduce((acc, current) => {
-        const x = acc.find(item => item.title === current.title);
-        if (!x) {
-          return acc.concat([current]);
+        // Find by URL instead of title
+        const existingTab = acc.find(item => item.url === current.url);
+        if (!existingTab) {
+          return acc.concat([current]); // Add the current tab if URL is unique
         } else {
-          return acc;
+          return acc; // Skip if the URL already exists
         }
       }, []);
 
+      // Sort the unique tabs based on title (can keep this sorting if needed)
       const sortedTabs = uniqueTabs.sort((a, b) => a.title.localeCompare(b.title));
+
+      // Append the sorted, unique tabs to the modal
       appendTabsToModal(sortedTabs, combinedTabsContainer, activeContainerFrame, 'Open Tab'); // Append open tabs
     });
   } else {
@@ -230,10 +234,11 @@ function appendTabsToModal(tabs, combinedTabsContainer, activeContainerFrame, ty
 
     // Create a span for the title
     const titleSpan = document.createElement('span');
-    titleSpan.textContent = cleanTitle;
     titleSpan.className = 'tab-title';
-    tabItem.appendChild(titleSpan);
+    titleSpan.textContent = cleanTitle; // Set the title here
 
+    // Append the title span to the tab item
+    tabItem.appendChild(titleSpan);
 
     // Add-frame button
     const plusButton = createPlusButton(activeContainerFrame, tab.url);

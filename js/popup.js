@@ -76,12 +76,6 @@ function addTabsToDOM(tabs, tabList) {
             // Tab title
             let labelText = tab.title.replace(/( - Google (Sheets|Docs|Slides))/, ''); // Clean up title
 
-            // Check if the tab is already in savedTabs by URL
-            if (!savedTabs.some(savedTab => savedTab.url === tab.url)) {
-                const matchingTab = tabs.find(t => t.url === tab.url);
-                labelText = matchingTab ? matchingTab.title.replace(/( - Google (Sheets|Docs|Slides))/, '') : 'Title Unavailable';
-            }
-
             const titleNode = document.createElement('span');
             titleNode.textContent = labelText; // Set the title (saved or default)
 
@@ -91,20 +85,27 @@ function addTabsToDOM(tabs, tabList) {
             tabItem.appendChild(titleNode);
 
             // Check if the tab is saved and add green checkmark if true
-            const isSaved = savedTabs.some(savedTab => savedTab.url === tab.url);
-            const savedTab = savedTabs.find(savedTab => savedTab.url === tab.url);
+            const matchingSavedTabs = savedTabs.filter(savedTab => savedTab.url === tab.url);
             
-            console.log(savedTab);
-            if (isSaved) {
+            console.log(matchingSavedTabs);
+            if (matchingSavedTabs.length > 0) {
                 const space = document.createTextNode(' '); // Add a space
                 const checkmark = document.createElement('i');
                 checkmark.className = 'bx bxs-check-circle';
                 checkmark.style.color = '#2e8c0b';
                 tabItem.appendChild(space); // Add space after the title
                 tabItem.appendChild(checkmark); // Add the checkmark after the title
-
-                // Update the title with the saved title if available, otherwise use the labelText
-                titleNode.textContent = savedTab.title || labelText;
+            
+                // Loop through all matching saved tabs and update the title if available
+                matchingSavedTabs.forEach(savedTab => {
+                    // Update the title if the saved tab has a title, otherwise use the default cleaned-up title
+                    if (savedTab.title) {
+                        labelText = savedTab.title.replace(/( - Google (Sheets|Docs|Slides))/, '');
+                    }
+                });
+                
+                // Update the title node with the most recent matching saved title
+                titleNode.textContent = labelText;
             }
 
             // Append tabItem to the tabList

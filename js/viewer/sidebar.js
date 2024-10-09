@@ -1044,76 +1044,36 @@ function initializeSidebar(sidebar) {
 
       const newFolderName = folderNameInput.value.trim();
       if (newFolderName) {
-        // Get selected tabs
         const selectedTabs = Array.from(document.querySelectorAll('.tab-checkbox:checked')).map(
           (checkbox) => checkbox.value
         );
 
         // Use chrome.tabs.query to get tab information for open tabs
         chrome.tabs.query({}, function (tabs) {
-          const newBookmarks = selectedTabs.map((url) => {
-            const matchingTab = tabs.find(tab => tab.url === url);
-
-            // If no matching tab is found, skip creating a bookmark for it
-            if (!matchingTab) return null;
-
-            // Use the tab's title if found, otherwise fallback to saved title or 'Title Unavailable'
-            let tabTitle = matchingTab ? getSavedTabTitle(url) : matchingTab.title || 'Title Unavailable';
-
-            // Clean up the title by removing " - Google Sheets", " - Google Docs", and " - Google Slides"
-            if (tabTitle) {
-              tabTitle = tabTitle.replace(/ - Google (Sheets|Docs|Slides)/, '');
-            }
-
-            return { name: tabTitle, url };
-          }).filter(Boolean); // Filter out null values (i.e., when no matching tab was found)
-
-          // Save the selected tabs to 'savedTabs'
+          // Step 1: Load existing savedTabs from localStorage, ensuring we don't overwrite other folder's tabs
           let savedTabs = loadFromLocalStorage('savedTabs') || [];
 
-          // Step 1: Filter out bookmarks that were deselected
+          // Step 2: Update folder bookmarks (only modify the bookmarks for this folder)
           let updatedBookmarks = folder.bookmarks.filter(bookmark => selectedTabs.includes(bookmark.url));
 
-          // Step 2: Identify new bookmarks (those that aren't already in the updatedBookmarks list)
+          // Step 3: Identify new bookmarks to add (that aren't already in the updatedBookmarks list)
           let addedBookmarks = selectedTabs
             .filter(url => !updatedBookmarks.some(bookmark => bookmark.url === url))
             .map(url => {
               const matchingTab = tabs.find(tab => tab.url === url);
               let tabTitle = matchingTab ? getSavedTabTitle(url) || matchingTab.title : 'Title Unavailable';
 
-              // Clean up Google-specific titles
+              // Clean up titles (Google Sheets, Docs, Slides, etc.)
               tabTitle = tabTitle.replace(/ - Google (Sheets|Docs|Slides)/, '');
 
               return { name: tabTitle, url };
             });
 
-          // Step 3: Merge updatedBookmarks with addedBookmarks, while preserving order
-          // We preserve the original order of `updatedBookmarks` and append any new bookmarks
+          // Step 4: Merge updatedBookmarks with addedBookmarks (keeping the original order)
           let newBookmarkList = [...updatedBookmarks, ...addedBookmarks];
 
-          // Step 4: Save the updated bookmarks to localStorage
-          saveToLocalStorage(SIDEBAR_DATA_KEY, sidebarData);
-
-          // Step 5: Save updated savedTabs back to localStorage
-          saveToLocalStorage('savedTabs', savedTabs);
-
-          // Step 6: Remove deselected tabs from savedTabs
-          savedTabs = savedTabs.filter(tab => selectedTabs.includes(tab.url));
-
-          // Step 7: Update renamed tab titles in 'savedTabs'
-          function updateSavedTabTitle(url, newTitle) {
-            let savedTabs = loadFromLocalStorage('savedTabs') || [];
-            const tabIndex = savedTabs.findIndex(tab => tab.url === url);
-            if (tabIndex !== -1) {
-              savedTabs[tabIndex].title = newTitle;
-              saveToLocalStorage('savedTabs', savedTabs);
-              console.log('UPDATING NAME TAB TITLE: ', savedTabs);
-              saveBookmarks(folderIndex); // Save and notify listeners
-            }
-          }
-
+          // Step 5: Append selected tabs to savedTabs (without overwriting other folders' saved tabs)
           selectedTabs.forEach(url => {
-            // Only add the tab to savedTabs if it’s not already there
             if (!savedTabs.some(tab => tab.url === url)) {
               const matchingTab = tabs.find(tab => tab.url === url);
               let tabTitle = matchingTab ? matchingTab.title : getSavedTabTitle(url) || 'Title Unavailable';
@@ -1122,38 +1082,35 @@ function initializeSidebar(sidebar) {
             }
           });
 
-          // Save updated savedTabs to localStorage
-          saveToLocalStorage('savedTabs', savedTabs);
-
-          // Update the existing folder's name, icon, and bookmarks
+          // Step 6: Update folder details (name, icon, and bookmarks)
           folder.name = newFolderName;
           folder.icon = selectedIcon;
           folder.bookmarks = newBookmarkList;
 
-          // After updating the folder name and bookmarks
-          folder.bookmarks.forEach(bookmark => {
-            // Update 'savedTabs' with the new title for each bookmark
-            updateSavedTabTitle(bookmark.url, bookmark.name);
-            console.log('UPDATING BOOKMARK TITLE: ', bookmark.name);
-          });
-
-          // Save updated folder data to localStorage
+          // Step 7: Save updated folder data to localStorage
           saveToLocalStorage(SIDEBAR_DATA_KEY, sidebarData);
 
-          // Re-render the sidebar
+          // Step 8: Update the titles in savedTabs based on the folder's bookmarks
+          folder.bookmarks.forEach(bookmark => {
+            const tabIndex = savedTabs.findIndex(tab => tab.url === bookmark.url);
+            if (tabIndex !== -1) {
+              savedTabs[tabIndex].title = bookmark.name;
+            }
+          });
+
+          // Step 9: Save the updated savedTabs back to localStorage (AFTER all updates are done)
+          saveToLocalStorage('savedTabs', savedTabs);
+
+          // Re-render the sidebar and update toolbar titles
           renderSidebar();
-          // Reapply event listeners for sidebar toggle after re-render
           reapplySidebarToggleListeners();
-          // Update toolbar titles for all bookmarks in this folder
           newBookmarkList.forEach(bookmark => {
-            console.log('Updating toolbar for bookmark:', bookmark.url); // Debugging line
-            // Update the toolbar titles
             updateToolbarTitlesForBookmark(bookmark.url, bookmark.name);
           });
 
-          // Close the modal
+          // Close the modal and hide Add Bookmark section
           modal.style.display = 'none';
-          hideAddBookmarkSection(); // Hide Add Bookmark when closing modal
+          hideAddBookmarkSection();
         });
       }
     };
@@ -1397,6 +1354,8 @@ function deduplicateTabsByURL(tabs) {
 // Helper function to render the tabs in the container
 function renderTabsInContainer(tabs, container, existingBookmarks, updateBookmarkList) {
   container.innerHTML = ''; // Clear previous content
+  // Fetch saved tabs from localStorage
+  const savedTabs = getSavedTabs();
 
   // Render all tabs initially
   const tabElements = tabs.map((tab) => {
@@ -1463,10 +1422,17 @@ function renderTabsInContainer(tabs, container, existingBookmarks, updateBookmar
       favicon.src = `https://s2.googleusercontent.com/s2/favicons?domain_url=${tab.url}`;
     }
 
-    // Add title
+    // Check if the tab is saved and use the saved title if available
+    const savedTab = savedTabs.find(savedTab => savedTab.url === tab.url);
+    const cleanTitle = (savedTab ? savedTab.title : (tab.title || 'Untitled'))
+      .toString()
+      .trim()
+      .replace(/( - Google (Sheets|Docs|Slides))/, ''); // Clean the title
+
+    // Create a span for the title
     const titleSpan = document.createElement('span');
-    titleSpan.textContent = tab.title.replace(/( - Google (Sheets|Docs|Slides))/g, ''); // Clean up title
     titleSpan.className = 'tab-title';
+    titleSpan.textContent = cleanTitle; // Set the title here
 
     // Append elements to tabItem
     tabItem.appendChild(checkbox);
