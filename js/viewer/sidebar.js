@@ -747,9 +747,8 @@ function initializeSidebar(sidebar) {
               if (!matchingTab) return null;
 
               // Use the tab's title if found, otherwise fallback to saved title or 'Title Unavailable'
-              let tabTitle = matchingTab
-                ? matchingTab.title
-                : getSavedTabTitle(url) || 'Title Unavailable';
+              let tabTitle = getSavedTabTitle(url) 
+              || (matchingTab ? matchingTab.title : 'Title Unavailable');
 
               // Clean up the title by removing " - Google Sheets", " - Google Docs", and " - Google Slides"
               tabTitle = tabTitle.replace(/ - Google (Sheets|Docs|Slides)/, '');
