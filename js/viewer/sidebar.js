@@ -1355,9 +1355,6 @@ function initializeSidebar(sidebar) {
   // This can be achieved with CSS :hover or by adding event listeners
   // We need to adjust the CSS to show the subMenu on hover
 
-  // Also, ensure that bookmarks open in a new iframe
-  // This is already handled in the addNewFrame function
-
 };
 
 // Function to initialize sidebar navigation, attaching event listeners to sidebar elements

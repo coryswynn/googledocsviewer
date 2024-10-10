@@ -147,6 +147,7 @@
 
 .sidebar .nav-links li.showMenu .sub-menu {
   display: block;
+  opacity: 1;
 }
 
 .sidebar .nav-links li .sub-menu a {
@@ -155,10 +156,17 @@
   padding: 5px 0;
   white-space: nowrap;
   opacity: 0.6;
-  transition-delay: 0s;
+  transition: opacity 0.2s ease;
   width: 180px;
-  text-overflow:ellipsis;
-  overflow:hidden;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+/* Show the sub-menu when hovering over the parent folder */
+.sidebar .nav-links .folder-item:hover .sub-menu {
+  display: block;
+  /* Show submenu on hover */
+  opacity: 1;
 }
 
 .sidebar .nav-links li .sub-menu a:hover {
@@ -168,24 +176,24 @@
 .sidebar.close .nav-links li .sub-menu {
   position: absolute;
   left: 100%;
-  top: -10px;
+  top: 0;
   margin-top: 0;
   padding: 10px 20px;
   border-radius: 0 6px 6px 0;
   opacity: 0;
   display: block;
-  pointer-events: auto;
-  transition: 0s;
+  pointer-events: none;
+  transition: opacity 0.3s ease, left 0.3s ease;
   z-index: 200;
 }
 
 .sidebar.close .nav-links li:hover .sub-menu {
   display: block;
-  background-color:#1d1b31;
+  background-color: #1d1b31;
   top: 0;
   opacity: 1;
   pointer-events: auto;
-  transition: all 0.4s ease;
+  left: 100%; /* Ensure it pops out fully */
   z-index: 1;
 }
 
@@ -378,7 +386,8 @@ body.sidebar-hidden .home-section {
   /* Match the arrow icon size */
   cursor: pointer;
   transition: color 0.8s ease;
-  width: 5px; /* Adjust to create a smaller clickable area */
+  width: 5px;
+  /* Adjust to create a smaller clickable area */
 
 }
 
@@ -410,7 +419,8 @@ body.sidebar-hidden .home-section {
 .sidebar .nav-links li .arrow {
   position: absolute;
   right: 20px;
-  width: 5px; /* Adjust to create a smaller clickable area */
+  width: 5px;
+  /* Adjust to create a smaller clickable area */
   min-width: 30px;
   pointer-events: auto;
 }
@@ -423,11 +433,14 @@ body.sidebar-hidden .home-section {
   font-size: 16px;
   color: #808080 !important;
   cursor: pointer;
-  width: 5px; /* Adjust to create a smaller clickable area */
-  margin-right: 3px; /* Space between the gear icon and the arrow */
+  width: 5px;
+  /* Adjust to create a smaller clickable area */
+  margin-right: 3px;
+  /* Space between the gear icon and the arrow */
   min-width: 30px;
 
 }
+
 .sidebar .nav-links li .edit-gear-icon:hover {
   color: white !important;
 }
@@ -437,18 +450,21 @@ body.sidebar-hidden .home-section {
   align-items: center;
   justify-content: space-between;
   position: relative;
-  padding-right: 30px; /* Reserve space for the arrow */
+  padding-right: 30px;
+  /* Reserve space for the arrow */
 }
 
 .bx-delete-icon {
   display: inline-block;
-  color: red;  /* Change the color to whatever you like */
+  color: red;
+  /* Change the color to whatever you like */
   cursor: pointer;
 }
 
 .bx-pencil {
   cursor: pointer;
-  margin-left: 10px; /* Adjust spacing if needed */
+  margin-left: 10px;
+  /* Adjust spacing if needed */
 }
 
 /* ADD NEW FOLDER MODAL */
@@ -459,7 +475,8 @@ body.sidebar-hidden .home-section {
   justify-content: space-between;
   flex-wrap: nowrap;
   margin-top: 10px;
-  max-width: 100%; /* Ensure icons stay within bounds */
+  max-width: 100%;
+  /* Ensure icons stay within bounds */
   box-sizing: border-box;
   overflow: hidden;
 }
@@ -603,8 +620,10 @@ body.sidebar-hidden .home-section {
 }
 
 .tab-item.selected {
-  background-color: #d2ebf5; /* Background color when selected */
-  border-color: #a0cde8; /* Change border when selected */
+  background-color: #d2ebf5;
+  /* Background color when selected */
+  border-color: #a0cde8;
+  /* Change border when selected */
 }
 
 .tab-item:last-child {
@@ -619,7 +638,8 @@ body.sidebar-hidden .home-section {
 .tab-favicon {
   width: 16px;
   height: 16px;
-  margin-right: 8px; /* Space between favicon and title */
+  margin-right: 8px;
+  /* Space between favicon and title */
 }
 
 .tab-title {
@@ -651,7 +671,7 @@ body.sidebar-hidden .home-section {
   background-color: #f0f8ff;
 }
 
-.tab-selections{
+.tab-selections {
   max-height: 200px;
   overflow-y: auto;
   border: 1px solid #ddd;
@@ -676,7 +696,8 @@ body.sidebar-hidden .home-section {
   align-items: center;
   padding: 10px;
   border-bottom: 1px solid #ddd;
-  width: 100%; /* Make sure the list item takes up the full width */
+  width: 100%;
+  /* Make sure the list item takes up the full width */
   z-index: 1002;
 }
 
@@ -706,7 +727,8 @@ body.sidebar-hidden .home-section {
 
 .clickable-label {
   cursor: pointer;
-  color: #007BFF; /* Highlight Add Bookmark */
+  color: #007BFF;
+  /* Highlight Add Bookmark */
 }
 
 .clickable-label:hover {
@@ -716,10 +738,10 @@ body.sidebar-hidden .home-section {
 /* DARK MODE */
 
 /* Search Input Dark Mode */
-.dark-mode .styled-input, 
-.dark-mode .tab-search-bar, 
-.dark-mode .tab-search-bar:hover, 
-.dark-mode .tab-search-bar:focus, 
+.dark-mode .styled-input,
+.dark-mode .tab-search-bar,
+.dark-mode .tab-search-bar:hover,
+.dark-mode .tab-search-bar:focus,
 .dark-mode .tab-selections,
 .dark-mode .tab-item {
   background-color: #333;
@@ -781,8 +803,10 @@ body.dark-mode {
 .folder-item.drag-over,
 .bookmark-item.drag-over,
 li.drag-over {
-  background-color: rgba(0, 120, 215, 0.2); /* Light blue background during drag-over */
-  border: 2px dashed #4A90E2; /* A modern blue highlight */
+  background-color: rgba(0, 120, 215, 0.2);
+  /* Light blue background during drag-over */
+  border: 2px dashed #4A90E2;
+  /* A modern blue highlight */
   border-radius: 8px;
   transition: border 0.2s ease, background-color 0.2s ease;
 }
@@ -813,36 +837,45 @@ li,
 
 /* Add hover state to indicate draggable items */
 .folder-item:hover,
-.bookmark-item:hover{
+.bookmark-item:hover {
   cursor: grab;
 }
 
 .bookmark-item .bookmark-actions {
-    pointer-events: all; /* Re-enable pointer events for interactive elements */
+  pointer-events: all;
+  /* Re-enable pointer events for interactive elements */
 }
 
 .bookmark-info {
   display: flex;
   flex-grow: 1;
-  align-items: center; /* Vertically align the content */
-  justify-content: flex-start; /* Align items to the left */
-  width: 100%; /* Ensure it expands to the full width */
+  align-items: center;
+  /* Vertically align the content */
+  justify-content: flex-start;
+  /* Align items to the left */
+  width: 100%;
+  /* Ensure it expands to the full width */
 }
 
 .bookmark-info img.bookmark-favicon {
-  margin-right: 10px; /* Add some space between the favicon and the bookmark name */
+  margin-right: 10px;
+  /* Add some space between the favicon and the bookmark name */
   pointer-events: none;
 }
 
 .bookmark-info span {
-  flex-grow: 1; /* Allow the text to grow and fill the remaining space */
-  white-space: nowrap; /* Prevent text from wrapping */
-  text-overflow: ellipsis; /* Add ellipsis for overflow text */
+  flex-grow: 1;
+  /* Allow the text to grow and fill the remaining space */
+  white-space: nowrap;
+  /* Prevent text from wrapping */
+  text-overflow: ellipsis;
+  /* Add ellipsis for overflow text */
 }
 
 li {
-  flex-grow: 1; /* Allow list items to expand if needed */
-  width: 100%; /* Ensure the list item takes the full width */
-  z-index:999;
+  flex-grow: 1;
+  /* Allow list items to expand if needed */
+  width: 100%;
+  /* Ensure the list item takes the full width */
+  z-index: 999;
 }
-
