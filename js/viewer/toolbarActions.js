@@ -136,27 +136,13 @@ function updateTitleFromHtml(html, containerFrame) {
     try {
         const parser = new DOMParser();
         const doc = parser.parseFromString(html, "text/html");
-
-        // Check for the title tag
         const titleTag = doc.querySelector('title');
         if (titleTag && titleTag.innerText) {
             const newTitle = titleTag.innerText.replace(/( - Google (Sheets|Docs|Slides))/, '');
             updateContainerFrameTitle(containerFrame, newTitle);
-        } 
-        // If title is not found, check for the element using XPath
-        else {
-            const xpath = "/html/body/div[2]/div[3]/div[2]/div[1]/div[2]/div[1]/div/div[1]/input";
-            const xpathResult = doc.evaluate(xpath, doc, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
-            const inputElement = xpathResult.singleNodeValue;
-
-            if (inputElement) {
-                console.log('Input element found via XPath:', inputElement);
-                updateContainerFrameTitle(containerFrame, inputElement);
-            } else {
-                updateContainerFrameTitle(containerFrame, 'Title unavailable');
-            }
+        } else {
+            updateContainerFrameTitle(containerFrame, 'Title unavailable');
         }
-
     } catch (parseError) {
         console.log('Error processing fetched HTML:', parseError);
     }
