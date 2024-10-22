@@ -18,3 +18,14 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         chrome.tabs.create({ url: chrome.runtime.getURL("../html/viewer.html") + "?urls=" + message.urls });
     }
 });
+
+chrome.runtime.setUninstallURL(
+    'https://www.gdocssplitview.com/uninstall',
+    () => {
+      if (chrome.runtime.lastError) {
+        console.error(chrome.runtime.lastError);
+      } else {
+        console.log('Uninstall URL set successfully.');
+      }
+    }
+  );
