@@ -1,0 +1,53 @@
+{
+  "manifest_version": 3,
+  "name": "Google Docs SplitView",
+  "version": "2.1.5",
+  "description": "Open and manage multiple Google Docs, Sheets, and Slides side-by-side in a single tab to boost your document workflow",
+  "permissions": [
+    "tabs",
+    "activeTab",
+    "storage",
+    "scripting"
+  ],
+  "host_permissions": [
+    "https://docs.google.com/*",
+    "https://docs.google.com/document/*",
+    "https://docs.google.com/spreadsheets/*",
+    "https://docs.google.com/presentation/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://docs.google.com/*",
+        "https://docs.google.com/document/*",
+        "https://docs.google.com/spreadsheets/*",
+        "https://docs.google.com/presentation/*"
+      ],
+      "js": [
+        "./js/focusMode.js",
+        "./js/contentScript.js"
+      ],
+      "css": [
+        "./css/content.css"
+      ],
+      "all_frames": true,
+      "run_at": "document_end"
+    }
+  ],
+  "background": {
+    "service_worker": "./js/background.js"
+  },
+  "action": {
+    "default_popup": "./html/popup.html",
+    "default_icon": {
+      "16": "./images/icon16.png",
+      "48": "./images/icon48.png",
+      "128": "./images/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "./images/icon16.png",
+    "48": "./images/icon48.png",
+    "128": "./images/icon128.png"
+  }
+}

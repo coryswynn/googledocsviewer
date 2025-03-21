@@ -1,0 +1,35 @@
+.scroll-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1000;
+    background: transparent;
+    pointer-events: none;
+    transition: background-color 0.3s ease;
+}
+
+.scroll-overlay.active {
+    pointer-events: auto;
+}
+
+/* Ensure url-container has relative positioning for overlay */
+.url-container {
+    position: relative;
+}
+
+/* Style for sync scroll icon animation */
+.bx-sync.bx-spin {
+    animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+} 
+

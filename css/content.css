@@ -1,0 +1,19 @@
+/* content.css */
+
+/* Hide the top menu, toolbar, and any other distracting elements */
+.url-container.distraction-free #docs-menubar,
+.url-container.distraction-free .docs-title-container,
+.url-container.distraction-free .kix-toolbar,
+.url-container.distraction-free .docs-butter-bar,
+.url-container.distraction-free .docs-sidebar-container {
+  display: none !important;
+}
+
+/* Adjust the editor area to fill the available space */
+.url-container.distraction-free .kix-appview-editor {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+}

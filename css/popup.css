@@ -1,0 +1,418 @@
+/* Improved styling for popup */
+
+body {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; /* Ensures the form/button are pushed to the bottom */
+    width: 425px;
+    padding: 0px 15px 0px;
+    font-family: 'Poppins', sans-serif;
+    background-color: #f5f5f5;
+    color: #333;
+    box-sizing: border-box; /* Ensures padding is included in width calculation */
+    height: auto;
+    overflow: hidden;
+
+}
+
+.header, .footer {
+    text-align: center;
+    overflow: hidden;
+}
+
+button {
+    width: calc(100% - 30px); /* Adjust width considering padding */
+    margin: 25px 0px 0px;
+    padding: 0px;
+    border: none;
+    border-radius: 5px;
+    background-color: #0078d7;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    display: block; /* Ensure block-level display */
+    font-family: 'Poppins', sans-serif; /* Now using Poppins */
+
+}
+
+button:hover {
+    background-color: #005ea6;
+}
+
+.tab-item {
+    display: flexbox;
+    width: calc(100% - 30px); /* Adjust width considering padding */
+    align-items: center;
+    margin: 5px auto 0;
+    padding: 5px;
+    background-color: white;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: background-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease; /* Updated to include transform and shadow transitions */
+    cursor: pointer;
+    display: block; /* Ensure block-level display */
+    font-family: 'Poppins', sans-serif; /* Now using Poppins */
+
+}
+
+.tab-item:hover {
+    background-color: #eaeaea;
+    transform: scale(1.03); /* Slightly scale up */
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2); /* Deeper shadow for a 'lifted' effect */
+}
+
+.checkbox {
+    margin-right: 10px; /* Add some space between the checkbox and the label */
+    cursor: pointer;
+}
+
+#no-tabs-message {
+    padding: 10px;
+    background-color: #ffcccc;
+    color: #333;
+    border-radius: 5px;
+    margin: 10px 0;
+    text-align: center;
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 5px;
+}
+
+.logo {
+    width:300px; /* Adjust based on actual logo size */
+    height: auto;
+    margin-top: 10px;
+    margin-bottom: 5px;
+}
+
+.subtitle {
+    font-family: 'Poppins', sans-serif; /* Now using Poppins */
+    letter-spacing: 0.3px; /* Slightly spaced out for a modern look */
+    font-weight: 400; /* 400 for regular, 700 for bold */
+    font-size: 12px;
+    text-align: center;
+    color: #666;
+    margin-bottom: 15px;
+    margin-top: 10px;
+}
+
+/* Favicon Styles */
+.favicon {
+    width: 12px; /* Adjust width as needed */
+    height: 12px; /* Adjust height as needed */
+    margin-left: 5px; /* Adjust margin as needed */
+    margin-right: 8px; /* Adjust margin as needed */
+  }
+
+  hr.dashed-shadow {
+    border: 0;
+    height: 1px;
+    background: #ccc;
+    background-image: linear-gradient(to right, #ccc, #ccc 50%, transparent 50%);
+    background-size: 10px 1px;
+    box-shadow: 0px 1px 2px rgba(0,0,0,0.1);
+    margin: 3px 0;
+}
+
+#tab-list-wrapper {
+    /* Adjust the height to ensure the list and button fit within the popup window */
+    max-height: calc(60vh); /* Example value, adjust based on your popup's height */
+    overflow-y: auto; /* Allows scrolling within the tab list if it exceeds the max height */
+    margin-bottom: 0px; /* Space between the list and the button */
+}
+
+.launch-splitview-button {
+    width: calc(100% - 20px); /* Adjust width considering padding */
+    padding: 8px;
+    margin: 10px 0px 10px;
+    border: none;
+    border-radius: 5px;
+    background-color: #0078d7;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    font-family: 'Poppins', sans-serif;
+    display: block; /* Ensure block-level display */
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.br {
+    font-size: 1px;
+}
+
+.docForm {
+    margin: 0px 0px 0px;
+}
+
+.sidebar {
+    width: 250px;
+    height: 100%;
+    background-color: #333;
+    position: fixed;
+    top: 0;
+    left: -250px; /* Initially hidden */
+    transition: left 0.3s ease;
+}
+
+.sidebar.open {
+    left: 0; /* Move it into view when open */
+}
+
+.sidebar-toggle {
+    text-align: center;
+    margin-top: 10px;
+    margin-right: 10px;
+    margin-left: 4px;
+}
+
+.sidebar-toggle label {
+    font-size: 12px;
+    margin-right: 3px;
+}
+
+.sidebar-toggle input[type="checkbox"] {
+    transform: scale(1.2);
+}
+
+
+/* Toggle Switch Styles */
+.sidebar-toggle {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.toggle-label {
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+    font-family: 'Poppins', sans-serif;
+    font-size: 12px;
+    color: #333;
+}
+
+.toggle-label input {
+    display: none;
+}
+
+.slider {
+    position: relative;
+    width: 40px;
+    height: 20px;
+    background-color: #ccc;
+    border-radius: 34px;
+    margin-right: 10px;
+    transition: background-color 0.3s;
+}
+
+.slider:before {
+    content: "";
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    left: 2px;
+    bottom: 2px;
+    background-color: white;
+    border-radius: 50%;
+    transition: transform 0.3s;
+}
+
+.toggle-label input:checked + .slider {
+    background-color: #0078d7;
+}
+
+.toggle-label input:checked + .slider:before {
+    transform: translateX(20px);
+}
+
+/* Styles for toggle switches */
+/* Container to hold both toggles side by side */
+.toggle-container {
+    display: flex;
+    justify-content: space-between; /* Evenly space them out */
+    align-items: center;
+    margin-left: 6px;
+    margin-right: 4px;
+    margin-top: 10px;
+    width: 100%; /* Full width to ensure good spacing */
+}
+
+.sidebar-toggle, .darkmode-toggle {
+    align-items: center;
+    flex: 1;
+    margin-top:5px;
+}
+
+/* Same styles for the individual toggles as before */
+.toggle-label {
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+    font-family: 'Poppins', sans-serif;
+    font-size: 12px;
+    font-weight: 400;
+}
+
+.toggle-label input[type="checkbox"] {
+    display: none;
+}
+
+.slider {
+    position: relative;
+    width: 40px;
+    height: 20px;
+    background-color: #ccc;
+    border-radius: 34px;
+    margin-right: 10px;
+    transition: background-color 0.2s ease;
+}
+
+.slider:before {
+    content: "";
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    background-color: white;
+    border-radius: 50%;
+    top: 2px;
+    left: 2px;
+    transition: transform 0.2s ease;
+}
+
+input:checked + .slider {
+    background-color: #4CAF50;
+}
+
+input:checked + .slider:before {
+    transform: translateX(20px);
+}
+
+
+/* Dark Mode Styles */
+body.dark-mode {
+    background-color: #1e1e1e; /* Dark background */
+    color: #ffffff; /* Text color for Dark Mode */
+}
+
+/* Update the button and text color in Dark Mode */
+body.dark-mode .launch-splitview-button {
+    background-color: #333333;
+    color: #ffffff;
+}
+
+body.dark-mode .launch-splitview-button:hover {
+    background-color: #737373;
+    color: #ffffff;
+}
+
+body.dark-mode .tab-item {
+    background-color: #333;
+    color: #e0e0e0;
+}
+
+/* Toggle label in Dark Mode */
+body.dark-mode .toggle-label {
+    color: #ffffff;
+}
+
+/* Subtitle text in Dark Mode */
+body.dark-mode .subtitle {
+    color: #ffffff;
+}
+
+/* Logo update in Dark Mode */
+body.dark-mode #logo-img {
+    content: url('https://i.imgur.com/m4Ge84P.png'); /* Dark Mode Logo */
+}
+
+/* Default slider styles */
+.slider {
+    position: relative;
+    width: 40px;
+    height: 20px;
+    background-color: #ccc;
+    border-radius: 15px;
+    transition: background-color 0.3s;
+}
+
+.slider:before {
+    content: "";
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background-color: white;
+    top: 1px;
+    left: 1px;
+    transition: transform 0.3s;
+}
+
+/* Dark Mode Slider styles when active */
+input[type="checkbox"]:checked + .slider {
+    background-color: #4CAF50;
+}
+
+input[type="checkbox"]:checked + .slider:before {
+    transform: translateX(20px);
+}
+
+/* Positioning and styling for the Donate button */
+
+/* Adjust the bottom container for toggles and donate button */
+.bottom-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: calc(100% - 10px);
+}
+
+/* Styling for the completely new Donate button */
+.donate-new-button {
+    background-color: #e6e6e6; /* Black background */
+    color: #7c7c7c; /* White text */
+    padding: 5px 15px; /* Adjust padding for spacing */
+    border-radius: 5px; /* Rounded corners */
+    text-align: center; /* Center the text */
+    font-weight: 600;
+    font-size: 12px;
+    text-decoration: none; /* Remove underline */
+    display: inline-block; /* Make it behave like a button */
+    font-family: 'Poppins', sans-serif;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease; /* Smooth transition */
+}
+
+.donate-new-button:hover {
+    background-color: #f0cb46; /* Slightly lighter black on hover */
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2); /* Add shadow effect */
+    color: rgb(0, 0, 0);
+}
+
+/* Dark Mode for the new Donate button */
+body.dark-mode .donate-new-button {
+    background-color: #333333; /* Dark background */
+    color: #e0e0e0; /* Light gray text */
+}
+
+body.dark-mode .donate-new-button:hover {
+    background-color: #4CAF50; /* Slightly lighter green on hover */
+    color: #ffffff; /* White text on hover */
+}
+
+/* Horizontal line below Launch SplitView button */
+.launch-splitview-hr {
+    border: none;
+    height: 1px;
+    background: #ccc;
+    margin: 10px 0;
+    width: 100%;
+    margin-top: 25px;
+}
+
+/* Dark Mode for the horizontal line */
+body.dark-mode .launch-splitview-hr {
+    background: #555; /* Darker line in dark mode */
+}
