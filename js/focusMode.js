@@ -595,7 +595,7 @@
       setTimeout(() => {
         document.body.classList.remove("df-transition-enter");
         document.body.classList.add("df-enabled");
-      }, 50);
+      }, 0);
   
       // Inject UI elements if not present
       if (!document.body.contains(_menuButtonElement)) {
@@ -662,13 +662,25 @@
         forceRelayout();
         localStorage.removeItem(extractURL());
         document.body.classList.remove("df-transition-exit");
-
+ 
+        // Simulate first toggle of ctrl+shift+f
+        let eventDown1 = new KeyboardEvent("keydown", { key: "F", code: "KeyF", ctrlKey: true, shiftKey: true, bubbles: true });
+        let eventUp1 = new KeyboardEvent("keyup", { key: "F", code: "KeyF", ctrlKey: true, shiftKey: true, bubbles: true });
+        document.dispatchEvent(eventDown1);
+        document.dispatchEvent(eventUp1);
+ 
+        // Simulate second toggle of ctrl+shift+f
+        let eventDown2 = new KeyboardEvent("keydown", { key: "F", code: "KeyF", ctrlKey: true, shiftKey: true, bubbles: true });
+        let eventUp2 = new KeyboardEvent("keyup", { key: "F", code: "KeyF", ctrlKey: true, shiftKey: true, bubbles: true });
+        document.dispatchEvent(eventDown2);
+        document.dispatchEvent(eventUp2);
+ 
         // Notify parent window of state change
         window.parent.postMessage(
             { type: "focusModeState", isEnabled: false },
             "*"
         );
-    }, 600); // Matches CSS transition duration (0.6s for smooth effect)
+    }, 100); // Matches CSS transition duration (0.6s for smooth effect)
 }
 
   function handleOnLoad() {

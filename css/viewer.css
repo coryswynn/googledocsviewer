@@ -26,14 +26,34 @@ iframe {
 }
 
 .iframe-divider {
-    min-width: 6px;
+    min-width: 2px;
     cursor: ew-resize;
-    background-color: #d1d5db; /* Tailwind gray-300 equivalent */
-    background-image: linear-gradient(to right, #e5e7eb, #9ca3af, #e5e7eb); /* subtle shimmer */
+    background-color: #d1d5db;
+    background-image: linear-gradient(to right, #e5e7eb, #9ca3af, #e5e7eb);
     border-radius: 4px;
     height: 100%;
     transition: background-color 0.2s ease, box-shadow 0.2s ease;
     position: relative;
+  }
+  
+  .iframe-divider::after {
+    content: '⋮⋮';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 12px;
+    height: 20px;
+    background-color: #e5e7eb;
+    border-radius: 1px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: bold;
+    color: #6b7280;
+    box-shadow: 0 0 3px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
   }
 
 .iframe-divider:hover {
@@ -62,7 +82,7 @@ iframe {
     justify-content: space-between;
     align-items: center;
     padding: 4px 10px;
-    background-color: #f0f0f0;
+    background-color: #f9fbfd;
     /* Light grey background */
     border-bottom: 1px solid #ccc;
     /* Optional, adds a divider look */
@@ -89,6 +109,7 @@ iframe {
 .fullscreen-button,
 .close-frame-button,
 .duplicate-frame-button,
+.refresh-frame-button,
 .focus-mode-button {
     background: none;
     border: none;
@@ -137,6 +158,7 @@ iframe {
 .fullscreen-button:hover,
 .close-frame-button:hover,
 .duplicate-frame-button:hover,
+.refresh-frame-button:hover,
 .focus-mode-button:hover {
     background-color: #e3e3e3;
     /* Light grey background on hover */
@@ -542,6 +564,7 @@ body.dark-mode .share-button:hover,
 body.dark-mode .fullscreen-button:hover,
 body.dark-mode .close-frame-button:hover,
 body.dark-mode .duplicate-frame-button:hover,
+body.dark-mode .refresh-frame-button:hover,
 body.dark-mode .focus-mode-button:hover {
     background-color: #333;
     border-color: #555;
@@ -595,6 +618,7 @@ body.dark-mode {
 .dark-mode .fullscreen-button i,
 .dark-mode .close-frame-button i,
 .dark-mode .duplicate-frame-button i,
+.dark-mode .refresh-frame-button i,
 .dark-mode .focus-mode-button i,
 .dark-mode .save-button i,
 .dark-mode .delete-button i,
@@ -715,11 +739,6 @@ body.dark-mode {
   max-width: 800px;
   margin-left: auto;
   margin-right: auto;
-}
-
-.focus-mode-button {
-  font-size: 21px;
-  padding: 0px 8px;
 }
 
 .focus-mode-button.active {

@@ -326,14 +326,37 @@ export function setupModalDismissal(modal, closeModalCallback) {
 // Planned functionality to update URL bar for easy sharing
 
 export function updateBrowserURL() {
+  // Get current iframe proportions rather than relying on URL parameter
+  const containerFrames = document.querySelectorAll('.url-container');
+  const proportions = [];
+  let hasValidProportions = false;
+  
+  // Collect proportions from container frames
+  containerFrames.forEach(frame => {
+    const proportion = frame.getAttribute('data-proportional-width');
+    if (proportion && !isNaN(parseFloat(proportion))) {
+      proportions.push(proportion);
+      hasValidProportions = true;
+    } else {
+      // If any frame doesn't have a valid proportion, we'll add a placeholder
+      proportions.push("0");
+    }
+  });
+  
+  // Build the new URL
   let newURL;
   if (isChromeExtension) {
     newURL = 'viewer.html?urls=' + encodeAndJoinFrameURLs();
   } else {
     newURL = '?urls=' + encodeAndJoinFrameURLs();
   }
+  
+  // Only add proportions parameter if we have valid proportions
+  if (hasValidProportions && proportions.length === containerFrames.length) {
+    newURL += '&proportions=' + proportions.join(',');
+  }
 
-  console.log('UPDATING THE BROWSER URL');
+  console.log('UPDATING THE BROWSER URL:', newURL);
   const state = { page: newURL };
   const title = ''; // Optional: You can set a title for the new state
   const url = newURL; // The new URL you want to show in the browser

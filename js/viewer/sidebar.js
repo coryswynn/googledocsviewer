@@ -173,8 +173,10 @@ function toggleFullscreen() {
 document.addEventListener('fullscreenchange', () => {
   if (document.fullscreenElement) {
     fullscreenIcon.className = 'bx bx-exit-fullscreen'; // Change to exit icon
+    fullscreenSpan.textContent = 'Exit Fullscreen';
   } else {
     fullscreenIcon.className = 'bx bx-fullscreen'; // Change back to enter icon
+    fullscreenSpan.textContent = 'Fullscreen Mode';
   }
 });
 

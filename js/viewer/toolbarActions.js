@@ -2,7 +2,7 @@
 
 import { updateContainerFrameTitle } from './urlManager.js';
 import { setActiveContainerFrame } from './init.js'; // Adjust the path as needed
-import { updateContainerFramesDataId, updateDividers } from './iframeManager.js';
+import { updateContainerFramesDataId, updateDividers, toggleWelcomeMessage } from './iframeManager.js';
 import { updateBrowserURL, addNewFrame } from './modalManager.js';
 import {
     closeModal,
@@ -33,6 +33,10 @@ export function createToolbar(containerFrame, url) {
     const urlTitle = createUrlTitle(url, containerFrame);
     toolbar.appendChild(urlTitle);
 
+    // Add a duplicate frame button
+    const refreshButton = createRefreshButton(url);
+    toolbar.appendChild(refreshButton);
+    
     // Add a duplicate frame button
     const duplicateButton = createDuplicateButton(url);
     toolbar.appendChild(duplicateButton);
@@ -152,6 +156,27 @@ function updateTitleFromHtml(html, containerFrame) {
     }
 }
 
+function createRefreshButton(url) {
+    const refreshButton = document.createElement('button');
+    refreshButton.className = 'refresh-frame-button';
+    refreshButton.title = 'Refresh Frame';
+    refreshButton.innerHTML = '<i class="bx bx-refresh"></i>'; // Icon for refresh
+
+    refreshButton.onclick = () => {
+        const iframe = refreshButton.closest('.url-container')?.querySelector('iframe');
+        if (iframe) {
+            const currentSrc = iframe.src;
+            const newSrc = currentSrc.includes('?') ? `${currentSrc}&_ts=${Date.now()}` : `${currentSrc}?_ts=${Date.now()}`;
+            iframe.src = '';
+            setTimeout(() => {
+                iframe.src = newSrc;
+            }, 10);
+        }
+    };
+
+    return refreshButton;
+}
+
 function createDuplicateButton(url) {
     const duplicateButton = document.createElement('button');
     duplicateButton.className = 'duplicate-frame-button';
@@ -167,7 +192,7 @@ function createFocusModeButton() {
     const button = document.createElement('button');
     button.className = 'focus-mode-button';
     button.title = 'Toggle Focus Mode';
-    button.innerHTML = '⧉'; // Use the same glyph as in focusMode.js
+    button.innerHTML = '<i class="bx bx-disc"></i>'; // Use the same glyph as in focusMode.js
     
     // Add click handler
     button.addEventListener('click', () => {
@@ -270,7 +295,7 @@ function createFullscreenButton(containerFrame) {
     const fullscreenButton = document.createElement('button');
     fullscreenButton.className = 'fullscreen-button';
     fullscreenButton.title = 'Enter Fullscreen';
-    fullscreenButton.innerHTML = '<i class="bx bx-fullscreen"></i>'; // BoxIcons external link icon
+    fullscreenButton.innerHTML = '<i class="bx bx-area"></i>'; // BoxIcons external link icon
 
     let initialProportions = [];
 
@@ -302,7 +327,7 @@ function createFullscreenButton(containerFrame) {
                 } else {
                     cf.classList.remove('expanded');
                     cf.style.flex = initialProportions[Array.prototype.indexOf.call(containerFrames, cf)] || "1 1 auto";
-                    fullscreenButton.innerHTML = '<i class="bx bx-fullscreen"></i>'; // BoxIcons external link icon
+                    fullscreenButton.innerHTML = '<i class="bx bx-area"></i>'; // BoxIcons external link icon
                     // fullscreenButton.innerHTML = '&#9974;'; // Change back to the 'expand' icon
                     // console.log(`Restored: Flex: ${cf.style.flex}`);
                     fullscreenButton.title = 'Enter Fullscreen';
@@ -330,6 +355,11 @@ function createCloseButton(containerFrame) {
         updateContainerFramesDataId(iframeContainer);
         updateDividers(iframeContainer);
         updateBrowserURL();
+
+        // Ensure the welcome message is shown if there are no document frames open.
+if (iframeContainer.querySelectorAll('.url-container').length === 0) {
+    toggleWelcomeMessage(iframeContainer);
+  }Í
 
     };
     return closeButton;

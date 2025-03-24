@@ -16,7 +16,9 @@
   width: 300px;
   background: #11101d;
   z-index: 1;
-  transition: all 0.5s ease;
+  transition: width 0.4s ease;
+  will-change: width;
+  transform: translateZ(0);
   /* Prevent content from overflowing the sidebar */
 }
 
@@ -44,15 +46,14 @@
   font-size: 22px;
   color: #fff;
   font-weight: 600;
-  transition: 0.3s ease;
-  transition-delay: 0.1s;
+  transition: all 0.3s ease;
   overflow: hidden;
 }
 
 .sidebar.close .logo-details .logo_name {
-  transition-delay: 0s;
   opacity: 0;
   /* pointer-events: none; */
+  visibility: hidden;
 }
 
 .sidebar .nav-links {
@@ -98,7 +99,7 @@
   color: #fff;
   font-size: 20px;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: 0.3s ease;
 }
 
 .sidebar .nav-links li.showMenu i.arrow {
@@ -119,7 +120,7 @@
   font-size: 18px;
   font-weight: 400;
   color: #fff;
-  transition: all 0.4s ease;
+  transition: 0.3s ease;
   flex-grow: 1;
   /* Allow the title to take available space */
   white-space: nowrap;
@@ -141,7 +142,7 @@
 .sidebar .nav-links li .sub-menu {
   padding: 6px 6px 14px 80px;
   margin-top: -10px;
-  transition: all 0.4s ease;
+  transition: 0.3s ease;
   display: none;
 }
 
@@ -212,7 +213,6 @@
   pointer-events: auto;
   padding: 3px 20px 6px 16px;
   opacity: 0;
-  transition-delay: 0s;
 }
 
 .sidebar .nav-links li:hover .sub-menu.blank {
@@ -229,7 +229,25 @@
   justify-content: space-between;
   background: #1d1b31;
   padding: 12px 0;
-  transition: all 0.5s ease;
+  transition: all 0.4s ease;
+  overflow: hidden; /* prevent overflow */
+}
+
+.sidebar .profile-details .profile_name {
+  flex-grow: 1;
+  text-overflow: ellipsis;
+  flex-grow: 1;
+  /* Allow the title to take available space */
+  white-space: nowrap;
+  /* Prevent text from wrapping */
+  overflow: hidden;
+  /* Ensure overflow is hidden */
+  text-overflow: ellipsis;
+  /* Show ellipsis (...) for long text */
+  margin-right: 8px;
+  /* Space between the title and the icons */
+  min-width: 0; /* important for ellipsis with flex */
+
 }
 
 .sidebar.close .profile-details {
@@ -267,6 +285,9 @@
   white-space: nowrap;
   margin: 0 40px 0 0;
   cursor: pointer;
+  flex-grow: 1;
+  text-overflow: ellipsis;
+  transition: 0.4 ease;
 }
 
 .sidebar .profile_img {
@@ -290,7 +311,9 @@
   height: 100vh;
   left: 300px;
   width: calc(100% - 300px);
-  transition: all 0.5s ease;
+  transition: width 0.4s ease, left 0.4s ease;
+  will-change: left, width;
+  transform: translateZ(0);
 }
 
 .sidebar.close~.home-section {
@@ -358,8 +381,18 @@ body.sidebar-hidden .home-section {
 }
 
 /* Ensure proper transition effects */
+.sidebar,
+.sidebar.close~.home-section,
+.home-section {
+  transition: width 0.4s ease, left 0.4s ease;
+}
+
 .sidebar {
-  transition: all 0.5s ease;
+  will-change: width;
+}
+
+.home-section {
+  will-change: left, width;
 }
 
 .sidebar.close~.home-section {

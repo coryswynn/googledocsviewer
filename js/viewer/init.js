@@ -9,7 +9,9 @@ import {
   makeDividerDraggable,
   updateIframeProportions,
   updateDividers,
-  setupWindowResizeListener
+  setupWindowResizeListener,
+  applyProportionsFromURL,
+  toggleWelcomeMessage
 } from './iframeManager.js';
 import {
   closeModal,
@@ -33,6 +35,12 @@ document.addEventListener('DOMContentLoaded', function () {
   const urls = getURLs(); // This function would parse URL params and return the 'urls' query as an array.
   console.log(urls);
 
+  if (urls.length === 0) {
+  
+    toggleWelcomeMessage(iframeContainer);
+  
+  }
+
   urls.forEach((url, index) => {
     console.log(index + url);
     const containerFrame = createIframeContainer(url, index, iframeContainer);
@@ -50,6 +58,19 @@ document.addEventListener('DOMContentLoaded', function () {
       makeDividerDraggable(divider, iframeContainer, updateIframeProportions);
     }
   });
+
+  // Apply proportions from URL if they exist
+  const proportionsApplied = applyProportionsFromURL(iframeContainer);
+  if (!proportionsApplied) {
+    console.log('No proportions found in URL, using default layout');
+    // If no proportions in URL, distribute space evenly (default behavior)
+    const containerFrames = iframeContainer.querySelectorAll('.url-container');
+    const equalProportion = 100 / containerFrames.length;
+    containerFrames.forEach(frame => {
+      frame.style.flex = `1 1 ${equalProportion}%`;
+      frame.setAttribute('data-proportional-width', equalProportion.toString());
+    });
+  }
 
   initializeDragAndDrop(iframeContainer, updateContainerFramesDataId, updateIframeProportions); // Initialize drag and drop functionality for iframe containers.
   setupWindowResizeListener(iframeContainer, updateIframeProportions, adjustModalPosition, modal);
