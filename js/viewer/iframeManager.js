@@ -61,6 +61,7 @@ export function makeDividerDraggable(divider, iframeContainer, updateIframePropo
 
       // Capture the starting mouse position
       let startPos = isVertical ? e.clientY : e.clientX;
+      divider.style.transform = ''; // Reset transform
       let prevIframe = divider.previousElementSibling;
       let nextIframe = divider.nextElementSibling;
       let prevSize = isVertical ? prevIframe.clientHeight : prevIframe.clientWidth;
@@ -69,27 +70,50 @@ export function makeDividerDraggable(divider, iframeContainer, updateIframePropo
       // Disable pointer events on all iframes to prevent interference
       document.querySelectorAll('iframe').forEach(iframe => iframe.style.pointerEvents = 'none');
       console.log('Drag started');
-
+      let animationFrameId = null;
+ 
       // Define what happens when the mouse is moved
+      // Removed latestDelta; will use delta instead
+      let rafPending = false;
+      
       function onMouseMove(e) {
-          let currentPos = isVertical ? e.clientY : e.clientX;
-          let delta = currentPos - startPos;
+        let currentPos = isVertical ? e.clientY : e.clientX;
+        let delta = currentPos - startPos;
+      
+        if (!rafPending) {
+          rafPending = true;
+          requestAnimationFrame(() => {
+            let newPrevSize = prevSize + delta;
+            let newNextSize = nextSize - delta;
 
-          let newPrevSize = Math.max(prevSize + delta, 0);
-          let newNextSize = Math.max(nextSize - delta, 0);
+            prevIframe.style.flex = `0 0 ${newPrevSize}px`;
+            nextIframe.style.flex = `0 0 ${newNextSize}px`;
 
-          prevIframe.style.flex = `1 1 ${newPrevSize}px`;
-          nextIframe.style.flex = `1 1 ${newNextSize}px`;
-
-          // If the modal is displayed, adjust its position
-          const modal = document.getElementById('modal');
-          if (modal && modal.style.display === 'block') {
+            // No transform applied; movement is handled via flex resizing
+      
+            const modal = document.getElementById('modal');
+            if (modal && modal.style.display === 'block') {
               adjustModalPosition(modal, getActiveContainerFrame());
-          }
+            }
+      
+            rafPending = false;
+          });
+        }
       }
 
       // Define what happens when the mouse button is released
-      function onMouseUp() {
+      function onMouseUp(event) {
+          let currentPos = isVertical ? event.clientY : event.clientX;
+          let delta = currentPos - startPos;
+ 
+          let newPrevSize = prevSize + delta;
+          let newNextSize = nextSize - delta;
+ 
+          prevIframe.style.flex = `0 0 ${newPrevSize}px`;
+          nextIframe.style.flex = `0 0 ${newNextSize}px`;
+ 
+          divider.style.transform = ''; // reset transform
+ 
           // Re-enable pointer events
           document.querySelectorAll('iframe').forEach(iframe => iframe.style.pointerEvents = '');
           
@@ -97,7 +121,7 @@ export function makeDividerDraggable(divider, iframeContainer, updateIframePropo
           document.removeEventListener('mousemove', onMouseMove);
           document.removeEventListener('mouseup', onMouseUp);
           console.log('Drag ended');
-
+ 
           // Update iframe proportions based on the new sizes
           updateIframeProportions(iframeContainer);
           
@@ -316,20 +340,42 @@ export function openAddDocumentModal(iframeContainer) {
 // Function to update iframes' proportions based on current sizes
 export function updateIframeProportions(iframeContainer, totalWidth, initialProportions) {
     const iframes = iframeContainer.querySelectorAll('.url-container');
+    
+    // If there are no iframes, there's nothing to update
+    if (iframes.length === 0) {
+        console.log('No iframes found, skipping proportion update');
+        return [];
+    }
+    
+    const isVertical = iframeContainer.style.flexDirection === 'column';
   
     // Initialize totalWidth if not provided
     if (!totalWidth || isNaN(totalWidth)) {
       totalWidth = 0;
       // First, calculate the total width of all iframes
       iframes.forEach(iframe => {
-          totalWidth += iframe.offsetWidth;
+          const dimension = isVertical ? iframe.offsetHeight : iframe.offsetWidth;
+          if (dimension > 0) {
+              totalWidth += dimension;
+          }
       });
     }
     
     // Ensure we have a valid total width
     if (totalWidth <= 0) {
-      console.error('Invalid total width for proportion calculation');
-      return initialProportions;
+      console.warn('Invalid total width for proportion calculation, using fallback method');
+      // Use fallback method: equal proportions
+      const equalProportion = 100 / iframes.length;
+      const newProportions = new Array(iframes.length).fill(equalProportion);
+      
+      // Apply equal proportions
+      iframes.forEach((iframe, index) => {
+          iframe.style.flex = `1 1 ${equalProportion}%`;
+          iframe.setAttribute('data-proportional-width', equalProportion.toFixed(2));
+      });
+      
+      console.log('Applied equal proportions as fallback:', newProportions.map(p => p.toFixed(2)));
+      return newProportions;
     }
   
     // Ensure initialProportions is an array and has the proper length
@@ -337,12 +383,13 @@ export function updateIframeProportions(iframeContainer, totalWidth, initialProp
       initialProportions = new Array(iframes.length).fill(0);
     }
   
+    // Calculate proportions based on current sizes
     iframes.forEach((iframe, index) => {
       // Calculate the proportional width as a percentage of total
-      let proportionalWidth = (iframe.offsetWidth / totalWidth) * 100;
+      let proportionalWidth = ((isVertical ? iframe.offsetHeight : iframe.offsetWidth) / totalWidth) * 100;
       
       // Ensure we have a valid number
-      if (isNaN(proportionalWidth) || !isFinite(proportionalWidth)) {
+      if (isNaN(proportionalWidth) || !isFinite(proportionalWidth) || proportionalWidth <= 0) {
         console.warn(`Invalid proportion detected for iframe ${index}, using default`);
         proportionalWidth = 100 / iframes.length; // Default to equal proportion
       }
@@ -355,21 +402,26 @@ export function updateIframeProportions(iframeContainer, totalWidth, initialProp
       // Store the proportion value as a data attribute on the iframe for later reference
       iframe.setAttribute('data-proportional-width', proportionalWidth.toFixed(2));
       
-      // Handle last iframe to ensure total is exactly 100%
-      if (index === iframes.length - 1) {
-        // Calculate sum of all previous proportions
-        let previousSum = 0;
-        for (let i = 0; i < index; i++) {
-          previousSum += initialProportions[i];
-        }
-        
-        // Adjust the last proportion to make total exactly 100%
-        const adjustedProportion = Math.max(100 - previousSum, 0);
-        initialProportions[index] = adjustedProportion;
-        iframe.setAttribute('data-proportional-width', adjustedProportion.toFixed(2));
-        console.log(`Adjusted last iframe proportion to: ${adjustedProportion.toFixed(2)}%`);
-      }
+      // Apply the proportion to the flex property so it's visibly consistent
+      iframe.style.flex = `1 1 ${proportionalWidth}%`;
     });
+    
+    // Normalize the proportions to ensure they add up to exactly 100%
+    let totalProportion = initialProportions.reduce((sum, prop) => sum + prop, 0);
+    
+    if (Math.abs(totalProportion - 100) > 0.1) { // If more than 0.1% off from 100%
+        console.log(`Normalizing proportions: current total is ${totalProportion.toFixed(2)}%`);
+        
+        // Apply a scaling factor to each proportion
+        const scalingFactor = 100 / totalProportion;
+        iframes.forEach((iframe, index) => {
+            const normalizedProportion = initialProportions[index] * scalingFactor;
+            initialProportions[index] = normalizedProportion;
+            iframe.setAttribute('data-proportional-width', normalizedProportion.toFixed(2));
+            iframe.style.flex = `1 1 ${normalizedProportion}%`;
+            console.log(`Normalized proportion for iframe ${index}: ${normalizedProportion.toFixed(2)}%`);
+        });
+    }
     
     // Update the browser URL with the new proportions
     updateBrowserURLWithProportions();
@@ -401,18 +453,22 @@ export function updateBrowserURLWithProportions() {
         }
     });
     
+    // Declare iframeContainer and layout once for the entire function
+    const iframeContainer = containerFrames[0]?.parentNode;
+    const isVertical = iframeContainer?.style.flexDirection === 'column';
+
     // If any proportions are invalid, recalculate them
     if (!allProportionsValid) {
         // Calculate total width for proportion calculation
         let totalWidth = 0;
         containerFrames.forEach(frame => {
-            totalWidth += frame.offsetWidth;
+            totalWidth += isVertical ? frame.offsetHeight : frame.offsetWidth;
         });
         
         if (totalWidth > 0) {
             // Recalculate proportions for all frames
             containerFrames.forEach((frame, index) => {
-                const proportionalWidth = (frame.offsetWidth / totalWidth) * 100;
+                const proportionalWidth = ((isVertical ? frame.offsetHeight : frame.offsetWidth) / totalWidth) * 100;
                 frame.setAttribute('data-proportional-width', proportionalWidth.toFixed(2));
                 console.log(`Recalculated proportion for frame ${index}: ${proportionalWidth.toFixed(2)}%`);
             });
@@ -426,12 +482,34 @@ export function updateBrowserURLWithProportions() {
         }
     }
     
-    // Use the centralied updateBrowserURL function to update the URL
-    updateBrowserURL();
+    const url = new URL(window.location);
+    const proportions = Array.from(containerFrames).map(f => f.getAttribute('data-proportional-width')).join(',');
+
+    url.searchParams.set('proportions', proportions);
+    url.searchParams.set('layout', isVertical ? 'vertical' : 'horizontal');
+    
+    // Get the current URLs parameter
+    const currentURLs = url.searchParams.get('urls');
+    if (!currentURLs) {
+        // If there's no URLs parameter, get the URLs from the frames and add them
+        const frameURLs = Array.from(containerFrames).map(f => encodeURIComponent(f.dataset.url)).join(',');
+        url.searchParams.set('urls', frameURLs);
+    }
+    
+    history.replaceState(null, '', url);
+    console.log(`Updated URL with proportions: ${proportions} and layout: ${isVertical ? 'vertical' : 'horizontal'}`);
 }
 
 // Function to apply proportions from URL parameters
 export function applyProportionsFromURL(iframeContainer) {
+    // Set container layout based on URL parameter
+    const layoutParam = new URLSearchParams(window.location.search).get('layout');
+    if (layoutParam === 'vertical') {
+      iframeContainer.style.flexDirection = 'column';
+    } else if (layoutParam === 'horizontal') {
+      iframeContainer.style.flexDirection = 'row';
+    }
+
     // Get URL parameters
     const params = new URLSearchParams(window.location.search);
     const proportionsParam = params.get('proportions');
@@ -602,7 +680,9 @@ export function applyProportionsFromURL(iframeContainer) {
       // Only update URL if we have validly resized frames
       if (containerFrames.length > 0) {
         // Recalculate actual proportions based on current sizes after resize
-        const totalWidth = iframeContainer.offsetWidth;
+        const totalWidth = iframeContainer.style.flexDirection === 'column'
+          ? iframeContainer.offsetHeight
+          : iframeContainer.offsetWidth;
         if (totalWidth > 0) {
           // Use updateIframeProportions to recalculate and update URL
           updateIframeProportions(iframeContainer, totalWidth);
@@ -626,7 +706,7 @@ export function applyProportionsFromURL(iframeContainer) {
     function shortenTitle(title, frameWidth) {
       // Fine-tune the estimated space taken up by toolbar buttons/icons
       const estimatedButtonsWidth = 100; // Adjust based on actual button sizes
-      const adjustedWidth = frameWidth - estimatedButtonsWidth; // Adjust this based on your toolbar's layout
+      const adjustedWidth = (frameWidth - estimatedButtonsWidth)/1.5; // Adjust this based on your toolbar's layout
       const averageCharWidth = 8; // Adjust this based on the average character width of your font at its current size
       
       // Calculate max allowed characters based on the adjusted available width
@@ -652,12 +732,14 @@ export function applyProportionsFromURL(iframeContainer) {
 
             // Define width thresholds for button visibility
             const thresholds = {
-                urlTitle: 500, // Width at which the URL title disappears or becomes shorter
-                dragHandle: 500,
-                closeButton: 100,
+                urlTitle: 1000, // Width at which the URL title disappears or becomes shorter
+                dragHandle: 250,
+                closeButton: 50,
                 fullscreenButton: 100,
                 popOutButton: 450,
                 copyButton: 500,
+                focusButton: 200,
+                refreshButton: 500,
                 duplicateButton: 250
             };
 
@@ -678,27 +760,28 @@ export function applyProportionsFromURL(iframeContainer) {
                     button.style.display = 'none';
                 } else if (button.classList.contains('duplicate-frame-button') && frameWidth < thresholds.duplicateButton) {
                     button.style.display = 'none';
-                } else {
+            } else if (button.classList.contains('refresh-frame-button') && frameWidth < thresholds.refreshButton) {
+                  button.style.display = 'none';
+            } else if (button.classList.contains('focus-mode-button') && frameWidth < thresholds.focusButton) {
+                  button.style.display = 'none';
+            } else {
                     button.style.display = ''; // This resets the display property to default
-                }
+            }
             });
 
             // Adjust URL title visibility or formatting based on the current width
             const urlTitle = containerFrame.querySelector('.url-text');
-            if (urlTitle) {
-                if (frameWidth < thresholds.urlTitle) {
-                    if (!fullTitles.has(urlTitle)) {
-                        fullTitles.set(urlTitle, urlTitle.textContent); // Save the full title
-                    }
-                    // Shorten title logic here
-                    urlTitle.textContent = shortenTitle(urlTitle.textContent, frameWidth);
-                } else {
-                    // Restore the full title if it was shortened
-                    if (fullTitles.has(urlTitle)) {
-                        urlTitle.textContent = fullTitles.get(urlTitle);
-                        fullTitles.delete(urlTitle); // Remove the entry from the map once restored
-                    }
-                }
+            if (
+              urlTitle &&
+              urlTitle.textContent &&
+              !['Loading title...', 'Title unavailable', 'Resolving...'].includes(urlTitle.textContent)
+            ) {
+              const original = fullTitles.get(urlTitle) || urlTitle.textContent;
+              if (!fullTitles.has(urlTitle)) {
+                fullTitles.set(urlTitle, original);
+              }
+              urlTitle.textContent = shortenTitle(original, frameWidth);
+              urlTitle.title = original;
             }
         });
     });
@@ -766,3 +849,42 @@ export function toggleWelcomeMessage(iframeContainer) {
          welcomeMessage.style.display = 'none';
     }
 }
+
+window.addEventListener("message", (event) => {
+  const { type, url } = event.data;
+  if (type === "preserveTitleState") {
+    const frame = findFrameByUrl(url);
+    if (!frame) return;
+    const titleEl = frame.querySelector('.url-text');
+    if (titleEl) {
+      frame.dataset.prevTitle = titleEl.textContent;
+      frame.dataset.prevTitleLoaded = frame.dataset.titleLoaded || 'false';
+    }
+  }
+
+  if (type === "restoreTitleState") {
+    const frame = findFrameByUrl(url);
+    if (!frame) return;
+    const titleEl = frame.querySelector('.url-text');
+    if (titleEl && frame.dataset.prevTitle) {
+      titleEl.textContent = frame.dataset.prevTitle;
+      frame.dataset.titleLoaded = frame.dataset.prevTitleLoaded || 'false';
+ 
+      // Avoid reloading on resize/reflow after restore
+      if (frame.dataset.titleLoaded === 'true') {
+        frame.querySelector('.url-text').textContent = frame.dataset.prevTitle;
+      }
+    }
+  }
+});
+
+window.addEventListener("beforeunload", () => {
+  const containerFrames = document.querySelectorAll('.url-container');
+  containerFrames.forEach(frame => {
+    const titleEl = frame.querySelector('.url-text');
+    if (titleEl && titleEl.textContent && titleEl.textContent !== 'Loading title...') {
+      frame.dataset.prevTitle = titleEl.textContent;
+      frame.dataset.prevTitleLoaded = 'true';
+    }
+  });
+});

@@ -190,7 +190,7 @@ linkedScrollIcon.className = sidebarData.isLinkedScrolling
   : 'bx bx-toggle-left';
 const linkedScrollSpan = document.createElement('span');
 linkedScrollSpan.className = 'link_name';
-linkedScrollSpan.textContent = 'Linked Scrolling';
+linkedScrollSpan.textContent = 'Sync Scrolling';
 linkedScrollLink.title = 'Toggle linked scrolling across all frames';
 
 // Append

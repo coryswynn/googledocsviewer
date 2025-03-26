@@ -1,4 +1,12 @@
-(function() {
+(function () {
+
+  // Ensure Boxicons stylesheet is available
+  if (!document.querySelector('link[href*="boxicons.min.css"]')) {
+    const boxiconsLink = document.createElement('link');
+    boxiconsLink.rel = 'stylesheet';
+    boxiconsLink.href = 'https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css';
+    document.head.appendChild(boxiconsLink);
+  }
 
   const _css = `
     body:-webkit-full-screen {
@@ -12,6 +20,20 @@
     .df-enabled .navigation-widget,
     .df-enabled #docs-instant-bubble {
       display: none;
+    }
+   .df-enabled .miniChapterSwitcherContainerView,
+   .df-enabled .miniChapterSwitcherCore {
+      display: none !important;
+      opacity: 0 !important;
+      pointer-events: none !important;
+      visibility: hidden !important;
+      height: 0 !important;
+      max-height: 0 !important;
+      overflow: hidden !important;
+    }
+
+    .df-enabled #df-menu-button i {
+      pointer-events: none;
     }
 
     .df-enabled .docs-slidingdialog-holder {
@@ -53,7 +75,10 @@
 
     /* Custom menu button styling with new icon (changes on exit/enter) */
     .df-enabled #df-menu-button {
-      display: block;
+      display: flex;
+      z-index: 10000\;
+      align-items: center;
+      justify-content: center;
       position: fixed;
       font-family: arial, sans-serif;
       top: 0;
@@ -64,10 +89,12 @@
       border: 0;
       opacity: 0.2;
       cursor: pointer;
-      z-index: 1000;
       color: #000;
       outline: 0;
       transition: opacity 0.2s ease, transform 0.2s ease;
+      padding: 10px;
+      width: 44px;
+      height: 44px;
     }
     #df-menu-button:hover {
       opacity: 0.5;
@@ -117,7 +144,7 @@
       background: transparent;
       content: "";
       height: 25px;
-      z-index: 999;
+      z-index: 50;
       pointer-events: none;
     }
 
@@ -405,7 +432,7 @@
   // Change the icon for entering distraction-free mode to a unique glyph (e.g., ⧉)
   var _menuButtonElement = document.createElement("button");
   _menuButtonElement.id = "df-menu-button";
-  _menuButtonElement.innerText = "⧉";
+  _menuButtonElement.innerHTML = '<i class="bx bx-cog"></i>';
   _menuButtonElement.addEventListener("click", toggleMenu);
 
   var _menu = document.createElement("div");
@@ -422,7 +449,7 @@
   }
   menuHTML += `
     <div class="goog-menuseparator" role="separator" aria-disabled="true" id=":1n" style="user-select: none;"></div>`;
-  _themes.forEach(function(theme) {
+  _themes.forEach(function (theme) {
     menuHTML += `<div class="goog-menuitem df-menuitem-theme" role="option" id="df-mi-${theme.key}" data-theme="${theme.key}" style="user-select: none;">
       <div class="goog-menuitem-content" style="user-select: none;">${theme.title}</div>
     </div>`;
@@ -432,7 +459,7 @@
     _menu.querySelector("#df-mi-zoom").addEventListener("click", openZoomMenu);
   }
   _menu.querySelector("#df-mi-exit").addEventListener("click", exitMode);
-  _themes.forEach(function(theme) {
+  _themes.forEach(function (theme) {
     _menu.querySelector("#df-mi-" + theme.key).addEventListener("click", handleThemeMenuItemClick);
   });
 
@@ -463,12 +490,20 @@
   //     window.focusMode.enterMode();
   //   }
   // });
-  
+
   var _fadeElement = document.createElement("div");
   _fadeElement.className = "gdocs-df-fade";
 
   function toggleMenu(evt) {
-    _menu.style.display = _menu.style.display == "block" ? "none" : "block";
+    if (_menu.style.display === "block") {
+      _menu.style.display = "none";
+    } else {
+      _menu.style.display = "block";
+      _menu.style.position = "fixed";
+      _menu.style.zIndex = "10000";
+      _menu.style.top = "30px";
+      _menu.style.left = "40px";
+    }
   }
 
   function closeMenu(evt) {
@@ -515,7 +550,7 @@
     if (!maxTries) maxTries = 5;
     if (!ms) ms = 100;
     var numberTries = 0;
-    var fn = function() {
+    var fn = function () {
       var result = lookup();
       if (result) {
         success(result);
@@ -548,14 +583,67 @@
         function (checkbox) {
           uncheckMenuItem(checkbox);
           uncheckMenuItem(checkbox);
-  
+
           // Start transition effect
           document.body.classList.add("df-transition-enter");
           setTimeout(() => {
             document.body.classList.remove("df-transition-enter");
             document.body.classList.add("df-enabled");
+            // Force canvas recalibration via focus-blur-focus trick
+            setTimeout(() => {
+              const target = document.querySelector('.kix-appview-editor');
+              if (target) {
+                target.focus();
+                setTimeout(() => {
+                  target.blur();
+                  target.focus();
+                }, 50);
+              }
+            }, 300);
+            // Ask parent to re-resolve the title after focus mode activation
+            const currentUrl = window.location.href;
+            window.parent.postMessage({ type: 'resolveFrameTitle', url: currentUrl }, '*');
+            // Simulate toolbar toggle to force canvas re-sync (Ctrl+Shift+F x2)
+            setTimeout(() => {
+              const eventDown1 = new KeyboardEvent("keydown", { key: "F", code: "KeyF", ctrlKey: true, shiftKey: true, bubbles: true });
+              const eventUp1 = new KeyboardEvent("keyup", { key: "F", code: "KeyF", ctrlKey: true, shiftKey: true, bubbles: true });
+              document.dispatchEvent(eventDown1);
+              document.dispatchEvent(eventUp1);
+
+              setTimeout(() => {
+                const eventDown2 = new KeyboardEvent("keydown", { key: "F", code: "KeyF", ctrlKey: true, shiftKey: true, bubbles: true });
+                const eventUp2 = new KeyboardEvent("keyup", { key: "F", code: "KeyF", ctrlKey: true, shiftKey: true, bubbles: true });
+                document.dispatchEvent(eventDown2);
+                document.dispatchEvent(eventUp2);
+              }, 250);
+            }, 150);
+            // Trigger internal Google Docs reflow like tab switching or toolbar toggle would
+            const hiddenToolbar = document.getElementById("docs-toolbar");
+            if (hiddenToolbar) {
+              hiddenToolbar.style.display = "none";
+              setTimeout(() => {
+                hiddenToolbar.style.display = "";
+              }, 50);
+            }
+
+            // Trigger internal Google Docs reflow via width nudge on a key container
+            const editorContainer = document.querySelector('#docs-editor-container');
+            if (editorContainer) {
+              editorContainer.style.width = '99.9%';
+              setTimeout(() => {
+                editorContainer.style.width = '';
+              }, 50);
+            }
+
+            // Force reflow using an offscreen dummy element
+            const dummy = document.createElement("div");
+            dummy.style.cssText = "position: absolute; top: -9999px; width: 100vw; height: 1px;";
+            document.body.appendChild(dummy);
+            requestAnimationFrame(() => {
+              dummy.remove();
+            });
           }, 50); // Allow transition to be recognized
-  
+
           // Inject style and UI elements if not already present
           if (!document.head.contains(_styleElement)) {
             document.head.appendChild(_styleElement);
@@ -566,20 +654,20 @@
           if (!document.body.contains(_menu)) {
             document.body.appendChild(_menu);
           }
-  
+
           let editor = document.querySelector(".kix-appview-editor");
           if (editor) {
             editor.style.height = "100vh";
             editor.style.width = "100vw";
           }
-  
+
           document.body.classList.remove("docs-df-hidemenus");
           clickInterfaceElement(document.body);
           forceRelayout();
-  
+
           // Store state in local storage
           localStorage.setItem(extractURL(), true);
-  
+
           // Notify parent window of state change
           window.parent.postMessage(
             { type: "focusModeState", isEnabled: true },
@@ -594,9 +682,33 @@
       document.body.classList.add("df-transition-enter");
       setTimeout(() => {
         document.body.classList.remove("df-transition-enter");
+        try {
+          window.parent.postMessage({
+            type: "preserveTitleState",
+            url: window.location.href
+          }, "*");
+        } catch (e) {
+          console.warn("Failed to post preserveTitleState", e);
+        }
         document.body.classList.add("df-enabled");
-      }, 0);
-  
+        // Trigger internal Google Docs reflow like tab switching or toolbar toggle would
+        const hiddenToolbar = document.getElementById("docs-toolbar");
+        if (hiddenToolbar) {
+          hiddenToolbar.style.display = "none";
+          setTimeout(() => {
+            hiddenToolbar.style.display = "";
+          }, 50);
+        }
+
+        // // Force reflow using an offscreen dummy element
+        // const dummy = document.createElement("div");
+        // dummy.style.cssText = "position: absolute; top: -9999px; width: 100vw; height: 1px;";
+        // document.body.appendChild(dummy);
+        // requestAnimationFrame(() => {
+        //   dummy.remove();
+        // });
+      }, 50);
+
       // Inject UI elements if not present
       if (!document.body.contains(_menuButtonElement)) {
         document.body.appendChild(_menuButtonElement);
@@ -604,9 +716,9 @@
       if (!document.body.contains(_menu)) {
         document.body.appendChild(_menu);
       }
-  
+
       forceRelayout();
-  
+
       // Notify parent window of state change
       window.parent.postMessage(
         { type: "focusModeState", isEnabled: true },
@@ -614,74 +726,93 @@
       );
     }
   }
-  
+
   function exitMode() {
     document.body.classList.add("df-transition-exit");
 
     setTimeout(() => {
-        document.body.classList.remove("df-enabled");
+      document.body.classList.remove("df-enabled");
+      try {
+        window.parent.postMessage({
+          type: "restoreTitleState",
+          url: window.location.href
+        }, "*");
+      } catch (e) {
+        console.warn("Failed to post restoreTitleState", e);
+      }
+      // Reset any style overrides from focus mode
+      document.querySelectorAll('#docs-chrome > :not(#docs-palettes)').forEach(el => {
+        el.style.transform = '';
+        el.style.maxHeight = '';
+        el.style.pointerEvents = '';
+        el.style.opacity = '';
+        el.style.overflow = '';
+      });
 
-        // Restore all Google Docs UI elements
-        document.querySelectorAll("#docs-chrome, #docs-editor, .kix-page, .docs-ui-unprintable, .navigation-widget, .kix-document-top-shadow-inner")
-            .forEach(el => {
-                el.style.removeProperty("display");
-                el.style.removeProperty("opacity");
-                el.style.removeProperty("pointer-events");
-            });
-
-        // Force re-render of the Google Docs UI
-        const docsChrome = document.getElementById("docs-chrome");
-        if (docsChrome) {
-            docsChrome.style.display = "none";
-            setTimeout(() => docsChrome.style.display = "", 50);
-        }
-
-        // Remove UI elements safely
-        if (_menuButtonElement.parentElement) {
-            _menuButtonElement.parentElement.removeChild(_menuButtonElement);
-        }
-        if (_menu.parentElement) {
-            _menu.parentElement.removeChild(_menu);
-        }
-
-        // Force a click to refresh UI
-        document.body.click();
-
-        // Ensure toolbar reloads properly by triggering a simulated UI event
-        const event = new Event("focus");
-        window.dispatchEvent(event);
-
-        // Force a UI refresh via MutationObserver
-        const observer = new MutationObserver(() => {
-            document.body.click();
-            observer.disconnect();
+      // Restore all Google Docs UI elements
+      document.querySelectorAll("#docs-chrome, #docs-editor, .kix-page, .docs-ui-unprintable, .navigation-widget, .kix-document-top-shadow-inner")
+        .forEach(el => {
+          el.style.removeProperty("display");
+          el.style.removeProperty("opacity");
+          el.style.removeProperty("pointer-events");
         });
 
-        observer.observe(document.body, { childList: true, attributes: true, subtree: true });
+      // Force re-render of the Google Docs UI
+      const docsChrome = document.getElementById("docs-chrome");
+      if (docsChrome) {
+        docsChrome.style.display = "none";
+        setTimeout(() => docsChrome.style.display = "", 50);
+      }
 
-        forceRelayout();
-        localStorage.removeItem(extractURL());
-        document.body.classList.remove("df-transition-exit");
- 
-        // Simulate first toggle of ctrl+shift+f
-        let eventDown1 = new KeyboardEvent("keydown", { key: "F", code: "KeyF", ctrlKey: true, shiftKey: true, bubbles: true });
-        let eventUp1 = new KeyboardEvent("keyup", { key: "F", code: "KeyF", ctrlKey: true, shiftKey: true, bubbles: true });
-        document.dispatchEvent(eventDown1);
-        document.dispatchEvent(eventUp1);
- 
-        // Simulate second toggle of ctrl+shift+f
-        let eventDown2 = new KeyboardEvent("keydown", { key: "F", code: "KeyF", ctrlKey: true, shiftKey: true, bubbles: true });
-        let eventUp2 = new KeyboardEvent("keyup", { key: "F", code: "KeyF", ctrlKey: true, shiftKey: true, bubbles: true });
-        document.dispatchEvent(eventDown2);
-        document.dispatchEvent(eventUp2);
- 
-        // Notify parent window of state change
-        window.parent.postMessage(
-            { type: "focusModeState", isEnabled: false },
-            "*"
-        );
+      // Remove UI elements safely
+      if (_menuButtonElement.parentElement) {
+        _menuButtonElement.parentElement.removeChild(_menuButtonElement);
+      }
+      if (_menu.parentElement) {
+        _menu.parentElement.removeChild(_menu);
+      }
+
+      // Force a click to refresh UI
+      document.body.click();
+
+      // Ensure toolbar reloads properly by triggering a simulated UI event
+      const event = new Event("focus");
+      window.dispatchEvent(event);
+
+      // Force a UI refresh via MutationObserver
+      const observer = new MutationObserver(() => {
+        document.body.click();
+        observer.disconnect();
+      });
+
+      observer.observe(document.body, { childList: true, attributes: true, subtree: true });
+
+      forceRelayout();
+      localStorage.removeItem(extractURL());
+      document.body.classList.remove("df-transition-exit");
+      // Ask parent to re-resolve the title after focus mode activation
+      const currentUrl = window.location.href;
+      window.parent.postMessage({ type: 'resolveFrameTitle', url: currentUrl }, '*');
+
+      // Simulate first toggle of ctrl+shift+f
+      let eventDown1 = new KeyboardEvent("keydown", { key: "F", code: "KeyF", ctrlKey: true, shiftKey: true, bubbles: true });
+      let eventUp1 = new KeyboardEvent("keyup", { key: "F", code: "KeyF", ctrlKey: true, shiftKey: true, bubbles: true });
+      document.dispatchEvent(eventDown1);
+      document.dispatchEvent(eventUp1);
+
+      // Simulate second toggle of ctrl+shift+f
+      let eventDown2 = new KeyboardEvent("keydown", { key: "F", code: "KeyF", ctrlKey: true, shiftKey: true, bubbles: true });
+      let eventUp2 = new KeyboardEvent("keyup", { key: "F", code: "KeyF", ctrlKey: true, shiftKey: true, bubbles: true });
+      document.dispatchEvent(eventDown2);
+      document.dispatchEvent(eventUp2);
+
+      // Notify parent window of state change
+      window.parent.postMessage(
+        { type: "focusModeState", isEnabled: false },
+        "*"
+      );
     }, 100); // Matches CSS transition duration (0.6s for smooth effect)
-}
+  }
 
   function handleOnLoad() {
     document.head.appendChild(_styleElement);
@@ -692,7 +823,7 @@
     let containerElement = document.querySelector(_containerSelector);
     let starElement = document.querySelector(_starSelector);
     if (containerElement && starElement && (_isDocsApp || _isSlidesApp)) {
-      setTimeout(function() {
+      setTimeout(function () {
         containerElement.insertBefore(_toolbarButtonContainer, starElement.nextSibling);
       }, 500);
     }
@@ -700,6 +831,9 @@
     // Automatically enter distraction-free mode if toggled on in the sidebar.
     if (localStorage.getItem(extractURL())) {
       enterMode();
+    }
+    if (!document.body.contains(_menu)) {
+      document.body.appendChild(_menu);
     }
   }
 
@@ -710,7 +844,7 @@
   function setTheme(theme) {
     if (!theme) theme = "default";
     _theme = theme;
-    _themes.forEach(function(theme) {
+    _themes.forEach(function (theme) {
       document.body.classList.remove("df-" + theme.key);
     });
     document.body.classList.add("df-" + theme);
@@ -720,7 +854,7 @@
   function openZoomMenu(evt) {
     clickInterfaceElement($i("zoomSelect"));
     let menus = Array.prototype.slice.call(document.querySelectorAll(".goog-menu-vertical"));
-    let menu = menus.reverse().find(function(elm) {
+    let menu = menus.reverse().find(function (elm) {
       return elm.innerHTML.indexOf("100%") != -1;
     });
     if (menu) {
@@ -762,7 +896,7 @@
     enterMode: enterMode,
     exitMode: exitMode
   };
-  
+
   (function initMessageListener() {
     window.addEventListener("message", (event) => {
       // Check if message is from parent window
@@ -793,4 +927,3 @@
   }
 
 })();
-

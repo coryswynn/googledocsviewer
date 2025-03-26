@@ -7,7 +7,9 @@ import {
   updateDividers,
   makeDividerDraggable,
   updateIframeProportions,
-  createDivider
+  createDivider,
+  updateBrowserURLWithProportions
+
 } from './iframeManager.js';
 import { createToolbar } from './toolbarActions.js';
 import { getActiveContainerFrame, toggleIframeDarkMode } from './init.js';
@@ -259,6 +261,7 @@ function appendTabsToModal(tabs, combinedTabsContainer, activeContainerFrame, ty
       if (titleElement) {
         const savedTitle = getSavedTabTitle(tab.url);
         titleElement.textContent = savedTitle || cleanTitle;
+        activeContainerFrame.dataset.titleLoaded = 'true';
       }
       closeModal(modal);
     });
@@ -330,7 +333,7 @@ export function updateBrowserURL() {
   const containerFrames = document.querySelectorAll('.url-container');
   const proportions = [];
   let hasValidProportions = false;
-  
+
   // Collect proportions from container frames
   containerFrames.forEach(frame => {
     const proportion = frame.getAttribute('data-proportional-width');
@@ -342,7 +345,7 @@ export function updateBrowserURL() {
       proportions.push("0");
     }
   });
-  
+
   // Build the new URL
   let newURL;
   if (isChromeExtension) {
@@ -350,10 +353,17 @@ export function updateBrowserURL() {
   } else {
     newURL = '?urls=' + encodeAndJoinFrameURLs();
   }
-  
+
   // Only add proportions parameter if we have valid proportions
   if (hasValidProportions && proportions.length === containerFrames.length) {
     newURL += '&proportions=' + proportions.join(',');
+  }
+
+  // Add layout parameter (vertical or horizontal)
+  const iframeContainer = document.getElementById('iframeContainer');
+  if (iframeContainer) {
+    const isVertical = iframeContainer.style.flexDirection === 'column';
+    newURL += '&layout=' + (isVertical ? 'vertical' : 'horizontal');
   }
 
   console.log('UPDATING THE BROWSER URL:', newURL);
@@ -362,6 +372,10 @@ export function updateBrowserURL() {
   const url = newURL; // The new URL you want to show in the browser
 
   history.pushState(state, title, url);
+
+  // Don't attempt to update buttons if there are no frames
+  if (containerFrames.length === 0) return;
+
   const activeContainerFrame = getActiveContainerFrame(); // Assuming this gets the active frame
   if (!activeContainerFrame) return;
 
@@ -370,7 +384,7 @@ export function updateBrowserURL() {
   if (duplicateButton) {
     duplicateButton.onclick = function () {
       duplicateButton.title = 'Duplicate URL';
-      addNewFrame(currentTabUrl);
+      addNewFrame(activeContainerFrame.dataset.url);
     };
   }
 
@@ -379,7 +393,7 @@ export function updateBrowserURL() {
   if (copyButton) {
     copyButton.onclick = function () {
       copyButton.title = 'Copy URL';
-      navigator.clipboard.writeText(currentTabUrl).then(() => {
+      navigator.clipboard.writeText(activeContainerFrame.dataset.url).then(() => {
         alert('URL copied to clipboard!');
       });
     };
@@ -389,7 +403,7 @@ export function updateBrowserURL() {
   const popOutButton = activeContainerFrame.querySelector('.pop-out-button');
   if (popOutButton) {
     popOutButton.onclick = function () {
-      window.open(currentTabUrl, '_blank');
+      window.open(activeContainerFrame.dataset.url, '_blank');
     };
   }
 }
@@ -456,6 +470,16 @@ function createSaveButton(url, title) {
 }
 
 export function addNewFrame(url) {
+  // Remove 'modal-active' class from the body if it exists
+  document.body.classList.remove('modal-active');
+
+  // Get the modal element
+  const modal = document.getElementById('modal');
+  if (!modal) {
+    console.error('Modal element not found');
+    return;
+  }
+
   const iframeContainer = document.getElementById('iframeContainer'); // Ensure this is the correct container element ID
   if (!iframeContainer) {
     console.error('Iframe container not found');
@@ -482,7 +506,18 @@ export function addNewFrame(url) {
   updateContainerFramesDataId(iframeContainer);
   // console.log('ContainerFrames Updated')
 
+  const containerFrames = iframeContainer.querySelectorAll('.url-container');
+  const equalProportion = 100 / containerFrames.length;
+  containerFrames.forEach(frame => {
+    frame.setAttribute('data-proportional-width', equalProportion.toFixed(2));
+    frame.style.flex = `1 1 ${equalProportion}%`;
+  });
+
   updateDividers(iframeContainer);
+
+  // Recalculate proportions for all frames including the new one
+  updateIframeProportions(iframeContainer);
+  updateBrowserURLWithProportions();
 
   updateBrowserURL(); // If you have a function to update the browser's address bar
   // console.log('BrowserUpdated')
@@ -518,8 +553,12 @@ function appendTabs(tabs, container, type) {
           currentTabUrl = tab.url;
           updateBrowserURL();
 
+
           const titleElement = activeContainerFrame.querySelector('.url-text');
-          if (titleElement) titleElement.textContent = tab.title.replace(/( - Google (Sheets|Docs|Slides))/g, '');
+          if (titleElement) {
+            titleElement.textContent = tab.title.replace(/( - Google (Sheets|Docs|Slides))/g, '');
+            activeContainerFrame.dataset.titleLoaded = 'true';
+          }
 
           closeModal(document.querySelector('.modal'));
         };
