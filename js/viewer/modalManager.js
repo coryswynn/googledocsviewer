@@ -11,10 +11,12 @@ import {
   updateBrowserURLWithProportions
 
 } from './iframeManager.js';
-import { createToolbar } from './toolbarActions.js';
+import { createToolbar, updateIframeURL } from './toolbarActions.js';
 import { getActiveContainerFrame, toggleIframeDarkMode } from './init.js';
+import { registerScrollableFrame } from './scrollSync.js';
 
 const isChromeExtension = typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.id;
+const isScrollSyncEnabled = localStorage.getItem('isScrollSyncEnabled') === 'true';
 
 let currentTabUrl = '';  // Global variable to store the current tab URL
 
@@ -252,18 +254,12 @@ function appendTabsToModal(tabs, combinedTabsContainer, activeContainerFrame, ty
 
     // Event listener for clicking a tabItem
     tabItem.addEventListener('click', () => {
-      const iframe = activeContainerFrame.querySelector('iframe');
-      if (iframe) iframe.src = tab.url; // Update the iframe source to the selected URL
+      updateIframeURL(activeContainerFrame, tab.url);
       currentTabUrl = tab.url;
       updateBrowserURL();
-
-      const titleElement = activeContainerFrame.querySelector('.url-text');
-      if (titleElement) {
-        const savedTitle = getSavedTabTitle(tab.url);
-        titleElement.textContent = savedTitle || cleanTitle;
-        activeContainerFrame.dataset.titleLoaded = 'true';
-      }
       closeModal(modal);
+      registerScrollableFrame(activeContainerFrame);
+      syncScrollStateToFrame(activeContainerFrame, isScrollSyncEnabled);
     });
 
     combinedTabsContainer.appendChild(tabItem); // Append to the modal content
@@ -522,6 +518,7 @@ export function addNewFrame(url) {
   updateBrowserURL(); // If you have a function to update the browser's address bar
   // console.log('BrowserUpdated')
   toggleIframeDarkMode();
+  registerScrollableFrame(containerFrame);
 }
 
 function appendTabs(tabs, container, type) {
@@ -548,18 +545,9 @@ function appendTabs(tabs, container, type) {
           const activeContainerFrame = getActiveContainerFrame();
           if (!activeContainerFrame) return;
 
-          const iframe = activeContainerFrame.querySelector('iframe');
-          if (iframe) iframe.src = tab.url;
+          updateIframeURL(activeContainerFrame, tab.url);
           currentTabUrl = tab.url;
           updateBrowserURL();
-
-
-          const titleElement = activeContainerFrame.querySelector('.url-text');
-          if (titleElement) {
-            titleElement.textContent = tab.title.replace(/( - Google (Sheets|Docs|Slides))/g, '');
-            activeContainerFrame.dataset.titleLoaded = 'true';
-          }
-
           closeModal(document.querySelector('.modal'));
         };
       }

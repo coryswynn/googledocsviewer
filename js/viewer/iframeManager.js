@@ -6,6 +6,39 @@ import { adjustModalPosition } from './modalManager.js';
 import { getActiveContainerFrame } from './init.js'; // Adjust the path as necessary
 import { updateBrowserURL } from './modalManager.js'; // Import updateBrowserURL for URL updates
 
+window.addEventListener('scrollSyncChanged', (e) => {
+  const { enabled } = e.detail;
+
+  showToast(
+    enabled
+      ? 'Scroll Sync enabled (Google Docs only)'
+      : 'Scroll Sync disabled'
+  );
+});
+
+// Initialize linkedScrolling from localStorage (source of truth on reload)
+export let linkedScrolling = (() => {
+  try {
+    // Preferred: shared sidebar data object (if present)
+    const sidebarDataRaw = localStorage.getItem("sidebarData");
+    if (sidebarDataRaw) {
+      const sidebarData = JSON.parse(sidebarDataRaw);
+      if (typeof sidebarData.isLinkedScrolling === "boolean") {
+        return sidebarData.isLinkedScrolling;
+      }
+    }
+
+    // Fallback: direct key (if you ever stored it standalone)
+    const direct = localStorage.getItem("linkedScrolling");
+    if (direct === "true") return true;
+    if (direct === "false") return false;
+  } catch {
+    // Ignore storage errors
+  }
+
+  // Final fallback
+  return false;
+})();
 
 // Function to create and return a container for the iframe
 export function createIframeContainer(url, index, iframeContainer, dragStartCallback, dragEnterCallback, dragOverCallback, dragLeaveCallback, dropCallback) {
@@ -28,7 +61,7 @@ export function createIframeContainer(url, index, iframeContainer, dragStartCall
     console.log(`Iframe added for URL: ${url}`);
     setupIframeResizeListener(containerFrame);
     toggleWelcomeMessage(containerFrame.parentNode);
-
+    console.log('linkedScrolling!!!', linkedScrolling);
     return iframe;
   }
   
@@ -140,6 +173,7 @@ import { addNewFrame } from './modalManager.js';
 export function openAddDocumentModal(iframeContainer) {
   const overlay = document.createElement('div');
   overlay.id = 'add-doc-modal-overlay';
+  overlay.className = 'add-doc-modal-overlay';
   overlay.style.position = 'fixed';
   overlay.style.top = '0';
   overlay.style.left = '0';
@@ -153,7 +187,7 @@ export function openAddDocumentModal(iframeContainer) {
 
   const modalContent = document.createElement('div');
   modalContent.id = 'add-doc-modal-content';
-  modalContent.style.background = 'white';
+  modalContent.className = 'add-doc-modal-content';
   modalContent.style.padding = '20px';
   modalContent.style.borderRadius = '8px';
   modalContent.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.2)';
@@ -164,6 +198,7 @@ export function openAddDocumentModal(iframeContainer) {
   modalContent.style.fontFamily = "'Poppins', sans-serif";
 
   const tabNav = document.createElement('div');
+  tabNav.className = 'add-doc-modal-tabs';
   tabNav.style.display = 'flex';
   tabNav.style.marginBottom = '10px';
 
@@ -174,12 +209,12 @@ export function openAddDocumentModal(iframeContainer) {
   tabs.forEach((tab, i) => {
     const btn = document.createElement('button');
     btn.textContent = tab;
+    btn.className = 'add-doc-modal-tab';
+    btn.dataset.active = i === 0 ? 'true' : 'false';
     btn.style.flex = '1';
     btn.style.padding = '10px';
     btn.style.cursor = 'pointer';
     btn.style.border = 'none';
-    btn.style.backgroundColor = i === 0 ? '#0078d7' : '#e0e0e0';
-    btn.style.color = i === 0 ? 'white' : 'black';
     btn.style.fontWeight = 'bold';
     tabButtons.push(btn);
     tabNav.appendChild(btn);
@@ -193,6 +228,7 @@ export function openAddDocumentModal(iframeContainer) {
   tab1.style.display = 'block';
   const openDocsList = document.createElement('div');
   openDocsList.id = 'tab-list-wrapper';
+  openDocsList.className = 'add-doc-modal-list';
   openDocsList.style.overflowY = 'auto';
   openDocsList.style.maxHeight = '300px';
   tab1.appendChild(openDocsList);
@@ -200,11 +236,14 @@ export function openAddDocumentModal(iframeContainer) {
 
   const tab2 = document.createElement('div');
   tab2.style.display = 'none';
-  const urlInput = document.createElement('input');
+
   const instructions = document.createElement('div');
+  instructions.className = 'add-doc-modal-instructions';
   instructions.innerHTML = `
-    <p style="margin-bottom: 6px; font-weight: 500; font-size: 13px; color: #333;">Add a document with a URL from Google Docs, Sheets, or Slides:</p>
-    <ul style="font-size: 12px; color: #666; line-height: 1.5; margin-bottom: 12px; padding-left: 20px;">
+    <p style="margin-bottom:6px;font-weight:500;font-size:13px;">
+      Add a document with a URL from Google Docs, Sheets, or Slides:
+    </p>
+    <ul style="font-size:12px;line-height:1.5;margin-bottom:12px;padding-left:20px;">
       <li><code>https://docs.google.com/document/d/...</code></li>
       <li><code>https://docs.google.com/spreadsheets/d/...</code></li>
       <li><code>https://docs.google.com/presentation/d/...</code></li>
@@ -212,14 +251,16 @@ export function openAddDocumentModal(iframeContainer) {
   `;
   tab2.appendChild(instructions);
 
+  const urlInput = document.createElement('input');
   urlInput.type = 'text';
   urlInput.placeholder = 'https://docs.google.com/...';
+  urlInput.className = 'add-doc-modal-input';
   urlInput.style.width = '100%';
   urlInput.style.padding = '10px';
   urlInput.style.margin = '10px 0';
-  urlInput.style.border = '1px solid #ccc';
   urlInput.style.borderRadius = '5px';
   tab2.appendChild(urlInput);
+
   tabContents.push(tab2);
 
   tabContents.forEach(tab => tabWrapper.appendChild(tab));
@@ -228,8 +269,7 @@ export function openAddDocumentModal(iframeContainer) {
   tabButtons.forEach((btn, i) => {
     btn.onclick = () => {
       tabButtons.forEach((b, j) => {
-        b.style.backgroundColor = j === i ? '#0078d7' : '#e0e0e0';
-        b.style.color = j === i ? 'white' : 'black';
+        b.dataset.active = j === i ? 'true' : 'false';
         tabContents[j].style.display = j === i ? 'block' : 'none';
       });
     };
@@ -237,9 +277,9 @@ export function openAddDocumentModal(iframeContainer) {
 
   const confirmButton = document.createElement('button');
   confirmButton.textContent = 'Add Document';
-  confirmButton.className = 'launch-splitview-button';
+  confirmButton.className = 'launch-splitview-button add-doc-modal-confirm';
   confirmButton.onclick = () => {
-    let urlToAdd = urlInput.value.trim();
+    const urlToAdd = urlInput.value.trim();
     if (!urlToAdd) {
       alert('Please paste a URL.');
       return;
@@ -252,20 +292,17 @@ export function openAddDocumentModal(iframeContainer) {
   confirmButton.style.fontSize = '14px';
   confirmButton.style.fontWeight = '600';
   confirmButton.style.marginTop = '10px';
-  confirmButton.style.backgroundColor = '#0078d7';
-  confirmButton.style.color = '#fff';
   confirmButton.style.border = 'none';
   confirmButton.style.borderRadius = '5px';
   confirmButton.style.cursor = 'pointer';
   confirmButton.style.transition = 'background-color 0.3s ease';
-  confirmButton.onmouseenter = () => { confirmButton.style.backgroundColor = '#005ea6'; };
-  confirmButton.onmouseleave = () => { confirmButton.style.backgroundColor = '#0078d7'; };
 
   const buttonContainer = document.createElement('div');
   buttonContainer.style.display = 'flex';
   buttonContainer.style.justifyContent = 'flex-end';
   buttonContainer.appendChild(confirmButton);
-  tab2.appendChild(buttonContainer);  
+  tab2.appendChild(buttonContainer);
+
   overlay.appendChild(modalContent);
   document.body.appendChild(overlay);
 
@@ -273,33 +310,24 @@ export function openAddDocumentModal(iframeContainer) {
     if (e.target === overlay) document.body.removeChild(overlay);
   });
 
-  /* Note: CSS classes like .tab-item, .favicon, .checkbox should match styles defined in the popup CSS
-     and optionally be included in the main CSS file. */
   function renderDocs(tabs) {
     openDocsList.innerHTML = '';
-    tabs.forEach((tab, index) => {
+    tabs.forEach(tab => {
       const label = document.createElement('label');
-      label.className = 'tab-item';
+      label.className = 'tab-item add-doc-modal-item';
       label.style.display = 'flex';
       label.style.alignItems = 'center';
       label.style.padding = '8px';
       label.style.margin = '5px 0';
-      label.style.background = 'white';
-      label.style.border = '1px solid #ccc';
       label.style.borderRadius = '5px';
       label.style.transition = 'all 0.2s';
       label.style.cursor = 'pointer';
-      label.addEventListener('mouseenter', () => {
-          label.style.backgroundColor = '#f0f0f0';
-      });
-      label.addEventListener('mouseleave', () => {
-          label.style.backgroundColor = 'white';
-      });
+
       label.addEventListener('click', () => {
-          addNewFrame(tab.url);
-          document.body.removeChild(overlay);
+        addNewFrame(tab.url);
+        document.body.removeChild(overlay);
       });
- 
+
       const favicon = document.createElement('img');
       favicon.className = 'favicon';
       favicon.src = 'https://ssl.gstatic.com/docs/doclist/images/icon_11_generic_favicon.ico';
@@ -309,11 +337,11 @@ export function openAddDocumentModal(iframeContainer) {
       favicon.style.marginRight = '8px';
       favicon.style.width = '16px';
       favicon.style.height = '16px';
- 
+
       const title = document.createElement('span');
       title.textContent = tab.title.replace(/ - Google (Docs|Sheets|Slides)/, '');
       title.style.flex = '1';
- 
+
       label.appendChild(favicon);
       label.appendChild(title);
       openDocsList.appendChild(label);
@@ -328,13 +356,24 @@ export function openAddDocumentModal(iframeContainer) {
         url: tab.url,
         title: tab.title || 'Untitled Document'
       }));
-      const combined = [...openTabs, ...formatted].filter((tab, i, self) =>
-        tab.url && !self.slice(0, i).some(t => t.url === tab.url)
-      ).filter(t => /https:\/\/docs\.google\.com\/(document|spreadsheets|presentation)/.test(t.url));
+
+      const combined = [...openTabs, ...formatted]
+        .filter((tab, i, self) =>
+          tab.url && !self.slice(0, i).some(t => t.url === tab.url)
+        )
+        .filter(t =>
+          /https:\/\/docs\.google\.com\/(document|spreadsheets|presentation)/.test(t.url)
+        );
+
       combined.sort((a, b) => a.title.localeCompare(b.title));
       renderDocs(combined);
     });
   }
+}
+
+// iframeManager.js (Ensure this function exists)
+export function getCurrentSplitViewURL() {
+  return window.location.href;
 }
 
 // Function to update iframes' proportions based on current sizes
@@ -487,6 +526,7 @@ export function updateBrowserURLWithProportions() {
 
     url.searchParams.set('proportions', proportions);
     url.searchParams.set('layout', isVertical ? 'vertical' : 'horizontal');
+    url.searchParams.set('sync', linkedScrolling ? 'true' : 'false');
     
     // Get the current URLs parameter
     const currentURLs = url.searchParams.get('urls');
@@ -497,7 +537,7 @@ export function updateBrowserURLWithProportions() {
     }
     
     history.replaceState(null, '', url);
-    console.log(`Updated URL with proportions: ${proportions} and layout: ${isVertical ? 'vertical' : 'horizontal'}`);
+    console.log(`Updated URL with proportions: ${proportions}, layout: ${isVertical ? 'vertical' : 'horizontal'}, and sync: ${linkedScrolling}`);
 }
 
 // Function to apply proportions from URL parameters
@@ -563,7 +603,6 @@ export function applyProportionsFromURL(iframeContainer) {
         frame.style.flex = `1 1 ${normalizedProportion}%`;
         console.log(`Applied proportion to frame ${index}: ${normalizedProportion.toFixed(2)}%`);
     });
-    
     return true; // Successfully applied proportions
 }
   
@@ -790,23 +829,30 @@ export function applyProportionsFromURL(iframeContainer) {
     resizeObserver.observe(containerFrame);
 }
 
+
+
 // Function to toggle the display of the welcome message when no documents are open.
 export function toggleWelcomeMessage(iframeContainer) {
-    let welcomeMessage = document.getElementById('welcome-message');
-    if (!welcomeMessage) {
-         welcomeMessage = document.createElement('div');
-         welcomeMessage.id = 'welcome-message';
-         welcomeMessage.className = 'welcome-message';
-         welcomeMessage.innerHTML = `
-             <h1>Welcome to Google Docs SplitView</h1>
-             <p>Add a document to get started</p>
-         `;
-         const addDocButton = document.createElement('button');
-         addDocButton.textContent = 'Open Document';
-         addDocButton.addEventListener('click', () => {
-             openAddDocumentModal(iframeContainer);
-         });
-         welcomeMessage.appendChild(addDocButton);
+  let welcomeMessage = document.getElementById('welcome-message');
+
+  if (!welcomeMessage) {
+    welcomeMessage = document.createElement('div');
+    welcomeMessage.id = 'welcome-message';
+    welcomeMessage.className = 'welcome-message splitview-welcome';
+
+    welcomeMessage.innerHTML = `
+      <h1 class="splitview-welcome-title">Welcome to Google Docs SplitView</h1>
+      <p class="splitview-welcome-subtitle">Add a document to get started</p>
+    `;
+
+    const addDocButton = document.createElement('button');
+    addDocButton.textContent = 'Open Document';
+    addDocButton.className = 'splitview-welcome-button';
+    addDocButton.addEventListener('click', () => {
+      openAddDocumentModal(iframeContainer);
+    });
+
+    welcomeMessage.appendChild(addDocButton);
          
          // Base styling for welcome message
          welcomeMessage.style.position = 'absolute';
@@ -821,8 +867,6 @@ export function toggleWelcomeMessage(iframeContainer) {
          welcomeMessage.style.zIndex = '0';
          
          // Improved design styles
-         welcomeMessage.style.background = 'linear-gradient(135deg, #f5f7fa, #c3cfe2)';
-         welcomeMessage.style.color = '#333';
          welcomeMessage.style.fontFamily = 'Arial, sans-serif';
          welcomeMessage.style.textAlign = 'center';
          welcomeMessage.style.padding = '20px';
@@ -888,3 +932,22 @@ window.addEventListener("beforeunload", () => {
     }
   });
 });
+
+function showToast(message) {
+  const toast = document.createElement('div');
+  toast.className = 'splitview-toast';
+  toast.textContent = message;
+
+  document.body.appendChild(toast);
+
+  requestAnimationFrame(() => {
+    toast.classList.add('visible');
+  });
+
+  setTimeout(() => {
+    toast.classList.remove('visible');
+    toast.addEventListener('transitionend', () => {
+      toast.remove();
+    }, { once: true });
+  }, 2000);
+}

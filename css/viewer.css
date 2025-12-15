@@ -691,10 +691,6 @@ body.dark-mode {
     filter: brightness(0) invert(1); /* Make icons white */
 }
 
-.dark-mode .focus-mode-button {
-    filter: brightness(0) invert(1); /* Make icons white */
-}
-
 /* Modal Dark Mode */
 .dark-mode .modal {
     background-color: rgba(0, 0, 0, 0.8); /* Darker background for the modal */
@@ -809,3 +805,147 @@ body.dark-mode {
   color: #1a73e8;
   opacity: 1;
 }
+
+.add-doc-modal-content {
+    background: #fff;
+    color: #111;
+  }
+  
+  .dark-mode .add-doc-modal-content {
+    background: #1e1e1e;
+    color: #eaeaea;
+  }
+  
+  .add-doc-modal-tab {
+    flex: 1;
+    padding: 10px;
+    cursor: pointer;
+    border: none;
+    font-weight: 700;
+    background: #e0e0e0;
+    color: #111;
+  }
+  
+  .add-doc-modal-tab[data-active="true"] {
+    background: #0078d7;
+    color: #fff;
+  }
+  
+  .dark-mode .add-doc-modal-tab {
+    background: #2d2d2d;
+    color: #eaeaea;
+  }
+  
+  .dark-mode .add-doc-modal-tab[data-active="true"] {
+    background: #0078d7;
+    color: #fff;
+  }
+  
+  .add-doc-modal-instructions p { color: inherit; }
+  .add-doc-modal-instructions ul { color: #666; }
+  .dark-mode .add-doc-modal-instructions ul { color: #b5b5b5; }
+  
+  .add-doc-modal-input {
+    background: #fff;
+    color: #111;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+  }
+  
+  .dark-mode .add-doc-modal-input {
+    background: #2a2a2a;
+    color: #eaeaea;
+    border-color: #444;
+  }
+  
+  .add-doc-modal-item {
+    display: flex;
+    align-items: center;
+    padding: 8px;
+    margin: 5px 0;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    background: #fff;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  
+  .add-doc-modal-item:hover { background: #f0f0f0; }
+  
+  .dark-mode .add-doc-modal-item {
+    border-color: #333;
+    background: #232323;
+  }
+  
+  .dark-mode .add-doc-modal-item:hover {
+    background: #2f2f2f;
+  }
+
+  /* Prevent icon inversion inside Add Document modal */
+.add-doc-modal-content img,
+.add-doc-modal-content svg,
+.add-doc-modal-content .favicon {
+  filter: none !important;
+}
+
+/* Welcome message base */
+.splitview-welcome {
+    background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+    color: #333;
+  }
+  
+  /* Dark mode variant */
+  .dark-mode .splitview-welcome {
+    background: linear-gradient(135deg, #1f2933, #0f172a);
+    color: #eaeaea;
+  }
+  
+  .splitview-welcome-title {
+    font-size: 28px;
+    margin-bottom: 8px;
+  }
+  
+  .splitview-welcome-subtitle {
+    font-size: 16px;
+    opacity: 0.85;
+  }
+  
+  /* Button */
+  .splitview-welcome-button {
+    background-color: #4CAF50;
+    color: #fff;
+    transition: background-color 0.2s ease;
+  }
+  
+  .splitview-welcome-button:hover {
+    background-color: #43a047;
+  }
+  
+  .dark-mode .splitview-welcome-button {
+    background-color: #22c55e;
+    color: #0b1220;
+  }
+  
+  .dark-mode .splitview-welcome-button:hover {
+    background-color: #16a34a;
+  }
+
+  .splitview-toast {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: #1f2937;
+    color: #fff;
+    padding: 10px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    opacity: 0;
+    transform: translateY(6px);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    z-index: 9999;
+  }
+  
+  .splitview-toast.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }

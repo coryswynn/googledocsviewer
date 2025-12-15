@@ -1,80 +1,109 @@
 console.log("✅ Google Docs SplitView content script loaded!");
 
-// Identify the correct scrollable element.
-function getGoogleDocsScrollElement() {
-  return document.querySelector('.kix-appview-editor') ||  // Google Docs
-         document.querySelector('.docs-sheet-container') || // Google Sheets
-         document.querySelector('.punch-filmstrip-scroll'); // Google Slides
+// Identify the app type and relevant elements.
+function getAppType() {
+  if (document.querySelector('.kix-appview-editor')) return 'docs';
+  if (document.querySelector('.docs-sheet-container')) return 'sheets';
+  if (document.querySelector('.punch-filmstrip-scroll')) return 'slides';
+  return null;
 }
 
-const scrollable = getGoogleDocsScrollElement();
+const appType = getAppType();
+let scrollable = null;
+let rowHeaders = null;
+let grid = null;
+let observer = null;
 
-if (!scrollable) {
-  console.warn("⚠️ No scrollable element found inside the iframe!");
+if (appType === 'docs') {
+  scrollable = document.querySelector('.kix-appview-editor');
+} else if (appType === 'slides') {
+  scrollable = document.querySelector('.punch-filmstrip-scroll');
+} else if (appType === 'sheets') {
+  rowHeaders = document.querySelector('.row-headers-content');
+  grid = document.querySelector('.waffle-grid-container');
+}
+
+if (!appType || (appType !== 'sheets' && !scrollable) || (appType === 'sheets' && (!rowHeaders || !grid))) {
+  console.warn("⚠️ No scrollable elements found!");
 } else {
-  console.log("✅ Found scrollable element inside iframe:", scrollable);
+  console.log("✅ Found scrollable elements for", appType);
 
-  // Determine one page's height.
-  const pageElement = scrollable.querySelector('.kix-page') || scrollable.querySelector('.filmstrip-slide');
-  const onePageHeight = pageElement ? pageElement.clientHeight : scrollable.clientHeight;
-  console.log("One page height:", onePageHeight);
+  let isSyncing = false;
+  let isLinkedScrollingEnabled = false;
+  let previousScroll = 0;
 
-  let isSyncing = false; // To prevent feedback loops.
-  let isLinkedScrollingEnabled = false; // Default to true.
-  let baselineScrollTop = null; // Will be set when linked scrolling is enabled.
-
-  // Listen for a message to enable/disable linked scrolling.
+  // Listen for enable/disable linked scrolling.
   window.addEventListener("message", (event) => {
     if (event.data.type === "setLinkedScrolling") {
       isLinkedScrollingEnabled = event.data.linkedScrolling;
       console.log("Iframe: Linked scrolling set to", isLinkedScrollingEnabled);
       if (isLinkedScrollingEnabled) {
-        // When enabling linked scrolling, record the current scroll position as the baseline.
-        baselineScrollTop = scrollable.scrollTop;
-        console.log("Iframe: Baseline scroll set to", baselineScrollTop);
-      } else {
-        baselineScrollTop = null;
+        previousScroll = getCurrentScroll();
       }
     }
   });
 
-  // On scroll: if linked scrolling is enabled, send the change (delta) from baseline in page units.
-  scrollable.addEventListener("scroll", () => {
-    if (!isLinkedScrollingEnabled) return;
-    if (isSyncing) return; // Skip if we're currently applying a sync update.
-    
-    // If baseline isn't set (should be set when sync is enabled), set it now.
-    if (baselineScrollTop === null) {
-      baselineScrollTop = scrollable.scrollTop;
+  // Function to get current scroll position.
+  function getCurrentScroll() {
+    if (appType === 'sheets') {
+      const style = getComputedStyle(rowHeaders);
+      const transform = style.transform;
+      if (transform === 'none') return 0;
+      const matrix = new DOMMatrix(transform);
+      return -matrix.m42;
+    } else {
+      return scrollable.scrollTop;
     }
-    
-    const currentScrollTop = scrollable.scrollTop;
-    const deltaPages = (currentScrollTop - baselineScrollTop) / onePageHeight;
-    
-    // Send the delta if it's significant.
-    if (Math.abs(deltaPages) > 0.01) {
-      window.parent.postMessage({ type: "iframeScrollDelta", deltaPages: deltaPages }, "*");
-      console.log("Iframe: Sent deltaPages:", deltaPages);
-    }
-  });
+  }
 
-  // When receiving a sync delta, update our scroll position relative to our own baseline.
+  // Function to scroll by delta.
+  function scrollByDelta(delta) {
+    if (appType === 'sheets') {
+      const style = getComputedStyle(rowHeaders);
+      const matrix = new DOMMatrix(style.transform);
+      const newY = matrix.m42 - delta;
+      const x = matrix.m41;
+      const newTransform = `translate(${x}px, ${newY}px)`;
+      rowHeaders.style.transform = newTransform;
+      grid.style.transform = newTransform;
+    } else {
+      scrollable.scrollBy(0, delta);
+    }
+  }
+
+  // Handle scroll change.
+  function handleScrollChange() {
+    if (!isLinkedScrollingEnabled) return;
+    if (isSyncing) return;
+    
+    const currentScroll = getCurrentScroll();
+    const delta = currentScroll - previousScroll;
+    
+    if (Math.abs(delta) > 0.01) {
+      window.parent.postMessage({ type: "iframeScrollDelta", deltaPixels: delta }, "*");
+      console.log("Iframe: Sent deltaPixels:", delta);
+      previousScroll = currentScroll;
+    }
+  }
+
+  // Setup change detection.
+  if (appType !== 'sheets') {
+    scrollable.addEventListener("scroll", handleScrollChange);
+  } else {
+    observer = new MutationObserver(handleScrollChange);
+    observer.observe(rowHeaders, { attributes: true, attributeFilter: ['style'] });
+  }
+
+  // Receive sync delta.
   window.addEventListener("message", (event) => {
     if (event.data.type === "syncScrollDelta") {
       isSyncing = true;
-      const deltaPages = event.data.deltaPages;
-      // If our baseline isn't set, initialize it.
-      if (baselineScrollTop === null) {
-        baselineScrollTop = scrollable.scrollTop;
-      }
-      const targetScrollTop = baselineScrollTop + deltaPages * onePageHeight;
-      const maxScroll = scrollable.scrollHeight - scrollable.clientHeight;
-      const clampedScrollTop = Math.max(0, Math.min(targetScrollTop, maxScroll));
-      scrollable.scrollTop = clampedScrollTop;
-      console.log("Iframe: Synced scroll to", clampedScrollTop, "using deltaPages", deltaPages);
-      // Optionally, update baseline here if you want subsequent changes relative to the new position.
-      // baselineScrollTop = clampedScrollTop;
-      requestAnimationFrame(() => { isSyncing = false; });    }
+      const delta = event.data.deltaPixels;
+      scrollByDelta(delta);
+      console.log("Iframe: Synced with deltaPixels", delta);
+      previousScroll = getCurrentScroll();
+      requestAnimationFrame(() => { isSyncing = false; });
+    }
   });
 }
 

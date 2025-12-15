@@ -11,6 +11,7 @@ import {
     encodeAndJoinFrameURLs,
     getSavedTabTitle
 } from './modalManager.js';
+import { registerScrollableFrame, syncScrollStateToFrame } from './scrollSync.js';
 
 const isChromeExtension = typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.id;
 
@@ -661,6 +662,11 @@ export function updateIframeURL(containerFrame, newURL) {
             iframe.src = newURL;
         }
     }
+    // 🔑 bind scroll sync on the *next load*
+    iframe.addEventListener('load', () => {
+        registerScrollableFrame(containerFrame, { rebind: true });
+        syncScrollStateToFrame(containerFrame, isScrollSyncEnabled);
+    }, { once: true });
 
     // Refresh the title
     const urlTitle = containerFrame.querySelector('.url-text');

@@ -53,6 +53,9 @@ button:hover {
     cursor: pointer;
     display: block; /* Ensure block-level display */
     font-family: 'Poppins', sans-serif; /* Now using Poppins */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 
 }
 
@@ -95,8 +98,8 @@ button:hover {
     font-size: 12px;
     text-align: center;
     color: #666;
-    margin-bottom: 15px;
-    margin-top: 10px;
+    margin-bottom: 10px;
+    margin-top: 5px;
 }
 
 /* Favicon Styles */
@@ -407,9 +410,8 @@ body.dark-mode .donate-new-button:hover {
     border: none;
     height: 1px;
     background: #ccc;
-    margin: 10px 0;
+    margin: 3px 0;
     width: 100%;
-    margin-top: 25px;
 }
 
 /* Dark Mode for the horizontal line */

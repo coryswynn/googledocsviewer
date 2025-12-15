@@ -96,6 +96,8 @@ function adjustLayoutForSidebar() {
 // Function to initialize the sidebar
 function initializeSidebar(sidebar) {
   // Define a key for localStorage
+  // 🔄 ALWAYS rehydrate sidebarData before building UI
+sidebarData = loadFromLocalStorage(SIDEBAR_DATA_KEY) || sidebarData;
 
   // Clean up any null or undefined folders
   sidebarData.folders = sidebarData.folders.filter(folder => folder !== null && folder !== undefined);
@@ -188,6 +190,10 @@ const linkedScrollIcon = document.createElement('i');
 linkedScrollIcon.className = sidebarData.isLinkedScrolling
   ? 'bx bx-toggle-right'
   : 'bx bx-toggle-left';
+  // ✅ APPLY VISUAL STATE ON LOAD (fixes non-green toggle after refresh)
+linkedScrollIcon.style.color = sidebarData.isLinkedScrolling
+? 'forestgreen'
+: 'white';
 const linkedScrollSpan = document.createElement('span');
 linkedScrollSpan.className = 'link_name';
 linkedScrollSpan.textContent = 'Sync Scrolling';
@@ -224,10 +230,15 @@ linkedScrollLink.addEventListener('click', (e) => {
   
 
   // Save state.
-  saveToLocalStorage(SIDEBAR_DATA_KEY, sidebarData);
+  // saveToLocalStorage(SIDEBAR_DATA_KEY, sidebarData);
   
   // Broadcast the new linked scrolling state to all iframes.
   toggleSyncScroll(sidebarData.isLinkedScrolling);
+  window.dispatchEvent(
+    new CustomEvent('scrollSyncChanged', {
+      detail: { enabled: sidebarData.isLinkedScrolling }
+    })
+  );
 });
 
   // Create UI for toggling frames orientation
@@ -1671,4 +1682,126 @@ function saveBookmarks(folderIndex) {
   chrome.storage.local.set({ bookmarksUpdated: true }, function () {
     console.log('Bookmarks updated, notifying listeners.');
   });
+}
+
+// Function to update the layout inputs based on the number of tabs
+function renderLayoutOptions(containerId, count, orientation, distribution) {
+  const container = document.getElementById(containerId);
+  container.innerHTML = ''; // Clear previous content
+
+  if (count < 2) {
+      // Show instruction if less than two items are selected
+      container.innerHTML = '<p class="helper-text">Select at least two items to configure the split-view layout.</p>';
+      return;
+  }
+
+  // --- 1. Orientation Selector ---
+  const orientationHTML = `
+      <div class="layout-options-container">
+          <label>Select Frame Arrangement:</label>
+          <div class="orientation-selector">
+              <button type="button" class="orientation-button ${orientation === 'row' ? 'selected' : ''}" 
+                      data-orientation="row"><i class="bx bx-transfer-alt"></i> Horizontal</button>
+              <button type="button" class="orientation-button ${orientation === 'column' ? 'selected' : ''}" 
+                      data-orientation="column"><i class="bx bx-transfer"></i> Vertical</button>
+          </div>
+          
+          <div class="layout-preview-box ${orientation}" id="layoutPreview">
+              </div>
+          
+          <label>Set Frame Proportions (must sum to 100%):</label>
+          ${renderDistributionInputs(count, distribution)}
+          <p class="helper-text">Adjust percentages for each frame. Total: <span id="distributionTotal">100</span>%</p>
+      </div>
+  `;
+  container.innerHTML = orientationHTML;
+
+  // Attach event listeners for orientation change and input changes
+  attachLayoutEventListeners(containerId, count);
+}
+
+// Function to generate individual percentage inputs
+function renderDistributionInputs(count, distributionArray) {
+  let inputsHTML = '';
+  // Ensure distributionArray has enough values, defaulting to equal distribution
+  const defaultDistribution = Math.floor(100 / count);
+  const distributions = distributionArray || Array(count).fill(defaultDistribution);
+
+  for (let i = 0; i < count; i++) {
+      inputsHTML += `
+          <div class="distribution-input-group">
+              <label>Frame ${i + 1}:</label>
+              <input type="number" min="0" max="100" value="${distributions[i] || defaultDistribution}" 
+                     data-frame-index="${i}" class="distribution-input styled-input">
+              <span>%</span>
+          </div>
+      `;
+  }
+  return inputsHTML;
+}
+
+// Function to update the visual preview (Preview Box)
+function updateLayoutPreview(containerId, orientation) {
+  const previewBox = document.querySelector(`#${containerId} #layoutPreview`);
+  const distributionInputs = document.querySelectorAll(`#${containerId} .distribution-input`);
+  const count = distributionInputs.length;
+  
+  // 1. Update orientation class
+  previewBox.className = `layout-preview-box ${orientation}`;
+  
+  // 2. Clear old frames
+  previewBox.innerHTML = '';
+  
+  // 3. Create new frames based on inputs
+  distributionInputs.forEach((input, index) => {
+      const percentage = parseInt(input.value) || 0;
+      const frame = document.createElement('div');
+      frame.className = 'layout-frame';
+      frame.textContent = `${percentage}%`;
+      
+      // Apply size based on orientation
+      if (orientation === 'row') {
+          frame.style.width = `${percentage}%`;
+          frame.style.height = '100%';
+      } else { // column
+          frame.style.height = `${percentage}%`;
+          frame.style.width = '100%';
+      }
+      previewBox.appendChild(frame);
+  });
+}
+
+// Function to attach event listeners
+function attachLayoutEventListeners(containerId, count) {
+  const container = document.getElementById(containerId);
+
+  // Orientation buttons
+  container.querySelectorAll('.orientation-button').forEach(button => {
+      button.addEventListener('click', () => {
+          container.querySelectorAll('.orientation-button').forEach(btn => btn.classList.remove('selected'));
+          button.classList.add('selected');
+          const newOrientation = button.getAttribute('data-orientation');
+          updateLayoutPreview(containerId, newOrientation);
+      });
+  });
+
+  // Distribution inputs
+  container.querySelectorAll('.distribution-input').forEach(input => {
+      input.addEventListener('input', () => {
+          // Recalculate and display total
+          let total = 0;
+          container.querySelectorAll('.distribution-input').forEach(i => {
+              total += parseInt(i.value) || 0;
+          });
+          document.querySelector(`#${containerId} #distributionTotal`).textContent = total;
+          
+          // Update preview
+          const orientation = container.querySelector('.orientation-button.selected').getAttribute('data-orientation');
+          updateLayoutPreview(containerId, orientation);
+      });
+  });
+  
+  // Initial call to populate the preview
+  const initialOrientation = container.querySelector('.orientation-button.selected')?.getAttribute('data-orientation') || 'row';
+  updateLayoutPreview(containerId, initialOrientation);
 }

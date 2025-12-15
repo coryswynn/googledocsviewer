@@ -171,3 +171,30 @@ export function setActiveFrame(frame) {
     console.log(`🔄 Active frame updated. Last active frame is now ignored.`);
   }
 }
+
+export function syncScrollStateToFrame(containerFrame, enabled) {
+  const iframe = containerFrame?.querySelector('iframe');
+  if (!iframe?.contentWindow) return;
+  iframe.contentWindow.postMessage({ type: 'setLinkedScrolling', enabled }, '*');
+}
+
+export function registerScrollableFrame(containerFrame, { rebind = false } = {}) {
+  const iframe = containerFrame?.querySelector('iframe');
+  if (!iframe) return;
+
+  // Avoid stacking listeners unless explicitly rebinding
+  if (rebind) {
+    iframe.dataset.scrollSyncBound = 'false';
+  }
+  if (iframe.dataset.scrollSyncBound === 'true') return;
+  iframe.dataset.scrollSyncBound = 'true';
+
+  iframe.addEventListener(
+    'load',
+    () => {
+      // After new document loads, push current sync state into it
+      syncScrollStateToFrame(containerFrame, isScrollSyncEnabled);
+    },
+    { once: true }
+  );
+}
