@@ -48,7 +48,12 @@ document.addEventListener("DOMContentLoaded", function () {
       sidebar.classList.remove('hidden');
       logoName.classList.remove('hidden');
       document.body.classList.remove('sidebar-hidden'); // Adjust layout
+      // Always initialize scroll sync, it will read state from localStorage
       initScrollSync();
+      // Then set the state based on saved preference
+      if (sidebarData.isLinkedScrolling) {
+        toggleSyncScroll(true);
+      }
     } else {
       // Hide the sidebar
       sidebar.classList.add('hidden');
@@ -182,7 +187,7 @@ document.addEventListener('fullscreenchange', () => {
   }
 });
 
-  // CREATE THE LINKED SCROLL LIST ITEM ABOVE 'TOGGLE FRAMES'
+// CREATE THE LINKED SCROLL LIST ITEM ABOVE 'TOGGLE FRAMES'
 const linkedScrollLi = document.createElement('li');
 const linkedScrollLink = document.createElement('a');
 linkedScrollLink.href = '#';
@@ -230,10 +235,11 @@ linkedScrollLink.addEventListener('click', (e) => {
   
 
   // Save state.
-  // saveToLocalStorage(SIDEBAR_DATA_KEY, sidebarData);
+  saveToLocalStorage(SIDEBAR_DATA_KEY, sidebarData);
   
   // Broadcast the new linked scrolling state to all iframes.
   toggleSyncScroll(sidebarData.isLinkedScrolling);
+
   window.dispatchEvent(
     new CustomEvent('scrollSyncChanged', {
       detail: { enabled: sidebarData.isLinkedScrolling }

@@ -12,6 +12,7 @@ import {
     getSavedTabTitle
 } from './modalManager.js';
 import { registerScrollableFrame, syncScrollStateToFrame } from './scrollSync.js';
+const isScrollSyncEnabled = localStorage.getItem('isScrollSyncEnabled') === 'true';
 
 const isChromeExtension = typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.id;
 

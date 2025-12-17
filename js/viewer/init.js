@@ -24,7 +24,7 @@ import { createToolbar } from './toolbarActions.js';
 import { initializeDragAndDrop } from './dragAndDrop.js';
 import './keyboardShortcuts.js';
 import { setupSidebarNavigation } from './sidebar.js';
-import { initScrollSync, setActiveFrame } from './scrollSync.js';
+import { initScrollSync, setActiveFrame, registerScrollableFrame } from './scrollSync.js';
 
 let activeContainerFrame = null; // Keep track of the active container frame globally
 
@@ -53,6 +53,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     createToolbar(containerFrame, url); // Add toolbar actions (buttons, drag handle) to each iframe container.
     setupIframe(containerFrame, url); // This function sets up the iframe and returns its container.
+    registerScrollableFrame(containerFrame); // Register for scroll sync state on load
     if (index < urls.length - 1) {
       const divider = createDivider(iframeContainer, index, urls.length);
       makeDividerDraggable(divider, iframeContainer, updateIframeProportions);
@@ -176,6 +177,15 @@ export function toggleIframeDarkMode() {
 }
 
 window.addEventListener("message", (event) => {
+  if (event.data.type === "contentScriptReady") {
+    console.log("Parent: Received contentScriptReady from iframe");
+    event.source.postMessage(
+      { type: "setLinkedScrolling", linkedScrolling: JSON.parse(localStorage.getItem('scrollSyncEnabled') || 'false') },
+      "*"
+    );
+    return;
+  }
+
   if (event.data && event.data.type === "iframeScrollDelta") {
     const deltaPages = event.data.deltaPages;
     console.log("Parent: Received deltaPages from an iframe:", deltaPages);

@@ -1,10 +1,19 @@
 let isScrollSyncEnabled = false;
-let activeFrame = null;
-let lastActiveFrame = null; // Track the last frame interacted with
-let scrolling = false;
-let scrollTimeout = null;
-const smoothFactor = 1.0; // Adjust for smoother scrolling
-const maxScrollStep = 100; // Prevent large sudden jumps
+let activeFrame           = null;
+let lastActiveFrame       = null; // Track the last frame interacted with
+let scrolling             = false;
+let scrollTimeout         = null;
+
+const smoothFactor  = 1.0;   // Adjust for smoother scrolling
+const maxScrollStep = 100;   // Prevent large sudden jumps
+
+function isSheetsOrSlidesIframe(iframe) {
+  const src = iframe?.src || "";
+  return (
+    src.includes("spreadsheets.google.com") ||
+    src.includes("presentation.google.com")
+  );
+}
 
 /**
  * Initialize scroll sync by setting up scroll listeners on all existing frame containers.
@@ -16,17 +25,42 @@ export function initScrollSync() {
 
   setupScrollListeners();
 
-  // Observe dynamically added frames.
   const observer = new MutationObserver((mutations) => {
     mutations.forEach((mutation) => {
       mutation.addedNodes.forEach((node) => {
-        if (node.nodeType === Node.ELEMENT_NODE && node.classList.contains("url-container")) {
+        if (
+          node.nodeType === Node.ELEMENT_NODE &&
+          node.classList.contains("url-container")
+        ) {
           setupFrameScrollListener(node);
         }
       });
     });
   });
+
   observer.observe(iframeContainer, { childList: true });
+
+  // 🔹 Listen for ratio responses from iframes (Sheets / Slides)
+  window.addEventListener("message", (event) => {
+    if (event.data?.type !== "syncScrollRatio") return;
+
+    const ratio = event.data.ratio;
+    if (!Number.isFinite(ratio)) return;
+
+    const frames = document.querySelectorAll(".url-container");
+
+    frames.forEach((frame) => {
+      if (frame === activeFrame || frame === lastActiveFrame) return;
+
+      const iframe = frame.querySelector("iframe");
+      if (!iframe) return;
+
+      iframe.contentWindow.postMessage(
+        { type: "syncScrollRatio", ratio },
+        "*"
+      );
+    });
+  });
 }
 
 /**
@@ -55,146 +89,147 @@ function setupFrameScrollListener(containerFrame) {
     background: transparent;
     pointer-events: ${isScrollSyncEnabled ? "auto" : "none"};
   `;
+
   containerFrame.style.position = "relative";
   containerFrame.appendChild(scrollOverlay);
 
   const iframe = containerFrame.querySelector("iframe");
   if (!iframe) return;
 
-  // Listen for user scrolling **only in the active frame**
-  containerFrame.addEventListener("wheel", (e) => {
-    if (!isScrollSyncEnabled || scrolling) return;
-    if (containerFrame === activeFrame) {
+  containerFrame.addEventListener(
+    "wheel",
+    (e) => {
+      if (!isScrollSyncEnabled || scrolling) return;
+      if (containerFrame !== activeFrame) return;
+
       e.preventDefault();
-      transmitScrollDelta(e.deltaY);
-    }
-  }, { passive: false });
+      transmitScrollDelta(e.deltaY, iframe);
+    },
+    { passive: false }
+  );
 
   let touchStartY = 0;
-  containerFrame.addEventListener("touchstart", (e) => {
-    touchStartY = e.touches[0].clientY;
-  }, { passive: true });
 
-  containerFrame.addEventListener("touchmove", (e) => {
-    if (!isScrollSyncEnabled || scrolling) return;
-    if (containerFrame === activeFrame) {
+  containerFrame.addEventListener(
+    "touchstart",
+    (e) => {
+      touchStartY = e.touches[0].clientY;
+    },
+    { passive: true }
+  );
+
+  containerFrame.addEventListener(
+    "touchmove",
+    (e) => {
+      if (!isScrollSyncEnabled || scrolling) return;
+      if (containerFrame !== activeFrame) return;
+
       const deltaY = touchStartY - e.touches[0].clientY;
       touchStartY = e.touches[0].clientY;
       e.preventDefault();
-      transmitScrollDelta(deltaY);
-    }
-  }, { passive: false });
+      transmitScrollDelta(deltaY, iframe);
+    },
+    { passive: false }
+  );
 
-  // Detect user clicking to change active frame
   containerFrame.addEventListener("click", () => {
     if (activeFrame !== containerFrame) {
       lastActiveFrame = activeFrame;
-      activeFrame = containerFrame;
-      console.log(`🔄 Active frame updated. Last active frame is now ignored.`);
+      activeFrame     = containerFrame;
+      console.log("🔄 Active frame updated. Last active frame is now ignored.");
     }
   });
-
-  // **NEW**: Detect scrollbar drags and sync delta
-  iframe.contentWindow?.document?.addEventListener("scroll", () => {
-    if (!isScrollSyncEnabled || scrolling || isUserScrolling) return; 
-    if (containerFrame === activeFrame) {
-        syncScrollFromScrollbar(iframe);
-    }
-}, { passive: true });
 }
 
 /**
- * **Calculate and Transmit `deltaY` Scroll**
- * Captures how much the user scrolled in the active window and applies
- * the same movement (`deltaY`) to all other frames **except the last active frame**.
+ * Calculate and transmit scroll update (HYBRID).
  */
-function transmitScrollDelta(deltaY) {
+function transmitScrollDelta(deltaY, sourceIframe) {
   if (scrolling) return;
   scrolling = true;
 
-  // Prevent sudden large jumps
   if (Math.abs(deltaY) > maxScrollStep) {
-    deltaY *= 0.95; // Gradually reduce large jumps instead of hard-capping them
-}
+    deltaY *= 0.95;
+  }
 
   const frames = document.querySelectorAll(".url-container");
+
   frames.forEach((frame) => {
-    if (frame === activeFrame || frame === lastActiveFrame) return; // NEVER update the active or last active frame
+    if (frame === activeFrame || frame === lastActiveFrame) return;
 
     const iframe = frame.querySelector("iframe");
     if (!iframe) return;
 
-    try {
-      if (!Number.isFinite(deltaY)) {
-        console.warn("⚠️ Skipping invalid scroll update:", deltaY);
-        return;
-      }
-
-      requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      // 🔹 HYBRID DISPATCH
+      if (isSheetsOrSlidesIframe(iframe)) {
         iframe.contentWindow.postMessage(
-          { type: "syncScroll", deltaY: deltaY },
+          { type: "syncScrollRatioRequest" },
           "*"
         );
-      });
-
-    } catch (e) {
-      console.debug("⚠️ Failed to postMessage to frame:", e);
-    }
+      } else {
+        iframe.contentWindow.postMessage(
+          { type: "syncScroll", deltaY },
+          "*"
+        );
+      }
+    });
   });
 
   scrollTimeout = setTimeout(() => {
     scrolling = false;
-  }, 20); // Prevent jittering
+  }, 20);
 }
 
 /**
  * Toggle scroll syncing on or off.
  */
 export function toggleSyncScroll(isLinkedScrolling) {
+  isScrollSyncEnabled = isLinkedScrolling;
+
   const iframes = document.querySelectorAll("iframe");
+
   iframes.forEach((iframe) => {
     iframe.contentWindow.postMessage(
       { type: "setLinkedScrolling", linkedScrolling: isLinkedScrolling },
       "*"
     );
-    console.log("Parent: set linkedScrolling to", isLinkedScrolling, "for an iframe");
   });
 }
 
 /**
- * Set the active frame (frame currently being interacted with).
+ * Set the active frame.
  */
 export function setActiveFrame(frame) {
   if (activeFrame !== frame) {
     lastActiveFrame = activeFrame;
-    activeFrame = frame;
-    console.log(`🔄 Active frame updated. Last active frame is now ignored.`);
+    activeFrame     = frame;
+    console.log("🔄 Active frame updated. Last active frame is now ignored.");
   }
+}
+
+export function registerScrollableFrame(containerFrame) {
+  const iframe = containerFrame.querySelector("iframe");
+  if (!iframe) return;
+
+  iframe.addEventListener(
+    "load",
+    () => {
+      iframe.contentWindow.postMessage(
+        { type: "setLinkedScrolling", linkedScrolling: isScrollSyncEnabled },
+        "*"
+      );
+    },
+    { once: true }
+  );
 }
 
 export function syncScrollStateToFrame(containerFrame, enabled) {
-  const iframe = containerFrame?.querySelector('iframe');
-  if (!iframe?.contentWindow) return;
-  iframe.contentWindow.postMessage({ type: 'setLinkedScrolling', enabled }, '*');
-}
-
-export function registerScrollableFrame(containerFrame, { rebind = false } = {}) {
-  const iframe = containerFrame?.querySelector('iframe');
+  const iframe = containerFrame.querySelector("iframe");
   if (!iframe) return;
 
-  // Avoid stacking listeners unless explicitly rebinding
-  if (rebind) {
-    iframe.dataset.scrollSyncBound = 'false';
-  }
-  if (iframe.dataset.scrollSyncBound === 'true') return;
-  iframe.dataset.scrollSyncBound = 'true';
-
-  iframe.addEventListener(
-    'load',
-    () => {
-      // After new document loads, push current sync state into it
-      syncScrollStateToFrame(containerFrame, isScrollSyncEnabled);
-    },
-    { once: true }
+  iframe.contentWindow.postMessage(
+    { type: "setLinkedScrolling", linkedScrolling: enabled },
+    "*"
   );
 }
